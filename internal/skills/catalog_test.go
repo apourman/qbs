@@ -171,6 +171,7 @@ func TestDefaultCatalogUsesSharedAgentSkillsDirectory(t *testing.T) {
 	t.Setenv("HOME", home)
 	t.Setenv("QBS_HOME", "")
 	t.Setenv("QBS_SKILL_TARGETS", "")
+	chdirForTest(t, home)
 
 	catalog, err := DefaultCatalog()
 	if err != nil {
@@ -192,6 +193,30 @@ func TestDefaultCatalogUsesSharedAgentSkillsDirectory(t *testing.T) {
 	}
 }
 
+func TestDefaultCatalogIncludesProjectAgentSkillsDirectory(t *testing.T) {
+	home := t.TempDir()
+	project := filepath.Join(home, "project")
+	if err := os.MkdirAll(filepath.Join(project, ".git"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(filepath.Join(project, "nested"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("HOME", home)
+	t.Setenv("QBS_HOME", "")
+	t.Setenv("QBS_SKILL_TARGETS", "")
+	chdirForTest(t, filepath.Join(project, "nested"))
+
+	catalog, err := DefaultCatalog()
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := filepath.Join(project, ".agents", "skills")
+	if len(catalog.Targets) != 4 || catalog.Targets[3] != want {
+		t.Fatalf("skill targets = %#v, want project target %s", catalog.Targets, want)
+	}
+}
+
 func writeSkill(t *testing.T, parent, name, contents string) {
 	t.Helper()
 	dir := filepath.Join(parent, name)
@@ -201,6 +226,22 @@ func writeSkill(t *testing.T, parent, name, contents string) {
 	if err := os.WriteFile(filepath.Join(dir, "SKILL.md"), []byte(contents), 0o644); err != nil {
 		t.Fatal(err)
 	}
+}
+
+func chdirForTest(t *testing.T, directory string) {
+	t.Helper()
+	previous, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chdir(directory); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		if err := os.Chdir(previous); err != nil {
+			t.Errorf("restore working directory: %v", err)
+		}
+	})
 }
 
 func assertFile(t *testing.T, path string) {
