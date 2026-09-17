@@ -24,7 +24,13 @@ do
 done
 
 if command -v sha256sum >/dev/null 2>&1; then
-  (cd "$dist_dir" && sha256sum qbs_*) > "$dist_dir/SHA256SUMS"
+  (cd "$dist_dir" && sha256sum \
+    "qbs_${version}_linux_amd64" "qbs_${version}_linux_arm64" \
+    "qbs_${version}_darwin_amd64" "qbs_${version}_darwin_arm64" \
+    "qbs_${version}_windows_amd64.exe" "qbs_${version}_windows_arm64.exe") > "$dist_dir/SHA256SUMS"
 else
-  (cd "$dist_dir" && shasum -a 256 qbs_*) > "$dist_dir/SHA256SUMS"
+  (cd "$dist_dir" && shasum -a 256 \
+    "qbs_${version}_linux_amd64" "qbs_${version}_linux_arm64" \
+    "qbs_${version}_darwin_amd64" "qbs_${version}_darwin_arm64" \
+    "qbs_${version}_windows_amd64.exe" "qbs_${version}_windows_arm64.exe") > "$dist_dir/SHA256SUMS"
 fi

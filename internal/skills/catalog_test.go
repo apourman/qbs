@@ -128,6 +128,25 @@ func TestSyncInteractiveAsksBeforeReplacingUnmanagedTarget(t *testing.T) {
 	}
 }
 
+func TestImportInteractiveDoesNotPromptForNewTarget(t *testing.T) {
+	root := t.TempDir()
+	source := filepath.Join(root, "source")
+	writeSkill(t, source, "alpha", "new skill\n")
+	catalog := Catalog{
+		Root:    filepath.Join(root, "catalog"),
+		Targets: []string{filepath.Join(root, "target")},
+	}
+
+	_, err := catalog.ImportInteractive(source, false, func(string, string) (bool, error) {
+		t.Fatal("asked to replace a skill at an empty target")
+		return false, nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertFile(t, filepath.Join(catalog.Targets[0], "alpha", "SKILL.md"))
+}
+
 func TestDefaultCatalogUsesOverrides(t *testing.T) {
 	root := t.TempDir()
 	targetOne := filepath.Join(root, "one")

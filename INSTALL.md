@@ -7,7 +7,10 @@ workflow.
 
 ## Download a release artifact
 
-Choose the artifact matching the host operating system and CPU from `dist/`:
+Choose the release archive matching the host operating system and CPU. The
+local `make release-artifacts` command writes the binaries named below to
+`dist/`; published releases package each binary in a `.tar.gz` archive, or a
+`.zip` archive on Windows.
 
 | Host | Artifact |
 | --- | --- |
@@ -121,12 +124,18 @@ OS-path-list of directories when harness discovery paths differ from the
 defaults. Curated skills remain global; project-only skills may still live in
 the project-local harness directories provisioned and excluded by QBS.
 
-## Build release artifacts
+## Build release artifacts locally
 
-From a checkout with Go installed:
+The project uses Conventional Commits and release-please for published
+releases. Merges to `master` are analyzed to maintain a release PR, update
+`VERSION` and `CHANGELOG.md`, and create a `v<version>` tag with a draft
+release. GoReleaser then builds the tagged binaries for Linux, macOS, and
+Windows on amd64 and arm64 and publishes the release after uploading them.
+
+For local packaging, from a checkout with Go installed, run:
 
 ```text
-VERSION=0.2.0 make release
+make release-artifacts
 ```
 
 This produces standalone, CGO-free binaries for Linux, macOS, and Windows,

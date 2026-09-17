@@ -1,15 +1,16 @@
 SHELL := /bin/sh
 
-VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || printf '%s' dev)
+VERSION_FILE ?= VERSION
+VERSION ?= $(shell tr -d '[:space:]' < "$(VERSION_FILE)" 2>/dev/null || printf '%s' dev)
 DIST_DIR ?= dist
 
-.PHONY: test build install update-local enable-local-updates release release-artifacts smoke-release clean
+.PHONY: test build install update-local enable-local-updates release release-artifacts smoke-release check-release-version clean
 
 test:
 	go test ./...
 
 build:
-	go build -o qbs ./cmd/qbs
+	go build -ldflags "-X github.com/trues/qbs/internal/cli.Version=$(VERSION)" -o qbs ./cmd/qbs
 
 PREFIX ?= /usr/local
 
@@ -30,7 +31,10 @@ release:
 release-artifacts:
 	VERSION=$(VERSION) DIST_DIR=$(DIST_DIR) ./scripts/build-release.sh
 
-smoke-release: release
+check-release-version:
+	./scripts/check-release-version.sh $(VERSION)
+
+smoke-release: release-artifacts
 	VERSION=$(VERSION) QBS_RELEASE_DIR=$(DIST_DIR) ./scripts/smoke-release.sh
 
 clean:

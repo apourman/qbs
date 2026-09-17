@@ -1,0 +1,44 @@
+version: 2
+
+before:
+  hooks:
+    - go mod tidy
+    - ./scripts/check-release-version.sh {{ .Version }}
+
+builds:
+  - id: qbs
+    main: ./cmd/qbs
+    binary: qbs
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X github.com/trues/qbs/internal/cli.Version={{ .Version }}
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}
+
+checksum:
+  name_template: SHA256SUMS
+
+release:
+  github:
+    owner: trues
+    name: qbs
+  use_existing_draft: true
+
+changelog:
+  use: github-native

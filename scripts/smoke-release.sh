@@ -2,9 +2,10 @@
 set -eu
 
 release_dir=${QBS_RELEASE_DIR:-dist}
-binary=$(find "$release_dir" -maxdepth 1 -type f -name 'qbs_*_linux_amd64' -print -quit)
-if [ -z "$binary" ]; then
-  echo "no Linux amd64 release binary found in $release_dir" >&2
+version=${VERSION:-dev}
+binary="$release_dir/qbs_${version}_linux_amd64"
+if [ ! -f "$binary" ]; then
+  echo "no Linux amd64 release binary for $version found in $release_dir" >&2
   exit 1
 fi
 binary=$(cd "$(dirname "$binary")" && pwd)/$(basename "$binary")
@@ -30,14 +31,13 @@ printf '%s\n' '---' 'name: demo' 'description: smoke test skill' '---' > "$skill
 git -C "$repo" add README.md
 git -C "$repo" commit -qm fixture
 
-version=${VERSION:-dev}
 version_output=$(PATH="$tmux_bin:$PATH" "$binary" --version)
 test "$version_output" = "qbs $version"
 (cd "$repo" && PATH="$tmux_bin:$PATH" "$binary" init)
 (cd "$repo" && PATH="$tmux_bin:$PATH" "$binary" task smoke)
 QBS_HOME="$root/qbs-home" \
 QBS_SKILL_TARGETS="$root/codex-skills:$root/claude-skills" \
-  "$binary" skills import "$skill_source"
+  "$binary" skills import "$skill_source" </dev/null
 
 test -f "$repo/AGENTS.md"
 test -f "$repo/.agents/skills/qbs/SKILL.md"

@@ -212,7 +212,7 @@ func (catalog Catalog) syncNames(names []string, force bool, confirm ConfirmRepl
 				return fmt.Errorf("catalog skill %q is invalid: SKILL.md is required", name)
 			}
 			destination := filepath.Join(target, name)
-			if !force && !isManaged(destination) && confirm != nil {
+			if _, err := os.Lstat(destination); err == nil && !force && !isManaged(destination) && confirm != nil {
 				ok, err := confirm(name, target)
 				if err != nil {
 					return err
@@ -220,6 +220,8 @@ func (catalog Catalog) syncNames(names []string, force bool, confirm ConfirmRepl
 				if !ok {
 					continue
 				}
+			} else if err != nil && !os.IsNotExist(err) {
+				return fmt.Errorf("inspect skill target %s: %w", destination, err)
 			}
 			if err := replaceDirectory(source, destination, true); err != nil {
 				return fmt.Errorf("sync skill %q to %s: %w", name, target, err)

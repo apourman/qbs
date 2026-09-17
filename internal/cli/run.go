@@ -7,10 +7,8 @@ import (
 	"os"
 )
 
-// Version is set at release build time with -ldflags. Keeping a useful
-// development default preserves the current CLI version; release builds can
-// replace it with -ldflags.
-var Version = "0.2.0"
+// Version is set at build time with -ldflags.
+var Version = "dev"
 
 const usage = `qbs — AI workspace and curated skill manager
 
