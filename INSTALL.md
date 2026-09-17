@@ -41,7 +41,17 @@ go install github.com/trues/qbs/cmd/qbs@latest
 
 Go places the executable in your Go binary directory (`GOBIN`, or otherwise
 `GOPATH/bin`). Add that directory to `PATH` if `qbs` is not found. To update
-an existing installation to the newest release, run the same command again.
+an existing installation to the newest release, run:
+
+```text
+qbs update
+```
+
+QBS downloads the matching release, verifies its checksum, and replaces the
+installed executable. This self-update command currently supports Linux and
+macOS. On Windows, download the new release archive and replace `qbs.exe`
+after closing QBS.
+
 To install a specific release, replace `latest` with its tag, for example
 `@v0.0.1`.
 

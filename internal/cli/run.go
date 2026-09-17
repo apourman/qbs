@@ -41,6 +41,9 @@ Usage:
 Options:
   -h, --help       show this help
       --version    show version
+
+Commands:
+  update [version] download and install the latest (or selected) release
 `
 
 // Run dispatches a qbs invocation. It returns an error suitable for display
@@ -77,6 +80,15 @@ func RunWithInput(args []string, input io.Reader, stdout, stderr io.Writer) erro
 		return fromCurrentDirectory(func(dir string) error {
 			return provisionRepository(dir, stdout, stderr)
 		})
+	case "update":
+		if len(args) > 2 {
+			return errors.New("update accepts an optional version")
+		}
+		version := ""
+		if len(args) == 2 {
+			version = args[1]
+		}
+		return update(version, stdout)
 	case "skills":
 		return runSkills(args[1:], input, stdout)
 	case "task":
