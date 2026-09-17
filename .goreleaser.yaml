@@ -36,7 +36,7 @@ checksum:
 
 release:
   github:
-    owner: trues
+    owner: apourman
     name: qbs
   use_existing_draft: true
 
