@@ -107,11 +107,12 @@ qbs skills import /path/to/skill
 qbs skills import /path/to/collection
 ```
 
-The canonical catalog lives at `~/.qbs/skills/`. Imports are synchronized to
-the global skill directories for Codex, Claude, and OpenCode. QBS marks
-its synchronized copies and refuses to replace an unmanaged skill with the
-same name. Use `--force` only to replace an existing catalog entry; it does not
-override unmanaged destinations.
+The canonical catalog lives at `~/.qbs/skills/`. By default, imports are
+synchronized to Codex's shared global agent skill directory, `~/.agents/skills/`,
+as well as Claude's `~/.claude/skills/` and OpenCode's
+`~/.config/opencode/skills/`. QBS marks its synchronized copies and refuses to
+replace an unmanaged skill with the same name. Use `--force` only to replace an
+existing catalog entry; it does not override unmanaged destinations.
 
 ```text
 qbs skills list

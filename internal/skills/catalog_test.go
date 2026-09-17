@@ -166,6 +166,32 @@ func TestDefaultCatalogUsesOverrides(t *testing.T) {
 	}
 }
 
+func TestDefaultCatalogUsesSharedAgentSkillsDirectory(t *testing.T) {
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	t.Setenv("QBS_HOME", "")
+	t.Setenv("QBS_SKILL_TARGETS", "")
+
+	catalog, err := DefaultCatalog()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := []string{
+		filepath.Join(home, ".agents", "skills"),
+		filepath.Join(home, ".claude", "skills"),
+		filepath.Join(home, ".config", "opencode", "skills"),
+	}
+	if len(catalog.Targets) != len(want) {
+		t.Fatalf("skill targets = %#v, want %#v", catalog.Targets, want)
+	}
+	for i := range want {
+		if catalog.Targets[i] != want[i] {
+			t.Fatalf("skill targets = %#v, want %#v", catalog.Targets, want)
+		}
+	}
+}
+
 func writeSkill(t *testing.T, parent, name, contents string) {
 	t.Helper()
 	dir := filepath.Join(parent, name)
