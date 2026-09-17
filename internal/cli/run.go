@@ -5,10 +5,25 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"runtime/debug"
+	"strings"
 )
 
-// Version is set at build time with -ldflags.
+// Version is set at build time with -ldflags. When QBS is installed with
+// "go install ...@version", Go records the module version in the executable;
+// use that value when no release-specific linker flag was supplied.
 var Version = "dev"
+
+func init() {
+	if Version != "dev" {
+		return
+	}
+	info, ok := debug.ReadBuildInfo()
+	if !ok || info.Main.Version == "" || info.Main.Version == "(devel)" {
+		return
+	}
+	Version = strings.TrimPrefix(info.Main.Version, "v")
+}
 
 const usage = `qbs — AI workspace and curated skill manager
 

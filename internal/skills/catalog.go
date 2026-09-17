@@ -77,11 +77,35 @@ func defaultTargets() ([]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("resolve user home: %w", err)
 	}
-	return uniquePaths([]string{
+	targets := []string{
 		filepath.Join(home, ".agents", "skills"),
 		filepath.Join(home, ".claude", "skills"),
 		filepath.Join(home, ".config", "opencode", "skills"),
-	}), nil
+	}
+
+	if workingDirectory, err := os.Getwd(); err == nil {
+		if projectRoot := findProjectRoot(workingDirectory); projectRoot != "" {
+			targets = append(targets, filepath.Join(projectRoot, ".agents", "skills"))
+		}
+	}
+	return uniquePaths(targets), nil
+}
+
+func findProjectRoot(directory string) string {
+	current, err := filepath.Abs(directory)
+	if err != nil {
+		return ""
+	}
+	for {
+		if _, err := os.Stat(filepath.Join(current, ".git")); err == nil {
+			return current
+		}
+		parent := filepath.Dir(current)
+		if parent == current {
+			return ""
+		}
+		current = parent
+	}
 }
 
 func uniquePaths(paths []string) []string {

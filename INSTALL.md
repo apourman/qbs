@@ -31,6 +31,26 @@ Check the installed build with:
 qbs --version
 ```
 
+## Install or update from a release
+
+With Go installed, the simplest global installation is:
+
+```text
+go install github.com/trues/qbs/cmd/qbs@latest
+```
+
+Go places the executable in your Go binary directory (`GOBIN`, or otherwise
+`GOPATH/bin`). Add that directory to `PATH` if `qbs` is not found. To update
+an existing installation to the newest release, run the same command again.
+To install a specific release, replace `latest` with its tag, for example
+`@v0.0.1`.
+
+The installed executable reports the release selected by Go:
+
+```text
+qbs --version
+```
+
 To build and install QBS into your user-local bin directory on Linux or macOS:
 
 ```text
@@ -110,7 +130,8 @@ qbs skills import /path/to/collection
 The canonical catalog lives at `~/.qbs/skills/`. By default, imports are
 synchronized to Codex's shared global agent skill directory, `~/.agents/skills/`,
 as well as Claude's `~/.claude/skills/` and OpenCode's
-`~/.config/opencode/skills/`. QBS marks its synchronized copies and refuses to
+`~/.config/opencode/skills/`. When run inside a Git repository, QBS also targets
+that repository's `.agents/skills/` directory. QBS marks its synchronized copies and refuses to
 replace an unmanaged skill with the same name. Use `--force` only to replace an
 existing catalog entry; it does not override unmanaged destinations.
 
