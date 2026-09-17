@@ -78,7 +78,7 @@ func defaultTargets() ([]string, error) {
 		return nil, fmt.Errorf("resolve user home: %w", err)
 	}
 	return uniquePaths([]string{
-		filepath.Join(home, ".codex", "skills"),
+		filepath.Join(home, ".agents", "skills"),
 		filepath.Join(home, ".claude", "skills"),
 		filepath.Join(home, ".config", "opencode", "skills"),
 	}), nil
