@@ -1,0 +1,12 @@
+#!/bin/sh
+
+repo_root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
+update_script="$repo_root/scripts/update-local.sh"
+
+if [ -x "$update_script" ]; then
+	if ! "$update_script"; then
+		printf 'warning: automatic local QBS update failed; run %s manually\n' "$update_script" >&2
+	fi
+fi
+
+exit 0
