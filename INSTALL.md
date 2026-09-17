@@ -31,6 +31,26 @@ Check the installed build with:
 qbs --version
 ```
 
+## Install or update from a release
+
+With Go installed, the simplest global installation is:
+
+```text
+go install github.com/trues/qbs/cmd/qbs@latest
+```
+
+Go places the executable in your Go binary directory (`GOBIN`, or otherwise
+`GOPATH/bin`). Add that directory to `PATH` if `qbs` is not found. To update
+an existing installation to the newest release, run the same command again.
+To install a specific release, replace `latest` with its tag, for example
+`@v0.0.1`.
+
+The installed executable reports the release selected by Go:
+
+```text
+qbs --version
+```
+
 To build and install QBS into your user-local bin directory on Linux or macOS:
 
 ```text
