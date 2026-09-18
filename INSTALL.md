@@ -2,8 +2,7 @@
 
 QBS prepares local AI workspaces and manages a user-wide catalog of curated
 skills. Go is only needed to build QBS from source. Git is required for
-project commands, and tmux is required only by the standalone `qbs task`
-workflow.
+project commands.
 
 ## Download a release artifact
 
@@ -90,7 +89,7 @@ completing; if an update fails, it prints a warning and can be rerun manually.
 Set `QBS_UPDATE_BRANCH=master` when the checkout uses `master` instead of
 `main`.
 
-## Project and worktree provisioning
+## Project initialization
 
 Initialize the current repository with local instructions, specifications,
 research storage, and shared Git excludes:
@@ -103,36 +102,16 @@ Initialization creates `.research/` for local research and `.specs/` for local
 specifications. It also generates the shared QBS agent catalog into the native
 project directories for Codex, OpenCode, and Claude Code. These local files are
 ignored by the repository's shared Git exclude file and refreshed by later
-`qbs init` or `qbs provision` runs. A same-named unmanaged agent is preserved
+`qbs init` runs. A same-named unmanaged agent is preserved
 with a warning, and unrelated files in those directories are left alone. The
 tracked source of truth is `internal/agents/definitions.yaml` in QBS itself.
 
-Provisioning also creates local engineering guidance in `docs/agents/`,
+Initialization also creates local engineering guidance in `docs/agents/`,
 including the issue-tracker and domain-documentation configuration. GitHub
 remotes receive the GitHub Issues guidance; repositories without a supported
 GitHub remote receive a conservative local-Markdown fallback. Existing files
 are preserved, and the directory is excluded through the repository-local Git
 common exclude file.
-
-Provision an existing worktree created by Firstmate, Treehouse, or another
-tool without asking QBS to create or open it:
-
-```text
-qbs provision /path/to/worktree
-```
-
-QBS retains its standalone task workflow for use without an external
-orchestrator:
-
-```text
-qbs task <name>
-qbs tasks
-qbs task remove <name>
-```
-
-Do not have QBS and another orchestrator create a worktree for the same task.
-Let the orchestrator own the task lifecycle and use `qbs provision` after its
-worktree exists.
 
 ## Global curated skills
 
@@ -180,4 +159,4 @@ make release-artifacts
 This produces standalone, CGO-free binaries for Linux, macOS, and Windows,
 plus `dist/SHA256SUMS`. The version is embedded in each binary and is shown by
 `qbs --version`. Run `make smoke-release` to build the artifacts and exercise
-initialization and task creation from a fresh temporary environment.
+initialization and skill synchronization from a fresh temporary environment.

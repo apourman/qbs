@@ -2,6 +2,7 @@ package cli_test
 
 import (
 	"bytes"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -361,39 +362,16 @@ func TestInitRejectsTrackedAIFileBeforeChangingExcludes(t *testing.T) {
 	}
 }
 
-func TestProvisionPreparesAnExistingExternalWorktree(t *testing.T) {
-	repo := t.TempDir()
-	runGit(t, repo, "init", "-q")
-	runGit(t, repo, "config", "user.email", "qbs-tests@example.invalid")
-	runGit(t, repo, "config", "user.name", "QBS Tests")
-	if err := os.WriteFile(filepath.Join(repo, "README.md"), []byte("fixture\n"), 0o644); err != nil {
-		t.Fatal(err)
+func runInDirectory(dir string, args []string, stdout, stderr io.Writer) error {
+	old, err := os.Getwd()
+	if err != nil {
+		return err
 	}
-	runGit(t, repo, "add", "README.md")
-	runGit(t, repo, "commit", "-qm", "fixture")
-	worktree := filepath.Join(filepath.Dir(repo), filepath.Base(repo)+"-external")
-	runGit(t, repo, "worktree", "add", "-qb", "external", worktree)
-
-	var out, errOut bytes.Buffer
-	if err := cli.Run([]string{"provision", worktree}, &out, &errOut); err != nil {
-		t.Fatal(err)
+	if err := os.Chdir(dir); err != nil {
+		return err
 	}
-	for _, name := range []string{
-		"AGENTS.md", "CLAUDE.md", ".research", ".specs",
-		filepath.Join(".codex", "agents", "implementer.toml"),
-		filepath.Join(".claude", "agents", "implementer.md"),
-		filepath.Join(".opencode", "agents", "implementer.md"),
-	} {
-		if _, err := os.Stat(filepath.Join(worktree, name)); err != nil {
-			t.Errorf("provision did not create %s: %v", name, err)
-		}
-	}
-	if status := runGit(t, worktree, "status", "--short"); status != "" {
-		t.Fatalf("provisioned worktree has Git changes: %q", status)
-	}
-	if !strings.Contains(out.String(), "Provisioned Git worktree") {
-		t.Fatalf("provision output = %q", out.String())
-	}
+	defer func() { _ = os.Chdir(old) }()
+	return cli.Run(args, stdout, stderr)
 }
 
 func runGit(t *testing.T, dir string, args ...string) string {

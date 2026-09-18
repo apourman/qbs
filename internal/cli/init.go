@@ -55,10 +55,6 @@ func initializeRepository(dir string, stdout, stderr io.Writer) error {
 	return provisionRepositoryWithLabel(dir, "Initialized", stdout, stderr)
 }
 
-func provisionRepository(dir string, stdout, stderr io.Writer) error {
-	return provisionRepositoryWithLabel(dir, "Provisioned", stdout, stderr)
-}
-
 func provisionRepositoryWithLabel(dir, label string, stdout, stderr io.Writer) error {
 	repo, err := git.Detect(dir)
 	if err != nil {

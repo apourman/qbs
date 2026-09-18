@@ -75,7 +75,7 @@ func GenerateAll(c Catalog) ([]File, error) {
 
 func generateCodex(agent Agent, model string) string {
 	var b strings.Builder
-	fmt.Fprintf(&b, "# %s Re-run qbs init or qbs provision to refresh.\n", generatedMarker)
+	fmt.Fprintf(&b, "# %s Re-run qbs init to refresh.\n", generatedMarker)
 	fmt.Fprintf(&b, "name = %s\n", tomlString(agent.Name))
 	fmt.Fprintf(&b, "description = %s\n", tomlString(agent.Description))
 	fmt.Fprintf(&b, "model = %s\n", tomlString(model))
@@ -108,7 +108,7 @@ func generateOpenCode(agent Agent, model string) string {
 	}
 	var b strings.Builder
 	b.WriteString("---\n")
-	fmt.Fprintf(&b, "# %s Re-run qbs init or qbs provision to refresh.\n", generatedMarker)
+	fmt.Fprintf(&b, "# %s Re-run qbs init to refresh.\n", generatedMarker)
 	fmt.Fprintf(&b, "description: %s\n", yamlString(agent.Description))
 	b.WriteString("mode: subagent\n")
 	fmt.Fprintf(&b, "model: %s\n", yamlString(model))
@@ -133,7 +133,7 @@ func generateClaude(agent Agent, model string) string {
 	}
 	var b strings.Builder
 	b.WriteString("---\n")
-	fmt.Fprintf(&b, "# %s Re-run qbs init or qbs provision to refresh.\n", generatedMarker)
+	fmt.Fprintf(&b, "# %s Re-run qbs init to refresh.\n", generatedMarker)
 	fmt.Fprintf(&b, "name: %s\n", yamlString(agent.Name))
 	fmt.Fprintf(&b, "description: %s\n", yamlString(agent.Description))
 	if len(nativeTools) > 0 {
