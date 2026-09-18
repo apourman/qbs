@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/apourman/qbs/compare/v0.1.0...v0.1.1) (2026-09-18)
+
+
+### Bug Fixes
+
+* make all skills implicitly invocable ([#10](https://github.com/apourman/qbs/issues/10)) ([e39bedc](https://github.com/apourman/qbs/commit/e39bedc55f12418c6bca7fa202caa5e7a3850c3d))
+
 ## [0.1.0](https://github.com/apourman/qbs/compare/v0.0.3...v0.1.0) (2026-09-18)
 
 
