@@ -15,11 +15,12 @@ will produce `0.x.0`. After 1.0, breaking changes use the usual major bump.
 Release-please runs on pushes to `master`. The empty manifest means there is
 no published release yet. With no existing release tag, `initial-version`
 sets the first release PR to `0.0.1`. The `simple` strategy writes the plain
-`VERSION` file and `CHANGELOG.md` in that PR. Merge the release PR to create
-the `v0.0.1` tag and a draft GitHub release. GoReleaser validates the tagged
-`VERSION`, builds six CGO-free binaries, uploads their archives and
-`SHA256SUMS`, and publishes the draft only after successful uploads. A build
-or validation failure leaves the release as a draft for investigation.
+`VERSION` file and `CHANGELOG.md` in that PR. The workflow automatically
+merges the release PR into `master`, then creates the `v0.0.1` tag and a draft
+GitHub release. GoReleaser validates the tagged `VERSION`, builds six CGO-free
+binaries, uploads their archives and `SHA256SUMS`, and publishes the draft only
+after successful uploads. A build or validation failure leaves the release as
+a draft for investigation.
 
 After `v0.0.1` is published, a `fix:` commit produces `0.0.2`; a `feat:`
 commit produces `0.1.0`. Before 1.0, a breaking commit increases the minor
