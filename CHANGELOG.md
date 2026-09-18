@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.0](https://github.com/apourman/qbs/compare/v0.0.3...v0.1.0) (2026-09-18)
+
+
+### Features
+
+* provision project engineering configuration ([#8](https://github.com/apourman/qbs/issues/8)) ([e472859](https://github.com/apourman/qbs/commit/e4728598de08555172fa80df3daf3361b51da06a))
+
 ## [0.0.3](https://github.com/apourman/qbs/compare/v0.0.2...v0.0.3) (2026-09-18)
 
 
