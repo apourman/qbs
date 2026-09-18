@@ -19,7 +19,7 @@ func TestRunHelpAndVersion(t *testing.T) {
 		if !strings.Contains(out.String(), "qbs init") {
 			t.Errorf("help for %v = %q", args, out.String())
 		}
-		if !strings.Contains(out.String(), "qbs provision") || !strings.Contains(out.String(), "qbs skills import") {
+		if !strings.Contains(out.String(), "qbs skills import") {
 			t.Errorf("help for %v is missing current commands: %q", args, out.String())
 		}
 	}
@@ -36,6 +36,15 @@ func TestRunRejectsUnknownCommand(t *testing.T) {
 	err := cli.Run([]string{"wat"}, &bytes.Buffer{}, &bytes.Buffer{})
 	if err == nil || !strings.Contains(err.Error(), `unknown command "wat"`) {
 		t.Fatalf("error = %v", err)
+	}
+}
+
+func TestRunRejectsRemovedWorktreeCommands(t *testing.T) {
+	for _, command := range []string{"provision", "task", "tasks"} {
+		err := cli.Run([]string{command}, &bytes.Buffer{}, &bytes.Buffer{})
+		if err == nil || !strings.Contains(err.Error(), `unknown command "`+command+`"`) {
+			t.Errorf("error for %s = %v", command, err)
+		}
 	}
 }
 

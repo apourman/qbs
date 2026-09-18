@@ -1,7 +1,7 @@
 version: 1
 
 # This is the only maintained definition of QBS's built-in agents. The three
-# harness-native directories are generated locally by qbs init/provision.
+# harness-native directories are generated locally by qbs init.
 # Keep capabilities harness-neutral; internal/agents/generate.go owns the
 # native field and tool-name mappings.
 

@@ -31,7 +31,7 @@ func TestEmbeddedQBSSkillHasDiscoverableFrontmatter(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, want := range []string{"---\nname: qbs\n", "description:", "qbs provision", "qbs skills import"} {
+	for _, want := range []string{"---\nname: qbs\n", "description:", "qbs init", "qbs skills import"} {
 		if !contains(string(data), want) {
 			t.Errorf("QBS skill is missing %q: %q", want, data)
 		}

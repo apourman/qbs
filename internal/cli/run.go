@@ -29,14 +29,10 @@ const usage = `qbs — AI workspace and curated skill manager
 
 Usage:
   qbs init
-  qbs provision [worktree]
   qbs skills import <path> [--force]
   qbs skills list
   qbs skills sync
   qbs skills remove <name>
-  qbs task <name>
-  qbs tasks
-  qbs task remove <name>
 
 Options:
   -h, --help       show this help
@@ -70,16 +66,6 @@ func RunWithInput(args []string, input io.Reader, stdout, stderr io.Writer) erro
 		return fromCurrentDirectory(func(dir string) error {
 			return initializeRepository(dir, stdout, stderr)
 		})
-	case "provision":
-		if len(args) > 2 {
-			return errors.New("provision accepts an optional worktree path")
-		}
-		if len(args) == 2 {
-			return provisionRepository(args[1], stdout, stderr)
-		}
-		return fromCurrentDirectory(func(dir string) error {
-			return provisionRepository(dir, stdout, stderr)
-		})
 	case "update":
 		if len(args) > 2 {
 			return errors.New("update accepts an optional version")
@@ -91,28 +77,6 @@ func RunWithInput(args []string, input io.Reader, stdout, stderr io.Writer) erro
 		return update(version, stdout)
 	case "skills":
 		return runSkills(args[1:], input, stdout)
-	case "task":
-		if len(args) >= 2 && args[1] == "remove" {
-			if len(args) < 3 || len(args) > 4 || (len(args) == 4 && args[3] != "--force") {
-				return errors.New("task remove requires a name and optional --force")
-			}
-			return fromCurrentDirectory(func(dir string) error {
-				return removeTask(dir, args[2], len(args) == 4, stdout, stderr)
-			})
-		}
-		if len(args) != 2 {
-			return errors.New("task requires exactly one name")
-		}
-		return fromCurrentDirectory(func(dir string) error {
-			return createTask(dir, args[1], stdout, stderr)
-		})
-	case "tasks":
-		if len(args) != 1 {
-			return errors.New("tasks does not accept arguments")
-		}
-		return fromCurrentDirectory(func(dir string) error {
-			return listTasks(dir, stdout)
-		})
 	default:
 		return fmt.Errorf("unknown command %q\n\n%s", args[0], usage)
 	}
