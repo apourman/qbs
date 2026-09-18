@@ -15,6 +15,10 @@ The issue tracker and triage label vocabulary should have been provided to you. 
 
 Work from whatever is already in the conversation context. If the user passes a reference (a spec path, an issue number or URL) as an argument, fetch it and read its full body and comments.
 
+If this run delegates exploration or validation, declare the complete named roster before the first dispatch and apply the shared `orchestration-gate` contract. Each role must state its purpose, neutral capability, optionality, reasoning, isolation, concurrency eligibility, and estimated token range. Include reserved review/fix/integration capacity and any optional red-team role. A run with no sub-agent dispatch skips model selection and dispatch approval entirely.
+
+Show the request, evidence-based confidence score and rationale, assumptions, unresolved questions, separate token-estimate/account-quota/monetary-cost statuses, concurrency, and each role's recommended neutral profile, resolved harness model when available, reasoning, and token budget. Offer exactly `Recommended`, `Economy`, `Deep`, and `Customize`; customization assigns profile and reasoning for every role. Apply the shared confidence gates before plan approval. Never silently substitute an unavailable model, upgrade the approved plan, add an optional role, or exceed its constraints without new approval.
+
 ### 2. Explore the codebase (optional)
 
 If you have not already explored the codebase, do so to understand the current state of the code. Ticket titles and descriptions should use the project's domain glossary vocabulary, and respect ADRs in the area you're touching.
@@ -103,3 +107,7 @@ The end-to-end behaviour this ticket makes work, from the user's perspective, no
 </issue-template>
 
 In either form, avoid specific file paths or code snippets: they go stale fast. Exception: if a prototype produced a snippet that encodes a decision more precisely than prose can (state machine, reducer, schema, type shape), inline it and note briefly that it came from a prototype. Trim to the decision-rich parts, not a working demo, just the important bits.
+
+### 6. Report the gated result
+
+After ticket generation and publication, produce the shared postflight report even when no delegated agents were used. Include a new confidence score and rationale, verified evidence and precise pointers, inferred conclusions, requirement coverage (`complete`, `partial`, `missing`, `ambiguous`, or `unrequested`), remaining assumptions, low-confidence areas, risks and likely failure modes, unnecessary complexity without removing required behavior, red-team findings only when the independent role ran, and the smallest confidence-raising checks. Carry the approved model plan, preflight confidence, assumptions, unresolved risks, and final evidence into the ticket-generation handoff or final report.
