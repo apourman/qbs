@@ -165,8 +165,9 @@ the project-local harness directories provisioned and excluded by QBS.
 ## Build release artifacts locally
 
 The project uses Conventional Commits and release-please for published
-releases. Merges to `master` are analyzed to maintain a release PR, update
-`VERSION` and `CHANGELOG.md`, and create a `v<version>` tag with a draft
+releases. Merges to `master` are analyzed to maintain a release PR, which is
+automatically merged into `master` after updating `VERSION` and
+`CHANGELOG.md`. The follow-up workflow creates a `v<version>` tag with a draft
 release. GoReleaser then builds the tagged binaries for Linux, macOS, and
 Windows on amd64 and arm64 and publishes the release after uploading them.
 
