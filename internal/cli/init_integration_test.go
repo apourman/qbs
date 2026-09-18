@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/trues/qbs/internal/cli"
+	"github.com/trues/qbs/internal/templates"
 )
 
 func TestInitProvisionsIgnoredAIWorkspaceIdempotently(t *testing.T) {
@@ -39,6 +40,8 @@ func TestInitProvisionsIgnoredAIWorkspaceIdempotently(t *testing.T) {
 		filepath.Join(".opencode", "skills", "qbs", "SKILL.md"),
 		".research",
 		".specs",
+		filepath.Join("docs", "agents", "domain.md"),
+		filepath.Join("docs", "agents", "issue-tracker.md"),
 	}
 	for _, name := range wants {
 		if _, err := os.Stat(filepath.Join(repo, name)); err != nil {
@@ -111,9 +114,194 @@ func TestInitProvisionsIgnoredAIWorkspaceIdempotently(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, entry := range []string{"AGENTS.md", "CLAUDE.md", ".agents/skills/", ".claude/agents/", ".claude/skills/", ".codex/agents/", ".opencode/agents/", ".opencode/skills/", ".research/", ".specs/"} {
+	for _, entry := range []string{"AGENTS.md", "CLAUDE.md", ".agents/skills/", ".claude/agents/", ".claude/skills/", ".codex/agents/", ".opencode/agents/", ".opencode/skills/", ".research/", ".specs/", "docs/agents/"} {
 		if count := strings.Count(string(excludeData), entry); count != 1 {
 			t.Errorf("exclude entry %q occurs %d times", entry, count)
+		}
+	}
+}
+
+func TestInitUsesGitHubIssueTrackerAndPreservesEngineeringConfig(t *testing.T) {
+	repo := t.TempDir()
+	runGit(t, repo, "init", "-q")
+	runGit(t, repo, "remote", "add", "origin", "git@github.com:example/project.git")
+
+	if err := runInDirectory(repo, []string{"init"}, &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
+		t.Fatal(err)
+	}
+	tracker := filepath.Join(repo, "docs", "agents", "issue-tracker.md")
+	data, err := os.ReadFile(tracker)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(data), "GitHub Issues") {
+		t.Fatalf("tracker template = %q", data)
+	}
+	for _, want := range []string{
+		"gh issue status",
+		"gh issue list",
+		"gh issue view",
+		"gh issue create",
+		"gh issue edit",
+		"gh issue comment",
+		"gh issue close",
+		"gh issue reopen",
+	} {
+		if !strings.Contains(string(data), want) {
+			t.Errorf("GitHub tracker template is missing %q", want)
+		}
+	}
+	if err := os.WriteFile(tracker, []byte("custom tracker\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := runInDirectory(repo, []string{"init"}, &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
+		t.Fatal(err)
+	}
+	data, err = os.ReadFile(tracker)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(data) != "custom tracker\n" {
+		t.Fatalf("existing tracker was overwritten: %q", data)
+	}
+}
+
+func TestInitProvisionsTriageLabelsWhenLocalTriageSkillExists(t *testing.T) {
+	repo := t.TempDir()
+	runGit(t, repo, "init", "-q")
+	skill := filepath.Join(repo, ".agents", "skills", "triage")
+	if err := os.MkdirAll(skill, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(skill, "SKILL.md"), []byte("triage\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := runInDirectory(repo, []string{"init"}, &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
+		t.Fatal(err)
+	}
+	data, err := os.ReadFile(filepath.Join(repo, "docs", "agents", "triage-labels.md"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, label := range []string{"needs-triage", "needs-info", "ready-for-agent", "ready-for-human", "wontfix"} {
+		if !strings.Contains(string(data), label) {
+			t.Errorf("triage mapping missing %q", label)
+		}
+	}
+}
+
+func TestInitProvisionsTriageLabelsFromGlobalSkillLocations(t *testing.T) {
+	tests := []struct {
+		name  string
+		setup func(t *testing.T, qbsHome string)
+	}{
+		{
+			name: "catalog",
+			setup: func(t *testing.T, qbsHome string) {
+				t.Setenv("QBS_SKILL_TARGETS", filepath.Join(t.TempDir(), "empty-target"))
+				writeSkill(t, filepath.Join(qbsHome, "skills"), "triage")
+			},
+		},
+		{
+			name: "configured global target",
+			setup: func(t *testing.T, qbsHome string) {
+				target := filepath.Join(t.TempDir(), "global-skills")
+				t.Setenv("QBS_SKILL_TARGETS", target)
+				writeSkill(t, target, "triage")
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			repo := t.TempDir()
+			qbsHome := t.TempDir()
+			t.Setenv("QBS_HOME", qbsHome)
+			test.setup(t, qbsHome)
+			runGit(t, repo, "init", "-q")
+			if err := runInDirectory(repo, []string{"init"}, &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
+				t.Fatal(err)
+			}
+			if _, err := os.Stat(filepath.Join(repo, "docs", "agents", "triage-labels.md")); err != nil {
+				t.Fatalf("global triage skill did not provision mapping: %v", err)
+			}
+		})
+	}
+}
+
+func TestInitUpgradesLegacyInstructionsAndPreservesCustomizedFiles(t *testing.T) {
+	repo := t.TempDir()
+	runGit(t, repo, "init", "-q")
+	legacyAgents, err := templates.Read("legacy/qbs-agents-v1.md")
+	if err != nil {
+		t.Fatal(err)
+	}
+	legacyClaude, err := templates.Read("legacy/qbs-claude-v1.md")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(repo, "AGENTS.md"), legacyAgents, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(repo, "CLAUDE.md"), legacyClaude, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := runInDirectory(repo, []string{"init"}, &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range []string{"AGENTS.md", "CLAUDE.md"} {
+		data, err := os.ReadFile(filepath.Join(repo, name))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !strings.Contains(string(data), "qbs-managed-instruction: v2") {
+			t.Errorf("%s was not marked as current QBS instruction", name)
+		}
+		if !strings.Contains(string(data), "## Agent skills") {
+			t.Errorf("%s was not upgraded with Agent skills", name)
+		}
+	}
+
+	customAgents := []byte("# User-managed instructions\n\nKeep this exact text.\n")
+	customClaude := []byte("# User-managed Claude instructions\n")
+	if err := os.WriteFile(filepath.Join(repo, "AGENTS.md"), customAgents, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(repo, "CLAUDE.md"), customClaude, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := runInDirectory(repo, []string{"init"}, &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
+		t.Fatal(err)
+	}
+	for name, want := range map[string][]byte{"AGENTS.md": customAgents, "CLAUDE.md": customClaude} {
+		data, err := os.ReadFile(filepath.Join(repo, name))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !bytes.Equal(data, want) {
+			t.Errorf("custom %s was overwritten: %q", name, data)
+		}
+	}
+}
+
+func TestInitLocalIssueTrackerTemplateDescribesFilesystemWorkflow(t *testing.T) {
+	repo := t.TempDir()
+	runGit(t, repo, "init", "-q")
+	if err := runInDirectory(repo, []string{"init"}, &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
+		t.Fatal(err)
+	}
+	data, err := os.ReadFile(filepath.Join(repo, "docs", "agents", "issue-tracker.md"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{
+		"local Markdown issue records",
+		"List issues",
+		"Create a ticket",
+		"Update the issue file",
+		"filesystem-only",
+	} {
+		if !strings.Contains(string(data), want) {
+			t.Errorf("local tracker template is missing %q", want)
 		}
 	}
 }
@@ -217,4 +405,15 @@ func runGit(t *testing.T, dir string, args ...string) string {
 		t.Fatalf("git %s: %v\n%s", strings.Join(args, " "), err, out)
 	}
 	return string(out)
+}
+
+func writeSkill(t *testing.T, root, name string) {
+	t.Helper()
+	dir := filepath.Join(root, name)
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "SKILL.md"), []byte("triage\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
 }

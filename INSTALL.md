@@ -107,6 +107,13 @@ ignored by the repository's shared Git exclude file and refreshed by later
 with a warning, and unrelated files in those directories are left alone. The
 tracked source of truth is `internal/agents/definitions.yaml` in QBS itself.
 
+Provisioning also creates local engineering guidance in `docs/agents/`,
+including the issue-tracker and domain-documentation configuration. GitHub
+remotes receive the GitHub Issues guidance; repositories without a supported
+GitHub remote receive a conservative local-Markdown fallback. Existing files
+are preserved, and the directory is excluded through the repository-local Git
+common exclude file.
+
 Provision an existing worktree created by Firstmate, Treehouse, or another
 tool without asking QBS to create or open it:
 
