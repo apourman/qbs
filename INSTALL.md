@@ -140,8 +140,7 @@ qbs skills import /path/to/collection
 The canonical catalog lives at `~/.qbs/skills/`. By default, imports are
 synchronized to Codex's shared global agent skill directory, `~/.agents/skills/`,
 as well as Claude's `~/.claude/skills/` and OpenCode's
-`~/.config/opencode/skills/`. When run inside a Git repository, QBS also targets
-that repository's `.agents/skills/` directory. QBS marks its synchronized copies and refuses to
+`~/.config/opencode/skills/`. QBS marks its synchronized copies and refuses to
 replace an unmanaged skill with the same name. Use `--force` only to replace an
 existing catalog entry; it does not override unmanaged destinations.
 
@@ -152,7 +151,7 @@ qbs skills remove <name>
 ```
 
 Set `QBS_HOME` to relocate the catalog. Set `QBS_SKILL_TARGETS` to an
-OS-path-list of directories when harness discovery paths differ from the
+OS-path-list of global directories when harness discovery paths differ from the
 defaults. Curated skills remain global; project-only skills may still live in
 the project-local harness directories provisioned and excluded by QBS.
 

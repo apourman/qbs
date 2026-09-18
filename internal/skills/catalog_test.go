@@ -193,7 +193,7 @@ func TestDefaultCatalogUsesSharedAgentSkillsDirectory(t *testing.T) {
 	}
 }
 
-func TestDefaultCatalogIncludesProjectAgentSkillsDirectory(t *testing.T) {
+func TestDefaultCatalogExcludesProjectAgentSkillsDirectory(t *testing.T) {
 	home := t.TempDir()
 	project := filepath.Join(home, "project")
 	if err := os.MkdirAll(filepath.Join(project, ".git"), 0o755); err != nil {
@@ -211,9 +211,18 @@ func TestDefaultCatalogIncludesProjectAgentSkillsDirectory(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := filepath.Join(project, ".agents", "skills")
-	if len(catalog.Targets) != 4 || catalog.Targets[3] != want {
-		t.Fatalf("skill targets = %#v, want project target %s", catalog.Targets, want)
+	want := []string{
+		filepath.Join(home, ".agents", "skills"),
+		filepath.Join(home, ".claude", "skills"),
+		filepath.Join(home, ".config", "opencode", "skills"),
+	}
+	if len(catalog.Targets) != len(want) {
+		t.Fatalf("skill targets = %#v, want %#v", catalog.Targets, want)
+	}
+	for i := range want {
+		if catalog.Targets[i] != want[i] {
+			t.Fatalf("skill targets = %#v, want %#v", catalog.Targets, want)
+		}
 	}
 }
 
