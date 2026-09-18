@@ -2,4 +2,4 @@ interface:
   display_name: "Setup TS Deep Modules"
   short_description: "Enforce deep TypeScript modules"
 policy:
-  allow_implicit_invocation: false
+  allow_implicit_invocation: true

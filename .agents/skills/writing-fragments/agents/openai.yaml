@@ -2,4 +2,4 @@ interface:
   display_name: "Writing Fragments"
   short_description: "Mine raw writing fragments"
 policy:
-  allow_implicit_invocation: false
+  allow_implicit_invocation: true
