@@ -16,6 +16,12 @@ Complete preflight after understanding the request and before the first
 sub-agent is dispatched. Present one dispatch summary containing the following
 fields.
 
+This is an executable workflow requirement, not explanatory prose: resolve the
+declared roster through `internal/agents`, display every resolved assignment,
+and record the user's approval before dispatch. A summary that does not show a
+real role-to-model resolution, approved concurrency/budget constraints, and the
+approval interaction is an incomplete preflight and must not dispatch.
+
 ### Request and confidence
 
 - `request`: the user's requested outcome and explicit scope.
@@ -125,6 +131,11 @@ Never silently upgrade, fall back, add work, or exceed the approved plan.
 
 After the primary work completes, produce a postflight report with all of the
 following sections, even when a section is empty.
+
+The report must be generated from the completed artifact and actual checks. It
+must include concrete evidence pointers (tests, command results, or inspected
+files), not only a restatement of this contract. If a skill cannot produce a
+section, it must say that the evidence is unavailable and lower confidence.
 
 Build the report from the original request, specification, or ticket rather
 than from the primary agent's summary. For every requirement, record a

@@ -17,7 +17,14 @@ Work from whatever is already in the conversation context. If the user passes a 
 
 If this run delegates exploration or validation, declare the complete named roster before the first dispatch and apply the shared `orchestration-gate` contract. Each role must state its purpose, neutral capability, optionality, reasoning, isolation, concurrency eligibility, and estimated token range. Include reserved review/fix/integration capacity and any optional red-team role. A run with no sub-agent dispatch skips model selection and dispatch approval entirely.
 
-Show the request, evidence-based confidence score and rationale, assumptions, unresolved questions, separate token-estimate/account-quota/monetary-cost statuses, concurrency, and each role's recommended neutral profile, resolved harness model when available, reasoning, and token budget. Offer exactly `Recommended`, `Economy`, `Deep`, and `Customize`; customization assigns profile and reasoning for every role. Apply the shared confidence gates before plan approval. Never silently substitute an unavailable model, upgrade the approved plan, add an optional role, or exceed its constraints without new approval.
+   Show the request, evidence-based confidence score and rationale, assumptions, unresolved questions, separate token-estimate/account-quota/monetary-cost statuses, concurrency, and each role's recommended neutral profile, resolved harness model when available, reasoning, and token budget. Offer exactly `Recommended`, `Economy`, `Deep`, and `Customize`; customization assigns profile and reasoning for every role. Apply the shared confidence gates before plan approval. Never silently substitute an unavailable model, upgrade the approved plan, add an optional role, or exceed its constraints without new approval.
+
+Resolve every declared role against the repository catalog before delegated
+exploration or validation begins, and pass the approved assignments and
+constraints to the dispatched role. The published ticket set and final report
+must include generated requirement coverage and evidence pointers from the
+actual output; a prose-only description of the gate does not satisfy this
+workflow.
 
 ### 2. Explore the codebase (optional)
 

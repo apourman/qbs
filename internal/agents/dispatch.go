@@ -7,14 +7,29 @@ import (
 
 // Role describes the work and constraints of a named dispatched sub-agent.
 type Role struct {
-	Name       string
-	Purpose    string
-	Capability string
-	Optional   bool
-	Reasoning  string
-	Isolation  string
-	Concurrent bool
+	Name             string
+	Purpose          string
+	Capability       string
+	Optional         bool
+	Reasoning        string
+	Isolation        string
+	Concurrent       bool
+	EstimatedTokens  TokenRange
+	TokenBudget      TokenRange
+	ConcurrencyLimit int
+	AccountQuota     CostStatus
+	MonetaryCost     CostStatus
+	ReservedBudget   ReservedBudget
 }
+
+// TokenRange represents an estimate or approved budget without false precision.
+type TokenRange struct{ Min, Max int }
+
+// CostStatus keeps quota and billing status distinct from token estimates.
+type CostStatus struct{ Status, Detail string }
+
+// ReservedBudget records capacity held for later workflow phases.
+type ReservedBudget struct{ Review, Fixes, Integration TokenRange }
 
 // Plan selects how model assignments are chosen for a roster.
 type Plan string
@@ -34,10 +49,15 @@ type Assignment struct {
 
 // DispatchAssignment is an assignment resolved to the active harness model.
 type DispatchAssignment struct {
-	Role          Role
-	ModelProfile  string
-	ResolvedModel string
-	Reasoning     string
+	Role             Role
+	ModelProfile     string
+	ResolvedModel    string
+	Reasoning        string
+	TokenBudget      TokenRange
+	ConcurrencyLimit int
+	AccountQuota     CostStatus
+	MonetaryCost     CostStatus
+	ReservedBudget   ReservedBudget
 }
 
 // ResolveProfile resolves a neutral profile without falling back to another
@@ -91,7 +111,10 @@ func (c Catalog) ResolvePlan(roles []Role, harness Harness, plan Plan, custom ma
 		if assignment.Reasoning == "" {
 			return nil, fmt.Errorf("role %q: reasoning effort is required", role.Name)
 		}
-		result = append(result, DispatchAssignment{Role: role, ModelProfile: assignment.ModelProfile, ResolvedModel: resolved, Reasoning: assignment.Reasoning})
+		if !supportedReasoning(assignment.Reasoning) {
+			return nil, fmt.Errorf("role %q: reasoning effort %q is unsupported; choose low, medium, high, xhigh, or max", role.Name, assignment.Reasoning)
+		}
+		result = append(result, DispatchAssignment{Role: role, ModelProfile: assignment.ModelProfile, ResolvedModel: resolved, Reasoning: assignment.Reasoning, TokenBudget: role.TokenBudget, ConcurrencyLimit: role.ConcurrencyLimit, AccountQuota: role.AccountQuota, MonetaryCost: role.MonetaryCost, ReservedBudget: role.ReservedBudget})
 	}
 	sort.SliceStable(result, func(i, j int) bool { return result[i].Role.Name < result[j].Role.Name })
 	return result, nil
@@ -100,7 +123,11 @@ func (c Catalog) ResolvePlan(roles []Role, harness Harness, plan Plan, custom ma
 func assignmentFor(role Role, plan Plan, custom map[string]Assignment) (Assignment, bool) {
 	switch plan {
 	case Economy:
-		return Assignment{ModelProfile: "balanced", Reasoning: "low"}, true
+		profile := "balanced"
+		if role.Capability == "implementation" || role.Capability == "architecture" || role.Capability == "adversarial-review" {
+			profile = "capable"
+		}
+		return Assignment{ModelProfile: profile, Reasoning: "low"}, true
 	case Deep:
 		return Assignment{ModelProfile: "capable", Reasoning: "high"}, true
 	case Recommended:
@@ -118,4 +145,12 @@ func assignmentFor(role Role, plan Plan, custom map[string]Assignment) (Assignme
 	default:
 		return Assignment{}, false
 	}
+}
+
+func supportedReasoning(value string) bool {
+	switch value {
+	case "low", "medium", "high", "xhigh", "max":
+		return true
+	}
+	return false
 }

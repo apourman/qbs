@@ -15,6 +15,12 @@ The issue tracker and triage label vocabulary should have been provided to you. 
 
    Show one preflight dispatch summary with the request, confidence score (1–5), rationale, assumptions, unresolved questions, roster, and separate token-estimate, account-quota, and monetary-cost fields. For each role show the recommended neutral profile, harness-resolved model when available, reasoning, concurrency, and token budget. Offer exactly `Recommended`, `Economy`, `Deep`, and `Customize`; customization assigns a profile and reasoning effort to every role. Apply the shared confidence gates and obtain clarification and plan approval before dispatch. An unavailable resolution stops with an actionable error; never silently fall back, upgrade, add optional agents, or exceed the approved plan.
 
+   Resolve the roster through the repository catalog before dispatch and carry
+   the approved role/model assignments and constraints into each handoff. The
+   final workflow report must be generated from the written spec and checks
+   performed, with requirement coverage and evidence pointers; describing the
+   intended gate without performing these actions is insufficient.
+
 2. Explore the repo to understand the current state of the codebase, if you haven't already. Use the project's domain glossary vocabulary throughout the spec, and respect any ADRs in the area you're touching.
 
 3. Sketch out the seams at which you're going to test the feature. Existing seams should be preferred to new ones. Use the highest seam possible. If new seams are needed, propose them at the highest point you can. The fewer seams across the codebase, the better - the ideal number is one.
