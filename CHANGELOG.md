@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/apourman/qbs/compare/v0.1.1...v0.2.0) (2026-09-18)
+
+
+### Features
+
+* auto-merge release pull requests ([#12](https://github.com/apourman/qbs/issues/12)) ([9b6b884](https://github.com/apourman/qbs/commit/9b6b884351d674c184d325a69ad400b0206973ef))
+
 ## [0.1.1](https://github.com/apourman/qbs/compare/v0.1.0...v0.1.1) (2026-09-18)
 
 
