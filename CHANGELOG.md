@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.3.0](https://github.com/apourman/qbs/compare/v0.2.0...v0.3.0) (2026-09-18)
+
+
+### ⚠ BREAKING CHANGES
+
+* remove qbs provision, task, tasks, and task remove commands
+
+### Features
+
+* remove standalone worktree commands ([#15](https://github.com/apourman/qbs/issues/15)) ([f9560a2](https://github.com/apourman/qbs/commit/f9560a20924fc607b05cf68c5ea6ce452837151a))
+
 ## [0.2.0](https://github.com/apourman/qbs/compare/v0.1.1...v0.2.0) (2026-09-18)
 
 
