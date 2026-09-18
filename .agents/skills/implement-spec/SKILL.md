@@ -124,13 +124,15 @@ limitation and enforce the selected level through the dispatch choices.
 9. Mark the PR as ready for review once the review findings are fixed.
 
 10. Produce the orchestration-gate postflight report, even when a section is
-    empty. Include the new confidence score and rationale; verified evidence
-    with precise pointers; inferred conclusions; requirement coverage
-    (`complete`, `partial`, `missing`, `ambiguous`, or `unrequested`);
-    assumptions; low-confidence areas; risks and likely failure modes;
-    unnecessary complexity that can be removed without dropping required
-    behavior; red-team findings when that role ran; and the smallest
-    confidence-raising checks. Scores 1/2 are incomplete or unsafe, score 3
+    empty. Compare every original requirement with the implementation and
+    classify it as `complete`, `partial`, `missing`, `ambiguous`, or
+    `unrequested`, with precise evidence pointers. Keep verified checks
+    separate from inferred conclusions; report assumptions, low-confidence
+    areas, concrete failure modes, unnecessary complexity, and the smallest
+    confidence-raising checks. Complexity findings may not remove required
+    behavior. When the red-team role ran, include its read-only findings from
+    the independent minimal-context prompt; otherwise leave
+    `red_team_findings` empty. Scores 1/2 are incomplete or unsafe, score 3
     requests targeted follow-up, score 4 reports remaining limited risks, and
     score 5 requires direct coverage and verification evidence.
 

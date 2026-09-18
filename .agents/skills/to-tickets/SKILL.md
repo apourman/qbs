@@ -110,4 +110,15 @@ In either form, avoid specific file paths or code snippets: they go stale fast. 
 
 ### 6. Report the gated result
 
-After ticket generation and publication, produce the shared postflight report even when no delegated agents were used. Include a new confidence score and rationale, verified evidence and precise pointers, inferred conclusions, requirement coverage (`complete`, `partial`, `missing`, `ambiguous`, or `unrequested`), remaining assumptions, low-confidence areas, risks and likely failure modes, unnecessary complexity without removing required behavior, red-team findings only when the independent role ran, and the smallest confidence-raising checks. Carry the approved model plan, preflight confidence, assumptions, unresolved risks, and final evidence into the ticket-generation handoff or final report.
+After ticket generation and publication, produce the shared postflight report even
+when no delegated agents were used. Compare each source requirement with the
+published tickets and classify it as `complete`, `partial`, `missing`,
+`ambiguous`, or `unrequested`, with precise evidence pointers. Keep verified
+checks separate from inferred conclusions, and report assumptions,
+low-confidence areas, failure risks, unnecessary complexity, and the smallest
+confidence-raising checks. If selected, the red-team role receives only the
+source requirements and ticket set with minimal framing and contributes
+read-only concrete findings; otherwise `red_team_findings` remains empty.
+Complexity findings must not delete required behavior. Carry the approved
+plan, preflight confidence, assumptions, unresolved risks, and final evidence
+into the ticket-generation handoff or final report.

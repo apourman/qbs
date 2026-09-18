@@ -23,7 +23,17 @@ Check with the user that these seams match their expectations.
 
 4. Write the spec using the template below under `.specs/<domain-or-feature>/<spec-slug>.md`, then publish it to the project issue tracker. Choose a stable, lowercase kebab-case domain or feature directory and reuse an existing directory when one applies. Apply the `ready-for-agent` triage label - no need for additional triage.
 
-5. After the spec is written, produce the shared postflight report: a new confidence score and rationale; verified evidence with precise pointers; inferred conclusions; requirement coverage classified as complete, partial, missing, ambiguous, or unrequested; remaining assumptions; low-confidence areas; risks and likely failure modes; unnecessary complexity without dropping required scope; red-team findings only when that independent role ran; and the smallest confidence-raising checks. Carry the approved plan, preflight confidence, assumptions, unresolved risks, and final evidence into the handoff or final report.
+5. After the spec is written, produce the shared postflight report. Compare
+   every original requirement against the completed spec and classify it as
+   `complete`, `partial`, `missing`, `ambiguous`, or `unrequested`; cite
+   verified evidence separately from inferred conclusions; and list
+   assumptions, low-confidence areas, risks, unnecessary complexity, and the
+   smallest confidence-raising checks. If the workflow selected a red-team
+   role, give it only the requirements and spec with minimal framing and
+   include its concrete findings; otherwise leave `red_team_findings` empty.
+   Complexity suggestions must preserve every required behavior. Carry the
+   approved plan, preflight confidence, assumptions, unresolved risks, and
+   final evidence into the handoff or final report.
 
 ## Spec paths
 

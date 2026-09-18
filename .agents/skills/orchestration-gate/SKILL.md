@@ -126,6 +126,15 @@ Never silently upgrade, fall back, add work, or exceed the approved plan.
 After the primary work completes, produce a postflight report with all of the
 following sections, even when a section is empty.
 
+Build the report from the original request, specification, or ticket rather
+than from the primary agent's summary. For every requirement, record a
+requirement identifier or precise pointer, the observed result, and exactly
+one of `complete`, `partial`, `missing`, `ambiguous`, or `unrequested`.
+Unrequested behavior is not a defect, but it must be visible so scope drift
+can be distinguished from an intentional omission. A requirement cannot be
+classified as `complete` from narrative plausibility alone: cite a check,
+artifact, test, or source pointer that directly supports it.
+
 - `confidence_and_rationale`: a new 1-to-5 score with evidence explaining the
   result, not a restatement of the preflight score.
 - `verified_evidence`: checks actually performed, their results, and precise
@@ -145,6 +154,28 @@ following sections, even when a section is empty.
 - `confidence_raising_checks`: the smallest follow-up checks most likely to
   increase confidence, ordered by expected value.
 
+Keep `verified_evidence` and `inferred_conclusions` disjoint. Verified
+evidence names the check that was actually performed, its result, and where
+the result can be inspected. Inferred conclusions explain what that evidence
+suggests but was not itself able to establish. Do not promote an inference to
+verified evidence merely because the primary agent described it confidently.
+
+Include assumptions and low-confidence areas even when the result is scored
+4 or 5. For each material risk, state the likely failure mode and the
+smallest check that would expose or reduce it. Prefer checks that inspect
+requirements, execute the relevant behavior, or exercise an integration seam
+over additional prose review.
+
+### Complexity preservation check
+
+Review the result for unnecessary abstractions, layers, duplication, and
+ceremony. For every proposed simplification, name the requirement(s) it
+preserves and the verification that proves they remain covered. A complexity
+finding may recommend removal, but postflight must not remove or downgrade a
+required behavior merely because the implementation can be made smaller. If
+the simplification has not been applied, report it as a finding rather than
+silently changing the artifact during postflight.
+
 Use these postflight interpretations:
 
 - scores `1` or `2`: report the result as incomplete or unsafe and identify
@@ -158,6 +189,20 @@ The optional red-team review is recommended for broad, cross-cutting,
 low-confidence, or implementation-producing work. It receives the relevant
 requirements and artifact with minimal framing from the primary agent, reports
 concrete counterexamples, and does not modify the implementation.
+
+When selected, dispatch the red-team role with an independent prompt that
+contains only the original requirements, the relevant artifact or diff, and
+the expected output below. Do not include the primary agent's confidence,
+interpretation, risk list, or proposed conclusions; those are framing that
+can cause the reviewer to repeat the same assumptions.
+
+The red-team report must identify concrete counterexamples or state that none
+were found after naming the examined requirements. For each finding, include
+the requirement pointer, failure scenario, evidence, severity, and the
+smallest corrective check or change. The red-team agent is read-only: it may
+not modify the artifact, broaden the requested scope, or silently become a
+general reviewer. If the role is not selected, emit an empty
+`red_team_findings` section rather than adding the review implicitly.
 
 Carry the approved plan, confidence, assumptions, unresolved risks, and final
 evidence into the skill handoff or final report so later agents do not need to
