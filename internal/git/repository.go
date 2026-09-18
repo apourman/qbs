@@ -3,10 +3,38 @@ package git
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"os/exec"
 	"path/filepath"
 	"strings"
 )
+
+// OriginURL returns the configured origin URL, or an empty string when the
+// repository has no origin. Missing remotes are valid for local repositories.
+func OriginURL(dir string) (string, error) {
+	cmd := exec.Command("git", "config", "--get", "remote.origin.url")
+	cmd.Dir = dir
+	output, err := cmd.Output()
+	if err == nil {
+		return strings.TrimSpace(string(output)), nil
+	}
+	var exitErr *exec.ExitError
+	if errors.As(err, &exitErr) && exitErr.ExitCode() == 1 {
+		return "", nil
+	}
+	return "", fmt.Errorf("git config remote.origin.url: %w", err)
+}
+
+// IsGitHubURL reports whether remote identifies github.com, including SCP-like
+// Git URLs such as git@github.com:owner/repository.git.
+func IsGitHubURL(remote string) bool {
+	remote = strings.TrimSpace(remote)
+	if strings.HasPrefix(remote, "git@github.com:") {
+		return true
+	}
+	parsed, err := url.Parse(remote)
+	return err == nil && strings.EqualFold(parsed.Hostname(), "github.com")
+}
 
 // Repository describes the Git repository containing the current directory.
 type Repository struct {

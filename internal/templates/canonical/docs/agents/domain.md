@@ -1,0 +1,8 @@
+# Domain documentation
+
+Keep the repository's durable domain context in `CONTEXT.md` at the repository
+root. Record significant architectural decisions in `docs/adr/` using one
+Markdown file per decision.
+
+These documents are created lazily by the domain-modeling workflow. Do not add
+placeholder files just to satisfy this layout.

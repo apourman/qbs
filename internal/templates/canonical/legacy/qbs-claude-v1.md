@@ -1,5 +1,3 @@
-<!-- qbs-managed-instruction: v2 -->
-
 # Shared project instructions
 
 Follow the repository's documented conventions. Verify changes with focused
@@ -31,9 +29,3 @@ Use the same domain-or-feature directory across related research, the spec, and
 its tickets. When creating any of these artifacts, create the directory if it
 does not exist and report the path. Existing files outside this layout are
 legacy context; do not move them unless asked.
-
-## Agent skills
-
-- Issue tracker: see `docs/agents/issue-tracker.md` for the repository's tracker workflow.
-- Domain documentation: see `docs/agents/domain.md` for `CONTEXT.md` and `docs/adr/`.
-- Triage labels: when triage is installed, see `docs/agents/triage-labels.md` for the label mapping.

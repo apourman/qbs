@@ -1,5 +1,3 @@
-<!-- qbs-managed-instruction: v2 -->
-
 # QBS workspace
 
 Read `CLAUDE.md` for shared project instructions. Reusable skills are installed
@@ -15,9 +13,3 @@ Use the canonical domain/feature layout for project knowledge:
 Choose a stable, lowercase kebab-case domain or feature name and reuse it for
 the related research, spec, and tickets. New specs and tickets belong in these
 domain directories, not directly at the root of `.specs/`.
-
-## Agent skills
-
-- Issue tracker: see `docs/agents/issue-tracker.md` for the repository's tracker workflow.
-- Domain documentation: see `docs/agents/domain.md` for `CONTEXT.md` and `docs/adr/`.
-- Triage labels: when triage is installed, see `docs/agents/triage-labels.md` for the label mapping.
