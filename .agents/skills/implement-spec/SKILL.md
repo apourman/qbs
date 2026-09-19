@@ -106,6 +106,15 @@ limitation and enforce the selected level through the dispatch choices.
    path, and worktree path in the implementation context. The spec branch must
    exist before any role receives a repository worktree.
 
+   Resolve the canonical spec and every ticket to absolute paths in the shared
+   checkout before dispatch. `.specs/` is intentionally worktree-local and
+   ignored by Git, so implementation worktrees may contain an empty `.specs/`
+   directory rather than the canonical files. Include the absolute canonical
+   spec path and the absolute paths for the assigned ticket(s) in every agent
+   handoff. Tell agents to read those files from the shared checkout as
+   authoritative, read-only context, and to make changes only in their
+   assigned worktree.
+
 4. (optional) Use the **`explorer`** agent to conduct any exploration required
    by the tickets - relevant codebase files or external documentation. Apply
    the selected cost level before dispatching it. If the explorer receives a
@@ -120,7 +129,9 @@ limitation and enforce the selected level through the dispatch choices.
    create its branch and worktree from the current spec branch, and give the
    implementer that isolated worktree. Set the task's model and reasoning
    effort explicitly when supported, and apply the approved isolation,
-   concurrency, and budget limits. Use the named **`implementer`** when its
+   concurrency, and budget limits. Include the absolute canonical spec path
+   and absolute ticket path(s) in the assignment, with the read-only shared
+   checkout instruction from step 3. Use the named **`implementer`** when its
    fixed profile fits the ticket; otherwise select a suitable available model
    only if that selection was approved in preflight.
 
@@ -205,4 +216,5 @@ limitation and enforce the selected level through the dispatch choices.
   review scope pauses for renewed approval; it is never an implicit recovery
   path.
 - Handoffs are context-complete: later agents receive the plan, confidence,
-  assumptions, unresolved risks, and evidence rather than re-deriving them.
+  assumptions, unresolved risks, evidence, and the absolute read-only paths
+  to the canonical spec and assigned tickets rather than re-deriving them.
