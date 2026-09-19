@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/apourman/qbs/compare/v0.4.0...v0.4.1) (2026-09-19)
+
+
+### Bug Fixes
+
+* keep curated skills global ([#19](https://github.com/apourman/qbs/issues/19)) ([2502a5f](https://github.com/apourman/qbs/commit/2502a5fb72bf7d739c5c8c273ad4f568741604b3))
+
 ## [0.4.0](https://github.com/apourman/qbs/compare/v0.3.0...v0.4.0) (2026-09-19)
 
 
