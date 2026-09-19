@@ -74,7 +74,7 @@ no tracker configuration is present, use the local Markdown convention below;
 the tickets are the same either way, only the shape of the blocking edges
 changes:
 
-- **Local files** → write one file per ticket under `.specs/<domain-or-feature>/issues/<NN>-<slug>.md`, numbered from `01` in dependency order (blockers first). Use the same domain-or-feature directory as the source spec. Each file's "Blocked by" lists the numbers/titles it depends on. Use the per-ticket file template below: one ticket per file, never a single combined file.
+- **Local files** → write one file per ticket under `.specs/<domain-or-feature>/tickets/<NN>-<slug>.md`, numbered from `01` in dependency order (blockers first). Use the same domain-or-feature directory as the source spec. Each file's "Blocked by" lists the numbers/titles it depends on. Use the per-ticket file template below: one ticket per file, never a single combined file.
 - **A real issue tracker (GitHub, Linear, …)** → publish one issue per ticket in dependency order (blockers first) so each ticket's blocking edges can reference real identifiers. Use the platform's native blocking / sub-issue relationship where it has one; otherwise set each ticket's "Blocked by" to the blocking issues. Apply the `ready-for-agent` triage label unless instructed otherwise; the tickets are agent-grabbable by construction.
 
 Work the **frontier**: any ticket whose blockers are all done. For a purely linear chain that means top to bottom.

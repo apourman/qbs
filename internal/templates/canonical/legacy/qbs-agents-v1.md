@@ -7,8 +7,8 @@ directory.
 Use the canonical domain/feature layout for project knowledge:
 
 - Research: `.research/<domain-or-feature>/<research-slug>.md`
-- Specs: `.specs/<domain-or-feature>/<spec-slug>.md`
-- Tickets for a spec: `.specs/<domain-or-feature>/issues/<NN>-<ticket-slug>.md`
+- Specs: `.specs/<domain-or-feature>/spec.md` (exactly one per directory)
+- Tickets for a spec: `.specs/<domain-or-feature>/tickets/<NN>-<ticket-slug>.md`
 
 Choose a stable, lowercase kebab-case domain or feature name and reuse it for
 the related research, spec, and tickets. New specs and tickets belong in these

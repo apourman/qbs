@@ -11,7 +11,7 @@ Two-axis review of the diff between `HEAD` and a fixed point the user supplies:
 Both axes run as the named agents **`review-standards`** and **`review-spec`** in parallel so they don't pollute each other's context, then this skill aggregates their findings.
 
 Use the repository's configured issue tracker when available. If no tracker
-configuration is present, inspect local Markdown specs and issues under
+configuration is present, inspect local Markdown specs and tickets under
 `.specs/`.
 
 ## Process

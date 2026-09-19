@@ -201,7 +201,7 @@ func TestInitUsesLocalIssueTrackerRegardlessOfRemoteAndPreservesLocalRecords(t *
 			if err != nil {
 				t.Fatal(err)
 			}
-			if !strings.Contains(string(triageData), "authoritative Markdown issue record") ||
+			if !strings.Contains(string(triageData), "authoritative Markdown ticket record") ||
 				!strings.Contains(string(triageData), "`Status` field") {
 				t.Fatalf("triage template = %q", triageData)
 			}
@@ -412,11 +412,11 @@ func TestInitProvisionsLocalTriageStatusesWhenLocalTriageSkillExists(t *testing.
 		}
 	}
 	for _, want := range []string{
-		"authoritative Markdown issue record",
+		"authoritative Markdown ticket record",
 		"`Status` field",
 		"`## Triage notes`",
 		"`## Agent brief`",
-		"Do not create or manage hosted labels, comments, or issues",
+		"Do not create or manage hosted labels, comments, or tickets",
 	} {
 		if !strings.Contains(string(data), want) {
 			t.Errorf("local triage guidance is missing %q", want)
@@ -528,11 +528,11 @@ func TestInitLocalIssueTrackerTemplateDescribesFilesystemWorkflow(t *testing.T) 
 		t.Fatal(err)
 	}
 	for _, want := range []string{
-		"Local Markdown issue records",
+		"Local Markdown ticket records",
 		"authoritative source",
-		"List issues",
+		"List tickets",
 		"Create a ticket",
-		"Update the issue file",
+		"Update the ticket file",
 		"separate, explicit request",
 	} {
 		if !strings.Contains(string(data), want) {

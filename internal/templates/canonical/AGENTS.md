@@ -9,9 +9,9 @@ directory.
 Use the canonical domain/feature layout for project knowledge:
 
 - Research: `.research/<domain-or-feature>/<research-slug>.md`
-- Specs: `.specs/<domain-or-feature>/<spec-slug>.md`
-- Tickets for a spec: `.specs/<domain-or-feature>/issues/<NN>-<ticket-slug>.md`
-- Future work for a spec: `.specs/<domain-or-feature>/<spec-slug>.backlog.md`
+- Specs: `.specs/<domain-or-feature>/spec.md` (exactly one per directory)
+- Tickets for a spec: `.specs/<domain-or-feature>/tickets/<NN>-<ticket-slug>.md`
+- Future work for a spec: a companion backlog file beside `.specs/<domain-or-feature>/spec.md`
 
 Keep deferred or possible future work in the spec's companion `.backlog.md`
 file. Use ordinary unchecked Markdown tasks, and keep the backlog beside its

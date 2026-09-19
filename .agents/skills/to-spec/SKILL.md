@@ -5,10 +5,11 @@ description: "Turn the current conversation into a spec and publish it to the pr
 
 This skill takes the current conversation context and codebase understanding and produces a spec. Do NOT interview the user; just synthesize what you already know.
 
-This skill produces exactly one specification artifact. Ticket creation is a
-separate workflow owned by `to-tickets`; run that skill only when the user
-explicitly requests tickets. A successful `to-spec` run leaves implementation
-ticket creation to a later, explicit `to-tickets` run.
+This skill produces exactly one specification artifact. Every specification
+owns one feature directory and is stored as that directory's `spec.md`.
+Ticket creation is a separate workflow owned by `to-tickets`; run that skill
+only when the user explicitly requests tickets. A successful `to-spec` run
+leaves implementation ticket creation to a later, explicit `to-tickets` run.
 
 Use the repository's local Markdown tracker convention and canonical triage
 statuses when no repository-specific tracker configuration is present.
@@ -33,7 +34,23 @@ statuses when no repository-specific tracker configuration is present.
 
 Check with the user that these seams match their expectations.
 
-4. Write exactly one spec using the template below under `.specs/<domain-or-feature>/<spec-slug>.md`, then publish that spec record to the project issue tracker. Choose a stable, lowercase kebab-case domain or feature directory and reuse an existing directory when one applies. Apply the `ready-for-agent` triage label - no need for additional triage. The completion output is the spec itself; do not create, derive, or publish implementation tickets during this workflow. If tickets are wanted, stop after the spec and ask the user to run `to-tickets` separately.
+4. Resolve the specification directory before writing. Search `.specs/` for
+   an existing `spec.md` whose subject matches the current request. If one
+   matches, update that spec in place. If an existing directory contains one
+   legacy top-level specification file but no `spec.md`, migrate that file to
+   `spec.md` before updating it. If no matching specification exists, create a
+   new stable, lowercase kebab-case feature directory.
+
+   Write exactly one spec at `.specs/<domain-or-feature>/spec.md`, then publish
+   that spec record to the project issue tracker. Never create a second
+   top-level specification file in an existing spec directory. Other files
+   such as `tickets/`, `validation/`, research notes, handoffs, and explicitly
+   named backlog artifacts may remain alongside `spec.md`, but they are not
+   additional specifications. Apply the `ready-for-agent` triage label - no
+   need for additional triage. The completion output is the spec itself; do
+   not create, derive, or publish implementation tickets during this workflow.
+   If tickets are wanted, stop after the spec and ask the user to run
+   `to-tickets` separately.
 
 5. After the spec is written, produce the shared postflight report. Compare
    every original requirement against the completed spec and classify it as
@@ -50,9 +67,10 @@ Check with the user that these seams match their expectations.
 ## Spec paths
 
 `.specs/` is the canonical home for specifications. Every spec has one
-domain-or-feature directory and one descriptive Markdown file beneath it. Do
-not put new specs directly in `.specs/`; the directory name is part of the
-spec's identity and groups related research, specs, and implementation tickets.
+domain-or-feature directory and exactly one canonical file: `spec.md`. Do not
+put new specs directly in `.specs/`, and do not use a slugged filename for the
+canonical spec. The directory name is part of the spec's identity and groups
+related research, specifications, and implementation tickets.
 
 <spec-template>
 
