@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/apourman/qbs/compare/v0.4.1...v0.5.0) (2026-09-19)
+
+
+### Features
+
+* make local-first triage the default ([168d800](https://github.com/apourman/qbs/commit/168d8006363b3f652921bcff268a1739df52d5c6))
+
 ## [0.4.1](https://github.com/apourman/qbs/compare/v0.4.0...v0.4.1) (2026-09-19)
 
 
