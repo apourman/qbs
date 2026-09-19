@@ -10,5 +10,6 @@ Use `qbs init` for the current repository.
 Manage reusable skills globally with `qbs skills import`, `list`, `sync`, and
 `remove`. Keep repository-specific context in `AGENTS.md`, `CLAUDE.md`,
 `.specs/<domain-or-feature>/`, `.research/<domain-or-feature>/`, and
-project-local skill directories. Put spec tickets in the spec directory's
-`issues/` subdirectory.
+project-local files created by the project owner. `qbs init` does not create or
+modify project-local skills. Put spec tickets in the spec directory's `issues/`
+subdirectory.

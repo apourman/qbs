@@ -32,9 +32,9 @@ QBS_SKILL_TARGETS="$root/codex-skills:$root/claude-skills" \
   "$binary" skills import "$skill_source" </dev/null
 
 test -f "$repo/AGENTS.md"
-test -f "$repo/.agents/skills/qbs/SKILL.md"
-test -f "$repo/.claude/skills/qbs/SKILL.md"
-test -f "$repo/.opencode/skills/qbs/SKILL.md"
+test ! -e "$repo/.agents/skills/qbs/SKILL.md"
+test ! -e "$repo/.claude/skills/qbs/SKILL.md"
+test ! -e "$repo/.opencode/skills/qbs/SKILL.md"
 test -d "$repo/.research"
 test -d "$repo/.specs"
 grep -q 'CLAUDE.md' "$repo/AGENTS.md"
