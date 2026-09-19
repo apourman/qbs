@@ -35,5 +35,5 @@ legacy context; do not move them unless asked.
 ## Agent skills
 
 - Issue tracker: see `docs/agents/issue-tracker.md` for the repository's tracker workflow.
-- Domain documentation: see `docs/agents/domain.md` for `CONTEXT.md` and `docs/adr/`.
+- Domain documentation: see `docs/agents/domain.md` for `context.md` and `docs/adr/`.
 - Local triage: when triage is installed, see `docs/agents/triage.md` for the status workflow.
