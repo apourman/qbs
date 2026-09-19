@@ -5,6 +5,11 @@ description: "Turn the current conversation into a spec and publish it to the pr
 
 This skill takes the current conversation context and codebase understanding and produces a spec. Do NOT interview the user; just synthesize what you already know.
 
+This skill produces exactly one specification artifact. Ticket creation is a
+separate workflow owned by `to-tickets`; run that skill only when the user
+explicitly requests tickets. A successful `to-spec` run leaves implementation
+ticket creation to a later, explicit `to-tickets` run.
+
 The issue tracker and triage label vocabulary should have been provided to you. If not, tell the user to run `/setup-matt-pocock-skills`.
 
 ## Process
@@ -27,7 +32,7 @@ The issue tracker and triage label vocabulary should have been provided to you. 
 
 Check with the user that these seams match their expectations.
 
-4. Write the spec using the template below under `.specs/<domain-or-feature>/<spec-slug>.md`, then publish it to the project issue tracker. Choose a stable, lowercase kebab-case domain or feature directory and reuse an existing directory when one applies. Apply the `ready-for-agent` triage label - no need for additional triage.
+4. Write exactly one spec using the template below under `.specs/<domain-or-feature>/<spec-slug>.md`, then publish that spec record to the project issue tracker. Choose a stable, lowercase kebab-case domain or feature directory and reuse an existing directory when one applies. Apply the `ready-for-agent` triage label - no need for additional triage. The completion output is the spec itself; do not create, derive, or publish implementation tickets during this workflow. If tickets are wanted, stop after the spec and ask the user to run `to-tickets` separately.
 
 5. After the spec is written, produce the shared postflight report. Compare
    every original requirement against the completed spec and classify it as
