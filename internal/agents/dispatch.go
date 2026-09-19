@@ -120,6 +120,7 @@ type DispatchApproval struct {
 	TicketPlan     TicketDispatchPlan
 	WorkflowBudget WorkflowBudget
 	OptionalRoles  []OptionalRoleStatus
+	ReviewScope    string
 	Approved       bool
 }
 
@@ -223,6 +224,10 @@ type TicketDispatchPlan struct {
 	GlobalConcurrencyLimit int
 	RoleConcurrencyLimits  map[string]int
 	ClassConcurrencyLimits map[string]int
+	// TransitionPolicy defaults to serialized. A parallel policy must be
+	// explicitly approved because merges and dependency transitions are
+	// otherwise serialized workflow boundaries.
+	TransitionPolicy string
 }
 
 // ResolveProfile resolves a neutral profile without falling back to another
@@ -308,6 +313,7 @@ func (c Catalog) ResolveTicketPlanWithLimits(tickets []Ticket, harness Harness, 
 		GlobalConcurrencyLimit: globalLimit,
 		RoleConcurrencyLimits:  copyLimits(roleLimits),
 		ClassConcurrencyLimits: copyLimits(classLimits),
+		TransitionPolicy:       "serialized",
 		Tickets:                make([]TicketDispatchAssignment, 0, len(tickets)),
 	}
 	seen := make(map[string]bool, len(tickets))
