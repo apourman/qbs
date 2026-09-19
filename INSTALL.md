@@ -101,7 +101,9 @@ qbs init
 Initialization creates `.research/` for local research and `.specs/` for local
 specifications. It does not create or modify harness-native agent or skill
 directories in the project. Curated skills are managed only through the global
-skill catalog and global harness targets described below.
+skill catalog and global harness targets described below. The repository-root
+`CONTEXT.md` file is also added to the repository-local Git common exclude, so
+domain context stays local and is not tracked accidentally.
 
 Initialization also creates local engineering guidance in `docs/agents/`,
 including the issue-tracker and domain-documentation configuration. Local

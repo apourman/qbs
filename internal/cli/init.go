@@ -24,6 +24,7 @@ var projectSkillDirectories = []string{
 var excludedPaths = []string{
 	"AGENTS.md",
 	"CLAUDE.md",
+	"CONTEXT.md",
 	".agents/skills/",
 	".claude/agents/",
 	".claude/skills/",

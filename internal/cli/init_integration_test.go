@@ -65,6 +65,9 @@ func TestInitProvisionsIgnoredAIWorkspaceIdempotently(t *testing.T) {
 			t.Errorf("init created local skill directory %s: %v", name, err)
 		}
 	}
+	if out := runGit(t, repo, "check-ignore", "--", "CONTEXT.md"); strings.TrimSpace(out) == "" {
+		t.Error("CONTEXT.md is not ignored")
+	}
 
 	localSkill := filepath.Join(repo, ".agents", "skills", "local", "SKILL.md")
 	if err := os.MkdirAll(filepath.Dir(localSkill), 0o755); err != nil {
@@ -143,7 +146,7 @@ func TestInitProvisionsIgnoredAIWorkspaceIdempotently(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, entry := range []string{"AGENTS.md", "CLAUDE.md", ".agents/skills/", ".claude/agents/", ".claude/skills/", ".codex/agents/", ".opencode/agents/", ".opencode/skills/", ".research/", ".specs/", "docs/agents/"} {
+	for _, entry := range []string{"AGENTS.md", "CLAUDE.md", "CONTEXT.md", ".agents/skills/", ".claude/agents/", ".claude/skills/", ".codex/agents/", ".opencode/agents/", ".opencode/skills/", ".research/", ".specs/", "docs/agents/"} {
 		if count := strings.Count(string(excludeData), entry); count != 1 {
 			t.Errorf("exclude entry %q occurs %d times", entry, count)
 		}
