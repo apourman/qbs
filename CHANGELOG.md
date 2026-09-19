@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/apourman/qbs/compare/v0.5.0...v0.6.0) (2026-09-19)
+
+
+### Features
+
+* define implement-spec delivery contract ([#23](https://github.com/apourman/qbs/issues/23)) ([4e3973b](https://github.com/apourman/qbs/commit/4e3973b8b2b6c3deb08e618f0f3877e0b6edb6b9))
+
 ## [0.5.0](https://github.com/apourman/qbs/compare/v0.4.1...v0.5.0) (2026-09-19)
 
 
