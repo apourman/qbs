@@ -124,9 +124,6 @@ func assignmentFor(role Role, plan Plan, custom map[string]Assignment) (Assignme
 	switch plan {
 	case Economy:
 		profile := "balanced"
-		if role.Capability == "implementation" || role.Capability == "architecture" || role.Capability == "adversarial-review" {
-			profile = "capable"
-		}
 		return Assignment{ModelProfile: profile, Reasoning: "low"}, true
 	case Deep:
 		return Assignment{ModelProfile: "capable", Reasoning: "high"}, true
