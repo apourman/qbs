@@ -11,6 +11,15 @@ Use the canonical domain/feature layout for project knowledge:
 - Research: `.research/<domain-or-feature>/<research-slug>.md`
 - Specs: `.specs/<domain-or-feature>/<spec-slug>.md`
 - Tickets for a spec: `.specs/<domain-or-feature>/issues/<NN>-<ticket-slug>.md`
+- Future work for a spec: `.specs/<domain-or-feature>/<spec-slug>.backlog.md`
+
+Keep deferred or possible future work in the spec's companion `.backlog.md`
+file. Use ordinary unchecked Markdown tasks, and keep the backlog beside its
+source spec. A backlog records context; it is not a queue of implementation
+tickets or an indication that every item is ready for an agent. When an item
+becomes actionable, create a separate numbered issue and link it from the
+backlog entry. Preserve any link to the ticket or decision that originally
+raised the idea.
 
 Choose a stable, lowercase kebab-case domain or feature name and reuse it for
 the related research, spec, and tickets. New specs and tickets belong in these

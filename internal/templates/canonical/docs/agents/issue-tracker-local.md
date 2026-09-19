@@ -25,6 +25,21 @@ domain-or-feature name across those artifacts. This local workflow performs no
 remote publishing and provides no remote comments, labels, assignees, or
 notifications.
 
+## Spec future-work backlogs
+
+Each specification may have one companion backlog beside it, named by adding
+`.backlog.md` to the spec filename. For example, `workflow.md` may have
+`workflow.backlog.md` in the same `.specs/<domain-or-feature>/` directory.
+Keep backlog entries as ordinary unchecked Markdown tasks. They record deferred
+or possible future work and are not implementation tickets or automatic
+`ready-for-agent` work.
+
+When a backlog item becomes actionable, create a separate numbered issue under
+the spec's `issues/` directory and link that issue from the item. If the idea
+came from another issue, preserve that originating-ticket link too. This keeps
+the local specification and issue hierarchy authoritative without introducing
+a central backlog or hosted synchronization.
+
 Treat GitHub, Jira, Linear, GitLab, and other hosted trackers only as optional
 projection targets. Publishing or synchronizing a local record requires a
 separate, explicit request and is not part of initialization.
