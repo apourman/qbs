@@ -19,6 +19,11 @@ integration, and apply the cost gate below. Keep token budgets, account quota,
 and monetary cost separate; mark limits as advisory when the tool cannot
 enforce them.
 
+This skill also uses the shared `orchestration-gate` contract. The contract is
+the source of truth for confidence vocabulary, approval gates, neutral model
+profiles, cost-status fields, evidence reporting, and handoff context. This
+skill supplies the implementation-specific roster and dispatch sequencing.
+
 ## Cost gate
 
 Before dispatching any agent, choose a cost level. If the user has not chosen
@@ -43,33 +48,111 @@ limitation and enforce the selected level through the dispatch choices.
 
 1. Read the spec and tickets. Read enough to understand the task graph.
 
-2. (optional) Use the **`explorer`** agent to conduct any exploration required
+2. Complete orchestration-gate preflight before dispatching any agent. Build
+   one user-visible dispatch summary containing:
+
+   - the requested implementation scope, confidence score and rationale,
+     assumptions, and unresolved questions;
+   - the complete role roster, including the required `explorer`,
+     `implementer`, and `merger` roles, plus `reviewer` and `red-team` only
+     when the workflow selects them;
+   - each role's purpose, capability, optionality, reasoning effort,
+     isolation, concurrency eligibility, and token range;
+   - the `Recommended`, `Economy`, `Deep`, and `Customize` plan choices;
+   - each role's neutral model profile and harness-resolved model, approved
+     reasoning, concurrency limit, and token budget; and
+   - separate token-estimate, account-quota, and monetary-cost statuses,
+     including the reserved review, fixes, CI, and integration capacity.
+
+   Use the role-sensitive catalog resolver from `internal/agents/dispatch.go`
+   to resolve every selected profile. An unavailable profile or harness
+   resolution is an actionable gate failure. Do not substitute a different
+   profile or model. Scores 1 and 2 stop or pause for clarification/override;
+   score 3 exposes risks and asks whether to proceed; scores 4 and 5 still
+   require approval of the selected cost plan. Missing information that could
+   change intent always requires clarification.
+
+   Approval is a binding constraint. Record the selected plan, role
+   assignments, resolved models, reasoning, isolation, concurrency, token
+   budget, optional roles, and cost-status fields in the implementation
+   context. Do not dispatch until the required approval is present.
+
+3. (optional) Use the **`explorer`** agent to conduct any exploration required
    by the tickets - relevant codebase files or external documentation. Apply
    the selected cost level before dispatching it. Ensure the explorer can save
    files - it should save its markdown notes in a directory outside the repo,
-   accessible by all future agents. This lets **`implementer`** focus on
-   implementation rather than exploration.
+   accessible by all future agents. Pass the approved assignment and the
+   implementation context to it. This lets **`implementer`** focus on
+   implementation rather than exploration. If exploration is not selected,
+   omit the role from the roster and do not dispatch it.
 
-3. Create a dedicated branch and worktree for the spec, then create a draft PR
+4. Create a dedicated branch and worktree for the spec, then create a draft PR
    which references the spec and its tickets.
 
-4. Start one bounded implementation task per ready ticket. Give each
+5. Start one bounded implementation task per ready ticket. Give each
    implementer its own branch and worktree. Set the task's model and reasoning
-   effort explicitly when supported. Use the named **`implementer`** when its
-   fixed profile fits the ticket; otherwise select a suitable available model.
+   effort explicitly when supported, and apply the approved isolation,
+   concurrency, and budget limits. Use the named **`implementer`** when its
+   fixed profile fits the ticket; otherwise select a suitable available model
+   only if that selection was approved in preflight.
 
-5. Once an implementation task completes, report its revision and validation to
+6. Once an implementation task completes, report its revision and validation to
    the main task, then use the named **`merger`** to inspect and merge it into
-   the spec branch.
+   the spec branch. Every handoff must carry the approved plan, preflight and
+   postflight confidence, assumptions, unresolved risks, selected model and
+   reasoning, isolation/concurrency/budget constraints, and evidence pointers.
+   The merger may not broaden scope or change the approved dispatch plan.
 
-6. If this changes the **frontier** of available tickets, report the newly ready
+7. If this changes the **frontier** of available tickets, report the newly ready
    tickets and dispatch them as dependencies and the remaining budget permit.
 
-7. Once all tickets are complete, run /code-review on the supplied workspace or
-   revision. Fix its
-   findings in one bounded implementation task.
+8. Once the primary implementation work completes, dispatch the selected
+   `reviewer` role with its approved assignment and reserved review budget.
+   If a red-team pass was selected, include a separately prompted `red-team`
+   role in the original summary and dispatch it independently with the
+   approved assignment. It receives the requirements and artifact with
+   minimal framing, reports concrete counterexamples, and does not modify the
+   implementation. If either role was not selected, do not add it implicitly.
 
-8. Mark the PR as ready for review once the review findings are fixed.
+   Run `/code-review` on the supplied workspace or revision when that is the
+   selected reviewer workflow, then fix findings in one bounded implementation
+   task using the reserved capacity. A new approval is required before adding
+   any optional reviewer/red-team work, expanding review scope, exceeding the
+   approved model/reasoning/isolation/concurrency/budget plan, or changing a
+   resolved model. Never silently upgrade or fall back.
 
-9. Clean up completed implementer worktrees and branches. Return the final
-   revision, checks, and remaining gates.
+9. Mark the PR as ready for review once the review findings are fixed.
+
+10. Produce the orchestration-gate postflight report, even when a section is
+    empty. Compare every original requirement with the implementation and
+    classify it as `complete`, `partial`, `missing`, `ambiguous`, or
+    `unrequested`, with precise evidence pointers. Keep verified checks
+    separate from inferred conclusions; report assumptions, low-confidence
+    areas, concrete failure modes, unnecessary complexity, and the smallest
+    confidence-raising checks. Complexity findings may not remove required
+    behavior. When the red-team role ran, include its read-only findings from
+    the independent minimal-context prompt; otherwise leave
+    `red_team_findings` empty. Scores 1/2 are incomplete or unsafe, score 3
+    requests targeted follow-up, score 4 reports remaining limited risks, and
+    score 5 requires direct coverage and verification evidence.
+
+11. Clean up completed implementer worktrees and branches. Return the final
+    revision, checks, approved plan, handoff evidence, confidence report, and
+    remaining gates. Keep token estimates, account quota, and monetary cost
+    distinct; unavailable measurements must remain unavailable or advisory,
+    never zero or exact.
+
+## Dispatch invariants
+
+- The dispatch summary is built and approved before the first sub-agent starts.
+- `explorer`, `implementer`, and `merger` remain the stable named roles. Their
+  role semantics are not replaced by a generic agent name.
+- `reviewer` and `red-team` are visible in the roster whenever selected, with
+  their own model, reasoning, isolation, concurrency, and budget entries.
+- Each dispatch receives the approved resolved model and reasoning explicitly,
+  and obeys the approved isolation, concurrency, and budget constraints.
+- Adding an optional role, changing any approved cost dimension, or expanding
+  review scope pauses for renewed approval; it is never an implicit recovery
+  path.
+- Handoffs are context-complete: later agents receive the plan, confidence,
+  assumptions, unresolved risks, and evidence rather than re-deriving them.

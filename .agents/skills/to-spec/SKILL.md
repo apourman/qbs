@@ -9,13 +9,37 @@ The issue tracker and triage label vocabulary should have been provided to you. 
 
 ## Process
 
-1. Explore the repo to understand the current state of the codebase, if you haven't already. Use the project's domain glossary vocabulary throughout the spec, and respect any ADRs in the area you're touching.
+1. Determine whether this run will dispatch any sub-agents. If it will not, continue without a model-selection or dispatch-approval prompt. If it will, apply the shared `orchestration-gate` contract before the first dispatch.
 
-2. Sketch out the seams at which you're going to test the feature. Existing seams should be preferred to new ones. Use the highest seam possible. If new seams are needed, propose them at the highest point you can. The fewer seams across the codebase, the better - the ideal number is one.
+   For delegated exploration or validation, declare the complete roster before dispatch. Each role must include its name, purpose, neutral capability, optionality, expected reasoning, isolation, concurrency eligibility, and estimated token range. Include reserved review/fix/integration capacity and any separately selectable red-team role.
+
+   Show one preflight dispatch summary with the request, confidence score (1–5), rationale, assumptions, unresolved questions, roster, and separate token-estimate, account-quota, and monetary-cost fields. For each role show the recommended neutral profile, harness-resolved model when available, reasoning, concurrency, and token budget. Offer exactly `Recommended`, `Economy`, `Deep`, and `Customize`; customization assigns a profile and reasoning effort to every role. Apply the shared confidence gates and obtain clarification and plan approval before dispatch. An unavailable resolution stops with an actionable error; never silently fall back, upgrade, add optional agents, or exceed the approved plan.
+
+   Resolve the roster through the repository catalog before dispatch and carry
+   the approved role/model assignments and constraints into each handoff. The
+   final workflow report must be generated from the written spec and checks
+   performed, with requirement coverage and evidence pointers; describing the
+   intended gate without performing these actions is insufficient.
+
+2. Explore the repo to understand the current state of the codebase, if you haven't already. Use the project's domain glossary vocabulary throughout the spec, and respect any ADRs in the area you're touching.
+
+3. Sketch out the seams at which you're going to test the feature. Existing seams should be preferred to new ones. Use the highest seam possible. If new seams are needed, propose them at the highest point you can. The fewer seams across the codebase, the better - the ideal number is one.
 
 Check with the user that these seams match their expectations.
 
-3. Write the spec using the template below under `.specs/<domain-or-feature>/<spec-slug>.md`, then publish it to the project issue tracker. Choose a stable, lowercase kebab-case domain or feature directory and reuse an existing directory when one applies. Apply the `ready-for-agent` triage label - no need for additional triage.
+4. Write the spec using the template below under `.specs/<domain-or-feature>/<spec-slug>.md`, then publish it to the project issue tracker. Choose a stable, lowercase kebab-case domain or feature directory and reuse an existing directory when one applies. Apply the `ready-for-agent` triage label - no need for additional triage.
+
+5. After the spec is written, produce the shared postflight report. Compare
+   every original requirement against the completed spec and classify it as
+   `complete`, `partial`, `missing`, `ambiguous`, or `unrequested`; cite
+   verified evidence separately from inferred conclusions; and list
+   assumptions, low-confidence areas, risks, unnecessary complexity, and the
+   smallest confidence-raising checks. If the workflow selected a red-team
+   role, give it only the requirements and spec with minimal framing and
+   include its concrete findings; otherwise leave `red_team_findings` empty.
+   Complexity suggestions must preserve every required behavior. Carry the
+   approved plan, preflight confidence, assumptions, unresolved risks, and
+   final evidence into the handoff or final report.
 
 ## Spec paths
 
