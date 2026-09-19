@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.2](https://github.com/apourman/qbs/compare/v0.9.1...v0.9.2) (2026-09-19)
+
+
+### Bug Fixes
+
+* keep qbs init workspace files minimal ([#37](https://github.com/apourman/qbs/issues/37)) ([fef63f9](https://github.com/apourman/qbs/commit/fef63f9639ba13f610a4b45b20f0ee71895e76a5))
+
 ## [0.9.1](https://github.com/apourman/qbs/compare/v0.9.0...v0.9.1) (2026-09-19)
 
 
