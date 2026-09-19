@@ -128,7 +128,7 @@ func TestRepresentativeNativeOutputs(t *testing.T) {
 	openCode := generatedFile(t, catalog, agents.OpenCode, path.Join(".opencode", "agents", "review-spec.md"))
 	for _, want := range []string{
 		"mode: subagent",
-		`model: "openai/gpt-5.6-terra"`,
+		`model: "openai/gpt-5.6-luna"`,
 		`reasoningEffort: "high"`,
 		`"edit":`,
 		`"read": allow`,

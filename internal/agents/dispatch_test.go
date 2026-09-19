@@ -20,7 +20,7 @@ func TestResolvePlansByRoleAndHarness(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if assignments[0].Role.Name != "explorer" || assignments[0].ResolvedModel != "gpt-5.6-terra" {
+	if assignments[0].Role.Name != "explorer" || assignments[0].ResolvedModel != "gpt-5.6-luna" {
 		t.Fatalf("unexpected explorer assignment: %+v", assignments[0])
 	}
 	if assignments[1].ModelProfile != "capable" || assignments[1].ResolvedModel != "gpt-5.6-sol" {
@@ -34,7 +34,7 @@ func TestResolvePlansByRoleAndHarness(t *testing.T) {
 	if assignments[0].ModelProfile != "balanced" || assignments[0].ResolvedModel != "sonnet" || assignments[0].Reasoning != "low" {
 		t.Fatalf("unexpected economy explorer assignment: %+v", assignments[0])
 	}
-	if assignments[1].ModelProfile != "capable" || assignments[1].ResolvedModel != "opus" || assignments[1].Reasoning != "low" {
+	if assignments[1].ModelProfile != "balanced" || assignments[1].ResolvedModel != "sonnet" || assignments[1].Reasoning != "low" {
 		t.Fatalf("unexpected economy implementer assignment: %+v", assignments[1])
 	}
 }
