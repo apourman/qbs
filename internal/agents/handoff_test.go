@@ -73,7 +73,7 @@ func TestImplementationContextRecordsRenewedApprovalAndFinalHandoff(t *testing.T
 		"# Implementation review handoff",
 		"abc1234",
 		"risk-renewal-01: cross-cutting review required stronger reasoning",
-		"Reasoning | Estimate",
+		"Reasoning | Assignment note | Estimate",
 		"high",
 		"### Verified checks",
 		"### Inferred conclusions",

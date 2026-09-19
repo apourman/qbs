@@ -261,9 +261,6 @@ func (p TicketDispatchPlan) classLimit(assignment TicketDispatchAssignment) int 
 }
 
 func (p TicketDispatchPlan) transitionPolicy() string {
-	if p.TransitionPolicy == "parallel" {
-		return "parallel"
-	}
 	return "serialized"
 }
 
@@ -271,7 +268,7 @@ func (p TicketDispatchPlan) validateGraph() error {
 	if p.GlobalConcurrencyLimit <= 0 {
 		return fmt.Errorf("validate ticket dispatch plan: global concurrency limit must be positive")
 	}
-	if p.TransitionPolicy != "" && p.TransitionPolicy != "serialized" && p.TransitionPolicy != "parallel" {
+	if p.TransitionPolicy != "" && p.TransitionPolicy != "serialized" {
 		return fmt.Errorf("validate ticket dispatch plan: unsupported transition policy %q", p.TransitionPolicy)
 	}
 	ids := make(map[string]bool, len(p.Tickets))
