@@ -6,7 +6,10 @@ description: "Implement a specification in code."
 You have been provided a spec. This spec should have tickets associated with it, describing how to implement the spec.
 
 The goal is a coherent change which implements the entire spec. You own the
-branch, worktree, PR, and merge setup for the change.
+spec branch, worktrees, merges, review, and final handoff for the change.
+
+Use the Branch and delivery invariants below as the single source of truth for
+the integration base, worktree ancestry, cleanup, and delivery artifact.
 
 The tickets are not a list of steps. They are a **task graph** with blocking relationships between them. This means there is always a **frontier** of tickets which are ready to be grabbed.
 
@@ -77,20 +80,25 @@ limitation and enforce the selected level through the dispatch choices.
    budget, optional roles, and cost-status fields in the implementation
    context. Do not dispatch until the required approval is present.
 
-3. (optional) Use the **`explorer`** agent to conduct any exploration required
+3. Apply the Branch and delivery invariants before dispatching any role. Resolve
+   the spec directory and starting revision, create the spec branch and its
+   integration worktree, and record the branch, immutable starting SHA, spec
+   path, and worktree path in the implementation context. The spec branch must
+   exist before any role receives a repository worktree.
+
+4. (optional) Use the **`explorer`** agent to conduct any exploration required
    by the tickets - relevant codebase files or external documentation. Apply
-   the selected cost level before dispatching it. Ensure the explorer can save
-   files - it should save its markdown notes in a directory outside the repo,
-   accessible by all future agents. Pass the approved assignment and the
-   implementation context to it. This lets **`implementer`** focus on
-   implementation rather than exploration. If exploration is not selected,
-   omit the role from the roster and do not dispatch it.
+   the selected cost level before dispatching it. If the explorer receives a
+   repository worktree, create it from the current spec branch. It should save
+   markdown notes in a directory outside the repo when possible, accessible by
+   all future agents. Pass the approved assignment and the implementation
+   context to it. This lets **`implementer`** focus on implementation rather
+   than exploration. If exploration is not selected, omit the role from the
+   roster and do not dispatch it.
 
-4. Create a dedicated branch and worktree for the spec, then create a draft PR
-   which references the spec and its tickets.
-
-5. Start one bounded implementation task per ready ticket. Give each
-   implementer its own branch and worktree. Set the task's model and reasoning
+5. Start one bounded implementation task per ready ticket. For each ticket,
+   create its branch and worktree from the current spec branch, and give the
+   implementer that isolated worktree. Set the task's model and reasoning
    effort explicitly when supported, and apply the approved isolation,
    concurrency, and budget limits. Use the named **`implementer`** when its
    fixed profile fits the ticket; otherwise select a suitable available model
@@ -121,26 +129,48 @@ limitation and enforce the selected level through the dispatch choices.
    approved model/reasoning/isolation/concurrency/budget plan, or changing a
    resolved model. Never silently upgrade or fall back.
 
-9. Mark the PR as ready for review once the review findings are fixed.
+9. Produce the orchestration-gate postflight report, even when a section is
+   empty. Compare every original requirement with the implementation and
+   classify it as `complete`, `partial`, `missing`, `ambiguous`, or
+   `unrequested`, with precise evidence pointers. Keep verified checks
+   separate from inferred conclusions; report assumptions, low-confidence
+   areas, concrete failure modes, unnecessary complexity, and the smallest
+   confidence-raising checks. Complexity findings may not remove required
+   behavior. When the red-team role ran, include its read-only findings from
+   the independent minimal-context prompt; otherwise leave
+   `red_team_findings` empty. Scores 1/2 are incomplete or unsafe, score 3
+   requests targeted follow-up, score 4 reports remaining limited risks, and
+   score 5 requires direct coverage and verification evidence.
 
-10. Produce the orchestration-gate postflight report, even when a section is
-    empty. Compare every original requirement with the implementation and
-    classify it as `complete`, `partial`, `missing`, `ambiguous`, or
-    `unrequested`, with precise evidence pointers. Keep verified checks
-    separate from inferred conclusions; report assumptions, low-confidence
-    areas, concrete failure modes, unnecessary complexity, and the smallest
-    confidence-raising checks. Complexity findings may not remove required
-    behavior. When the red-team role ran, include its read-only findings from
-    the independent minimal-context prompt; otherwise leave
-    `red_team_findings` empty. Scores 1/2 are incomplete or unsafe, score 3
-    requests targeted follow-up, score 4 reports remaining limited risks, and
-    score 5 requires direct coverage and verification evidence.
+10. After postflight, write the finished review handoff to the spec directory.
+    Include the spec path, spec branch and final revision, requirement
+    coverage, checks, review findings and resolutions, approved plan,
+    confidence report, remaining risks or gates, and pointers to the relevant
+    commits and artifacts. Use a stable descriptive filename such as
+    `implementation-review-handoff.md`; preserve an existing handoff by
+    updating it only when it is clearly the handoff for this run.
 
-11. Clean up completed implementer worktrees and branches. Return the final
-    revision, checks, approved plan, handoff evidence, confidence report, and
-    remaining gates. Keep token estimates, account quota, and monetary cost
-    distinct; unavailable measurements must remain unavailable or advisory,
-    never zero or exact.
+11. Clean up completed implementer worktrees and branches according to the
+    Branch and delivery invariants. Return the final revision, checks, approved
+    plan, handoff path, handoff evidence, confidence report, and remaining
+    gates. Keep token estimates, account quota, and monetary cost distinct;
+    unavailable measurements must remain unavailable or advisory, never zero
+    or exact.
+
+## Branch and delivery invariants
+
+- The spec branch is created before any ticket branch or implementation
+  worktree and is based on the spec run's starting revision.
+- The starting revision is recorded as an immutable commit SHA before branch
+  creation, using the documented resolution order.
+- No role receives a repository worktree before the spec branch exists.
+- Every implementation branch and worktree is based on the latest spec branch,
+  not directly on the original base branch or another ticket branch.
+- The merger integrates completed ticket work into the spec branch before the
+  next dependent ticket is dispatched.
+- Delivery is the completed review handoff in the spec directory, together
+  with the retained spec branch and final revision. The workflow does not
+  create, draft, update, or mark any pull request ready.
 
 ## Dispatch invariants
 
