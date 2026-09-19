@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0](https://github.com/apourman/qbs/compare/v0.8.0...v0.9.0) (2026-09-19)
+
+
+### Features
+
+* add ticket-level dispatch approvals ([2bf1bf2](https://github.com/apourman/qbs/commit/2bf1bf20c0de9ed5f5b8bf43d7b2cd35f5f6cf1d))
+
 ## [0.8.0](https://github.com/apourman/qbs/compare/v0.7.0...v0.8.0) (2026-09-19)
 
 
