@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/apourman/qbs/compare/v0.6.1...v0.7.0) (2026-09-19)
+
+
+### Features
+
+* document per-spec future-work backlogs ([#27](https://github.com/apourman/qbs/issues/27)) ([9a4d8c7](https://github.com/apourman/qbs/commit/9a4d8c7f4a41f607ca4fa2627cba52f0518f9ea3))
+
 ## [0.6.1](https://github.com/apourman/qbs/compare/v0.6.0...v0.6.1) (2026-09-19)
 
 
