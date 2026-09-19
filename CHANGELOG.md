@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.3](https://github.com/apourman/qbs/compare/v0.9.2...v0.9.3) (2026-09-19)
+
+
+### Bug Fixes
+
+* keep repository context local ([e41129d](https://github.com/apourman/qbs/commit/e41129d4771887388cead58c51e615604478714b))
+
 ## [0.9.2](https://github.com/apourman/qbs/compare/v0.9.1...v0.9.2) (2026-09-19)
 
 
