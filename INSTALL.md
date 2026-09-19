@@ -110,9 +110,15 @@ are left alone. The tracked source of truth is
 Initialization also creates local engineering guidance in `docs/agents/`,
 including the issue-tracker and domain-documentation configuration. Local
 Markdown records under `.specs/` remain authoritative regardless of configured
-repository remotes. Publishing to a hosted tracker requires a separate,
-explicit action. Existing files are preserved, and the directory is excluded
-through the repository-local Git common exclude file.
+repository remotes. Triage status, notes, decisions, and agent briefs stay in
+those local issue records. `qbs init` and ordinary local triage do not create
+or update hosted issues, labels, or comments.
+
+Hosted projection is a separate future interface, not part of initialization
+or local triage. If projection support is added, it must require an explicit
+request and use the authoritative local record as its input. Existing local
+files are preserved, and `docs/agents/` is excluded through the
+repository-local Git common exclude file.
 
 ## Global curated skills
 

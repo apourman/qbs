@@ -139,6 +139,7 @@ func TestInitProvisionsIgnoredAIWorkspaceIdempotently(t *testing.T) {
 }
 
 func TestInitUsesLocalIssueTrackerRegardlessOfRemoteAndPreservesLocalRecords(t *testing.T) {
+	const issueContent = "# Existing issue\n\n**Status:** ready-for-agent\n\n## Triage notes\n\nVerified locally.\n\n## Agent brief\n\nImplement from this record.\n"
 	var trackerWithoutRemote []byte
 	for _, test := range []struct {
 		name         string
@@ -150,18 +151,24 @@ func TestInitUsesLocalIssueTrackerRegardlessOfRemoteAndPreservesLocalRecords(t *
 		t.Run(test.name, func(t *testing.T) {
 			repo := t.TempDir()
 			runGit(t, repo, "init", "-q")
+			const remoteURL = "git@github.com:example/project.git"
 			if test.githubRemote {
-				runGit(t, repo, "remote", "add", "origin", "git@github.com:example/project.git")
+				runGit(t, repo, "remote", "add", "origin", remoteURL)
 			}
 
+			research := filepath.Join(repo, ".research", "local-first", "background.md")
 			spec := filepath.Join(repo, ".specs", "local-first", "spec.md")
 			issue := filepath.Join(repo, ".specs", "local-first", "issues", "01-existing.md")
+			if err := os.MkdirAll(filepath.Dir(research), 0o755); err != nil {
+				t.Fatal(err)
+			}
 			if err := os.MkdirAll(filepath.Dir(issue), 0o755); err != nil {
 				t.Fatal(err)
 			}
 			for path, content := range map[string]string{
-				spec:  "existing local spec\n",
-				issue: "existing local issue\n",
+				research: "existing local research\n",
+				spec:     "existing local spec\n",
+				issue:    issueContent,
 			} {
 				if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
 					t.Fatal(err)
@@ -188,6 +195,9 @@ func TestInitUsesLocalIssueTrackerRegardlessOfRemoteAndPreservesLocalRecords(t *
 				if !bytes.Equal(data, trackerWithoutRemote) {
 					t.Errorf("GitHub remote changed tracker guidance\nwithout remote:\n%s\nwith remote:\n%s", trackerWithoutRemote, data)
 				}
+				if got := strings.TrimSpace(runGit(t, repo, "remote", "get-url", "origin")); got != remoteURL {
+					t.Errorf("init changed origin remote: got %q, want %q", got, remoteURL)
+				}
 			} else {
 				trackerWithoutRemote = append([]byte(nil), data...)
 			}
@@ -206,8 +216,9 @@ func TestInitUsesLocalIssueTrackerRegardlessOfRemoteAndPreservesLocalRecords(t *
 				t.Fatalf("existing tracker was overwritten: %q", data)
 			}
 			for path, want := range map[string]string{
-				spec:  "existing local spec\n",
-				issue: "existing local issue\n",
+				research: "existing local research\n",
+				spec:     "existing local spec\n",
+				issue:    issueContent,
 			} {
 				record, err := os.ReadFile(path)
 				if err != nil {
@@ -218,6 +229,100 @@ func TestInitUsesLocalIssueTrackerRegardlessOfRemoteAndPreservesLocalRecords(t *
 				}
 			}
 		})
+	}
+}
+
+func TestInitPreservesCustomizedEngineeringGuidance(t *testing.T) {
+	repo := t.TempDir()
+	runGit(t, repo, "init", "-q")
+	writeSkill(t, filepath.Join(repo, ".agents", "skills"), "triage")
+	if err := runInDirectory(repo, []string{"init"}, &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
+		t.Fatal(err)
+	}
+
+	custom := map[string][]byte{
+		"domain.md":        []byte("custom domain guidance\n"),
+		"issue-tracker.md": []byte("custom tracker guidance\n"),
+		"triage.md":        []byte("custom triage guidance\n"),
+	}
+	for name, content := range custom {
+		if err := os.WriteFile(filepath.Join(repo, "docs", "agents", name), content, 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := runInDirectory(repo, []string{"init"}, &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
+		t.Fatal(err)
+	}
+	for name, want := range custom {
+		data, err := os.ReadFile(filepath.Join(repo, "docs", "agents", name))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !bytes.Equal(data, want) {
+			t.Errorf("custom %s was overwritten: %q", name, data)
+		}
+	}
+}
+
+func TestInitKeepsLocalContextWorktreeLocalAndUsesSharedExcludes(t *testing.T) {
+	repo := t.TempDir()
+	runGit(t, repo, "init", "-q")
+	runGit(t, repo, "config", "user.email", "qbs-tests@example.invalid")
+	runGit(t, repo, "config", "user.name", "QBS Tests")
+	if err := os.WriteFile(filepath.Join(repo, "README.md"), []byte("test repository\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	runGit(t, repo, "add", "README.md")
+	runGit(t, repo, "commit", "-qm", "initialize repository")
+
+	mainResearch := filepath.Join(repo, ".research", "main-only.md")
+	mainSpec := filepath.Join(repo, ".specs", "main-only.md")
+	if err := os.MkdirAll(filepath.Dir(mainResearch), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(filepath.Dir(mainSpec), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(mainResearch, []byte("main research\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(mainSpec, []byte("main spec\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	linked := filepath.Join(t.TempDir(), "linked")
+	runGit(t, repo, "worktree", "add", "-q", "-b", "linked-test", linked)
+	if err := runInDirectory(linked, []string{"init"}, &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
+		t.Fatal(err)
+	}
+
+	for _, name := range []string{".research", ".specs", filepath.Join("docs", "agents", "issue-tracker.md")} {
+		if _, err := os.Stat(filepath.Join(linked, name)); err != nil {
+			t.Errorf("linked worktree did not receive %s: %v", name, err)
+		}
+	}
+	for _, path := range []string{mainResearch, mainSpec} {
+		if _, err := os.Stat(path); err != nil {
+			t.Errorf("initializing linked worktree changed main-worktree context %s: %v", path, err)
+		}
+	}
+	for _, path := range []string{
+		filepath.Join(linked, ".research", "main-only.md"),
+		filepath.Join(linked, ".specs", "main-only.md"),
+	} {
+		if _, err := os.Stat(path); !os.IsNotExist(err) {
+			t.Errorf("worktree-local context leaked into linked worktree %s: %v", path, err)
+		}
+	}
+	exclude := filepath.Join(repo, ".git", "info", "exclude")
+	data, err := os.ReadFile(exclude)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, entry := range []string{".research/", ".specs/", "docs/agents/"} {
+		if count := strings.Count(string(data), entry); count != 1 {
+			t.Errorf("shared exclude entry %q occurs %d times", entry, count)
+		}
 	}
 }
 
