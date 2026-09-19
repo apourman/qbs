@@ -99,13 +99,9 @@ qbs init
 ```
 
 Initialization creates `.research/` for local research and `.specs/` for local
-specifications. It also generates the shared QBS agent catalog into the native
-project directories for Codex, OpenCode, and Claude Code. Curated skills are
-not generated into the project; they are managed only through the global skill
-catalog and global harness targets described below. A same-named unmanaged
-agent is preserved with a warning, and unrelated files in those directories
-are left alone. The tracked source of truth is
-`internal/agents/definitions.yaml` in QBS itself.
+specifications. It does not create or modify harness-native agent or skill
+directories in the project. Curated skills are managed only through the global
+skill catalog and global harness targets described below.
 
 Initialization also creates local engineering guidance in `docs/agents/`,
 including the issue-tracker and domain-documentation configuration. Local
