@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/apourman/qbs/compare/v0.3.0...v0.4.0) (2026-09-19)
+
+
+### Features
+
+* add model selection and confidence gates ([#17](https://github.com/apourman/qbs/issues/17)) ([8cc95ef](https://github.com/apourman/qbs/commit/8cc95ef4dc76e344ee48c243e02121be8b58231e))
+
 ## [0.3.0](https://github.com/apourman/qbs/compare/v0.2.0...v0.3.0) (2026-09-18)
 
 
