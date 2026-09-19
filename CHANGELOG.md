@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/apourman/qbs/compare/v0.7.0...v0.8.0) (2026-09-19)
+
+
+### Features
+
+* use Luna for economy dispatch ([d0e3082](https://github.com/apourman/qbs/commit/d0e3082e613ce82d27504bc83fbb4cd1e73f8c09))
+
 ## [0.7.0](https://github.com/apourman/qbs/compare/v0.6.1...v0.7.0) (2026-09-19)
 
 
