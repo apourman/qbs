@@ -100,11 +100,12 @@ qbs init
 
 Initialization creates `.research/` for local research and `.specs/` for local
 specifications. It also generates the shared QBS agent catalog into the native
-project directories for Codex, OpenCode, and Claude Code. These local files are
-ignored by the repository's shared Git exclude file and refreshed by later
-`qbs init` runs. A same-named unmanaged agent is preserved
-with a warning, and unrelated files in those directories are left alone. The
-tracked source of truth is `internal/agents/definitions.yaml` in QBS itself.
+project directories for Codex, OpenCode, and Claude Code. Curated skills are
+not generated into the project; they are managed only through the global skill
+catalog and global harness targets described below. A same-named unmanaged
+agent is preserved with a warning, and unrelated files in those directories
+are left alone. The tracked source of truth is
+`internal/agents/definitions.yaml` in QBS itself.
 
 Initialization also creates local engineering guidance in `docs/agents/`,
 including the issue-tracker and domain-documentation configuration. GitHub
@@ -138,8 +139,9 @@ qbs skills remove <name>
 
 Set `QBS_HOME` to relocate the catalog. Set `QBS_SKILL_TARGETS` to an
 OS-path-list of global directories when harness discovery paths differ from the
-defaults. Curated skills remain global; project-only skills may still live in
-the project-local harness directories provisioned and excluded by QBS.
+defaults. Curated skills remain global. Existing project-only skills may still
+live in project-local harness directories, but `qbs init` does not create or
+modify them.
 
 ## Build release artifacts locally
 

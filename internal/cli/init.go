@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -89,9 +88,6 @@ func prepareProvisioning(repo git.Repository, target string) error {
 
 func provisionWorkspace(root string, stderr io.Writer) error {
 	if err := provisionInstructions(root, stderr); err != nil {
-		return err
-	}
-	if err := provisionSkills(root, stderr); err != nil {
 		return err
 	}
 	if err := provisionAgents(root, stderr); err != nil {
@@ -265,38 +261,6 @@ func isLegacyInstruction(path string, data []byte) bool {
 	return err == nil && bytes.Equal(data, legacy)
 }
 
-func provisionSkills(root string, stderr io.Writer) error {
-	return fs.WalkDir(templates.Files, "canonical/skills", func(path string, entry fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		relative := strings.TrimPrefix(path, "canonical/skills/")
-		if relative == "" {
-			return nil
-		}
-		destinations := make([]string, 0, len(projectSkillDirectories))
-		for _, base := range projectSkillDirectories {
-			destinations = append(destinations, filepath.Join(root, base, relative))
-		}
-		for _, destination := range destinations {
-			if entry.IsDir() {
-				if err := os.MkdirAll(destination, 0o755); err != nil {
-					return err
-				}
-				continue
-			}
-			data, err := fs.ReadFile(templates.Files, path)
-			if err != nil {
-				return err
-			}
-			if err := writeIfAbsent(destination, data, stderr); err != nil {
-				return fmt.Errorf("provision skill %s: %w", relative, err)
-			}
-		}
-		return nil
-	})
-}
-
 func provisionAgents(root string, stderr io.Writer) error {
 	files, err := canonicalAgentFiles()
 	if err != nil {
@@ -337,8 +301,9 @@ func canonicalAgentFiles() ([]agents.File, error) {
 }
 
 // validateProvisioningTargets checks every path that provisioning may need
-// before any exclude or file changes are made. Existing regular instruction
-// and skill files are preserved; managed agent files are regenerated.
+// before any exclude or file changes are made. Existing instruction files are
+// preserved; managed agent files are regenerated. Project-local skills are not
+// provisioning targets.
 func validateProvisioningTargets(root string) error {
 	for _, name := range []string{"AGENTS.md", "CLAUDE.md"} {
 		if err := validateFileTarget(filepath.Join(root, name)); err != nil {
@@ -373,26 +338,7 @@ func validateProvisioningTargets(root string) error {
 			return err
 		}
 	}
-	return fs.WalkDir(templates.Files, "canonical/skills", func(path string, entry fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		relative := strings.TrimPrefix(path, "canonical/skills/")
-		if relative == "" {
-			return nil
-		}
-		for _, base := range projectSkillDirectories {
-			target := filepath.Join(root, base, filepath.FromSlash(relative))
-			if entry.IsDir() {
-				if err := validateDirectoryTarget(target); err != nil {
-					return err
-				}
-			} else if err := validateFileTarget(target); err != nil {
-				return err
-			}
-		}
-		return nil
-	})
+	return nil
 }
 
 func validateFileTarget(path string) error {
