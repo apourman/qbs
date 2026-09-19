@@ -108,11 +108,11 @@ are left alone. The tracked source of truth is
 `internal/agents/definitions.yaml` in QBS itself.
 
 Initialization also creates local engineering guidance in `docs/agents/`,
-including the issue-tracker and domain-documentation configuration. GitHub
-remotes receive the GitHub Issues guidance; repositories without a supported
-GitHub remote receive a conservative local-Markdown fallback. Existing files
-are preserved, and the directory is excluded through the repository-local Git
-common exclude file.
+including the issue-tracker and domain-documentation configuration. Local
+Markdown records under `.specs/` remain authoritative regardless of configured
+repository remotes. Publishing to a hosted tracker requires a separate,
+explicit action. Existing files are preserved, and the directory is excluded
+through the repository-local Git common exclude file.
 
 ## Global curated skills
 

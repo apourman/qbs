@@ -138,48 +138,86 @@ func TestInitProvisionsIgnoredAIWorkspaceIdempotently(t *testing.T) {
 	}
 }
 
-func TestInitUsesGitHubIssueTrackerAndPreservesEngineeringConfig(t *testing.T) {
-	repo := t.TempDir()
-	runGit(t, repo, "init", "-q")
-	runGit(t, repo, "remote", "add", "origin", "git@github.com:example/project.git")
-
-	if err := runInDirectory(repo, []string{"init"}, &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
-		t.Fatal(err)
-	}
-	tracker := filepath.Join(repo, "docs", "agents", "issue-tracker.md")
-	data, err := os.ReadFile(tracker)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !strings.Contains(string(data), "GitHub Issues") {
-		t.Fatalf("tracker template = %q", data)
-	}
-	for _, want := range []string{
-		"gh issue status",
-		"gh issue list",
-		"gh issue view",
-		"gh issue create",
-		"gh issue edit",
-		"gh issue comment",
-		"gh issue close",
-		"gh issue reopen",
+func TestInitUsesLocalIssueTrackerRegardlessOfRemoteAndPreservesLocalRecords(t *testing.T) {
+	var trackerWithoutRemote []byte
+	for _, test := range []struct {
+		name         string
+		githubRemote bool
+	}{
+		{name: "without remote"},
+		{name: "with GitHub remote", githubRemote: true},
 	} {
-		if !strings.Contains(string(data), want) {
-			t.Errorf("GitHub tracker template is missing %q", want)
-		}
-	}
-	if err := os.WriteFile(tracker, []byte("custom tracker\n"), 0o644); err != nil {
-		t.Fatal(err)
-	}
-	if err := runInDirectory(repo, []string{"init"}, &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
-		t.Fatal(err)
-	}
-	data, err = os.ReadFile(tracker)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if string(data) != "custom tracker\n" {
-		t.Fatalf("existing tracker was overwritten: %q", data)
+		t.Run(test.name, func(t *testing.T) {
+			repo := t.TempDir()
+			runGit(t, repo, "init", "-q")
+			if test.githubRemote {
+				runGit(t, repo, "remote", "add", "origin", "git@github.com:example/project.git")
+			}
+
+			spec := filepath.Join(repo, ".specs", "local-first", "spec.md")
+			issue := filepath.Join(repo, ".specs", "local-first", "issues", "01-existing.md")
+			if err := os.MkdirAll(filepath.Dir(issue), 0o755); err != nil {
+				t.Fatal(err)
+			}
+			for path, content := range map[string]string{
+				spec:  "existing local spec\n",
+				issue: "existing local issue\n",
+			} {
+				if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+					t.Fatal(err)
+				}
+			}
+
+			if err := runInDirectory(repo, []string{"init"}, &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
+				t.Fatal(err)
+			}
+			tracker := filepath.Join(repo, "docs", "agents", "issue-tracker.md")
+			data, err := os.ReadFile(tracker)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !strings.Contains(string(data), "authoritative source") {
+				t.Fatalf("tracker template = %q", data)
+			}
+			for _, forbidden := range []string{"gh issue ", "This repository uses GitHub Issues"} {
+				if strings.Contains(string(data), forbidden) {
+					t.Errorf("local tracker template contains hosted instruction %q", forbidden)
+				}
+			}
+			if test.githubRemote {
+				if !bytes.Equal(data, trackerWithoutRemote) {
+					t.Errorf("GitHub remote changed tracker guidance\nwithout remote:\n%s\nwith remote:\n%s", trackerWithoutRemote, data)
+				}
+			} else {
+				trackerWithoutRemote = append([]byte(nil), data...)
+			}
+
+			if err := os.WriteFile(tracker, []byte("custom tracker\n"), 0o644); err != nil {
+				t.Fatal(err)
+			}
+			if err := runInDirectory(repo, []string{"init"}, &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
+				t.Fatal(err)
+			}
+			data, err = os.ReadFile(tracker)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if string(data) != "custom tracker\n" {
+				t.Fatalf("existing tracker was overwritten: %q", data)
+			}
+			for path, want := range map[string]string{
+				spec:  "existing local spec\n",
+				issue: "existing local issue\n",
+			} {
+				record, err := os.ReadFile(path)
+				if err != nil {
+					t.Fatal(err)
+				}
+				if string(record) != want {
+					t.Fatalf("existing local record %s was overwritten: %q", path, record)
+				}
+			}
+		})
 	}
 }
 
@@ -311,11 +349,12 @@ func TestInitLocalIssueTrackerTemplateDescribesFilesystemWorkflow(t *testing.T) 
 		t.Fatal(err)
 	}
 	for _, want := range []string{
-		"local Markdown issue records",
+		"Local Markdown issue records",
+		"authoritative source",
 		"List issues",
 		"Create a ticket",
 		"Update the issue file",
-		"filesystem-only",
+		"separate, explicit request",
 	} {
 		if !strings.Contains(string(data), want) {
 			t.Errorf("local tracker template is missing %q", want)

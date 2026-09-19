@@ -1,7 +1,8 @@
 # Issue tracker
 
-No supported hosted issue tracker was detected from the repository remote.
-Use local Markdown issue records under `.specs/<domain-or-feature>/issues/`.
+Local Markdown issue records under `.specs/<domain-or-feature>/issues/` are the
+authoritative source for project work, regardless of which repository remotes
+are configured.
 
 ## Standard operations
 
@@ -20,10 +21,10 @@ Use local Markdown issue records under `.specs/<domain-or-feature>/issues/`.
 
 Keep research in `.research/<domain-or-feature>/` and specs and their tickets
 in the matching `.specs/<domain-or-feature>/` directory. Use the same stable
-domain-or-feature name across those artifacts. This is a filesystem-only
-fallback: it provides no remote publishing, comments, labels, assignees, or
+domain-or-feature name across those artifacts. This local workflow performs no
+remote publishing and provides no remote comments, labels, assignees, or
 notifications.
 
-Do not claim that GitHub, Jira, Linear, GitLab, or another hosted tracker is
-configured until this file is replaced with an explicit project-specific
-configuration.
+Treat GitHub, Jira, Linear, GitLab, and other hosted trackers only as optional
+projection targets. Publishing or synchronizing a local record requires a
+separate, explicit request and is not part of initialization.

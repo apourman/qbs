@@ -107,7 +107,7 @@ func provisionWorkspace(root string, stderr io.Writer) error {
 
 func provisionEngineeringConfig(root string, stderr io.Writer) error {
 	for _, name := range []string{"domain.md", "issue-tracker.md"} {
-		data, err := engineeringTemplate(root, name)
+		data, err := engineeringTemplate(name)
 		if err != nil {
 			return err
 		}
@@ -131,18 +131,11 @@ func provisionEngineeringConfig(root string, stderr io.Writer) error {
 	return nil
 }
 
-func engineeringTemplate(root, name string) ([]byte, error) {
-	if name != "issue-tracker.md" {
-		return templates.Read("docs/agents/" + name)
+func engineeringTemplate(name string) ([]byte, error) {
+	if name == "issue-tracker.md" {
+		name = "issue-tracker-local.md"
 	}
-	remote, err := git.OriginURL(root)
-	if err != nil {
-		return nil, fmt.Errorf("detect repository remote: %w", err)
-	}
-	if git.IsGitHubURL(remote) {
-		return templates.Read("docs/agents/issue-tracker-github.md")
-	}
-	return templates.Read("docs/agents/issue-tracker-local.md")
+	return templates.Read("docs/agents/" + name)
 }
 
 func hasTriageSkill(root string) (bool, error) {
