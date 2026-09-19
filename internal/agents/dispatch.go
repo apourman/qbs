@@ -44,8 +44,9 @@ const (
 
 // Assignment is a neutral model profile and reasoning selection for one role.
 type Assignment struct {
-	ModelProfile string
-	Reasoning    string
+	ModelProfile    string
+	Reasoning       string
+	ExceptionReason string
 }
 
 // DispatchAssignment is an assignment resolved to the active harness model.
@@ -69,6 +70,8 @@ type Ticket struct {
 	Scope            string
 	Dependencies     []string
 	Role             Role
+	Capability       string
+	Risk             string
 	ConcurrencyClass string
 }
 
@@ -82,6 +85,7 @@ type TicketDispatchAssignment struct {
 	ModelProfile        string
 	ResolvedModel       string
 	Reasoning           string
+	ExceptionReason     string
 	EstimatedTokens     TokenRange
 	TokenBudget         TokenRange
 	ConcurrencyClass    string
@@ -157,8 +161,8 @@ func FormatDispatchApproval(approval DispatchApproval) (string, error) {
 	}
 	fmt.Fprintf(&b, "Plan: %s\nApproval: %s\n\n", approval.Plan, status)
 	b.WriteString("### Ticket dispatch\n\n")
-	b.WriteString("| Ticket | Scope | Dependencies | Role | Profile | Resolved model | Reasoning | Estimate | Approved budget | Concurrency | Isolation | Fix reserve | Account quota | Monetary cost |\n")
-	b.WriteString("|---|---|---|---|---|---|---|---:|---:|---|---|---:|---|---|\n")
+	b.WriteString("| Ticket | Scope | Dependencies | Role | Profile | Resolved model | Reasoning | Assignment note | Estimate | Approved budget | Concurrency | Isolation | Fix reserve | Account quota | Monetary cost |\n")
+	b.WriteString("|---|---|---|---|---|---|---|---|---:|---:|---|---|---:|---|---|\n")
 	for _, ticket := range approval.TicketPlan.Tickets {
 		dependencies := strings.Join(ticket.Dependencies, ", ")
 		if dependencies == "" {
@@ -168,15 +172,15 @@ func FormatDispatchApproval(approval DispatchApproval) (string, error) {
 		if len(ticket.Dependencies) > 0 {
 			eligibility = "after " + dependencies
 		}
-		concurrency := fmt.Sprintf("%s; global <= %d", eligibility, approval.TicketPlan.GlobalConcurrencyLimit)
-		if ticket.ConcurrencyLimit > 0 {
-			concurrency += fmt.Sprintf("; role <= %d", ticket.ConcurrencyLimit)
+		concurrency := fmt.Sprintf("%s; effective <= %d; global <= %d", eligibility, ticket.ConcurrencyLimit, approval.TicketPlan.GlobalConcurrencyLimit)
+		if roleLimit := approval.TicketPlan.roleLimit(ticket); roleLimit > 0 {
+			concurrency += fmt.Sprintf("; role <= %d", roleLimit)
 		}
-		if classLimit, ok := approval.TicketPlan.ClassConcurrencyLimits[ticket.ConcurrencyClass]; ok {
+		if classLimit := approval.TicketPlan.classLimit(ticket); classLimit > 0 {
 			concurrency += fmt.Sprintf("; class <= %d", classLimit)
 		}
-		fmt.Fprintf(&b, "| %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s |\n",
-			markdownCell(ticket.TicketID), markdownCell(ticket.Scope), markdownCell(dependencies), markdownCell(ticket.Role.Name), markdownCell(ticket.ModelProfile), markdownCell(ticket.ResolvedModel), markdownCell(ticket.Reasoning), formatRange(ticket.EstimatedTokens), formatRange(ticket.TokenBudget), markdownCell(concurrency), markdownCell(ticket.Isolation), formatRange(ticket.ReservedFixCapacity), formatStatus(ticket.AccountQuota), formatStatus(ticket.MonetaryCost))
+		fmt.Fprintf(&b, "| %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s |\n",
+			markdownCell(ticket.TicketID), markdownCell(ticket.Scope), markdownCell(dependencies), markdownCell(ticket.Role.Name), markdownCell(ticket.ModelProfile), markdownCell(ticket.ResolvedModel), markdownCell(ticket.Reasoning), markdownCell(ticket.ExceptionReason), formatRange(ticket.EstimatedTokens), formatRange(ticket.TokenBudget), markdownCell(concurrency), markdownCell(ticket.Isolation), formatRange(ticket.ReservedFixCapacity), formatStatus(ticket.AccountQuota), formatStatus(ticket.MonetaryCost))
 	}
 	fmt.Fprintf(&b, "\nGlobal implementation concurrency: %d\n", approval.TicketPlan.GlobalConcurrencyLimit)
 	b.WriteString("\n### Workflow overhead\n\n")
@@ -359,11 +363,12 @@ func (c Catalog) ResolveTicketPlanWithLimits(tickets []Ticket, harness Harness, 
 			EstimatedTokens:     ticket.Role.EstimatedTokens,
 			TokenBudget:         ticket.Role.TokenBudget,
 			ConcurrencyClass:    ticket.ConcurrencyClass,
-			ConcurrencyLimit:    ticket.Role.ConcurrencyLimit,
+			ConcurrencyLimit:    effectiveConcurrencyLimit(result, ticket.Role.Name, ticket.ConcurrencyClass, ticket.Role.ConcurrencyLimit),
 			Isolation:           ticket.Role.Isolation,
 			ReservedFixCapacity: ticket.Role.ReservedBudget.Fixes,
 			AccountQuota:        ticket.Role.AccountQuota,
 			MonetaryCost:        ticket.Role.MonetaryCost,
+			ExceptionReason:     assignment.ExceptionReason,
 		})
 	}
 	sort.SliceStable(result.Tickets, func(i, j int) bool { return result.Tickets[i].TicketID < result.Tickets[j].TicketID })
@@ -377,7 +382,30 @@ func assignmentForTicket(ticket Ticket, plan Plan, custom map[string]Assignment)
 	if plan == Customize {
 		return Assignment{}, false
 	}
+	if plan == Economy {
+		return economyAssignment(ticket), true
+	}
 	return assignmentFor(ticket.Role, plan, custom)
+}
+
+func economyAssignment(ticket Ticket) Assignment {
+	reasoning := ticket.Role.Reasoning
+	if reasoning == "" {
+		reasoning = "low"
+	}
+	capability := ticket.Capability
+	if capability == "" {
+		capability = ticket.Role.Capability
+	}
+	reason := ""
+	if (ticket.Risk == "high" || ticket.Risk == "critical") && reasoning == "low" {
+		reasoning = "medium"
+		reason = "high-risk ticket requires at least medium reasoning"
+	} else if capability == "implementation" && reasoning == "low" {
+		reasoning = "medium"
+		reason = "implementation work requires at least medium reasoning"
+	}
+	return Assignment{ModelProfile: "balanced", Reasoning: reasoning, ExceptionReason: reason}
 }
 
 func copyLimits(limits map[string]int) map[string]int {
@@ -413,6 +441,24 @@ func assignmentFor(role Role, plan Plan, custom map[string]Assignment) (Assignme
 	default:
 		return Assignment{}, false
 	}
+}
+
+func effectiveConcurrencyLimit(plan TicketDispatchPlan, roleName, class string, roleDefault int) int {
+	roleLimit := plan.RoleConcurrencyLimits[roleName]
+	if roleLimit <= 0 {
+		roleLimit = roleDefault
+	}
+	classLimit := plan.ClassConcurrencyLimits[class]
+	if roleLimit > 0 && classLimit > 0 {
+		if roleLimit < classLimit {
+			return roleLimit
+		}
+		return classLimit
+	}
+	if roleLimit > 0 {
+		return roleLimit
+	}
+	return classLimit
 }
 
 func supportedReasoning(value string) bool {

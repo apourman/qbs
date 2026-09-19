@@ -30,7 +30,7 @@ func TestEndToEndTicketPlansCoverEveryPlanChoiceAndHarness(t *testing.T) {
 			resolvedModels: map[string]string{
 				"01": "gpt-5.6-luna", "02": "gpt-5.6-luna", "03": "gpt-5.6-luna", "04": "gpt-5.6-luna",
 			},
-			reasoning: map[string]string{"01": "low", "02": "low", "03": "low", "04": "low"},
+			reasoning: map[string]string{"01": "low", "02": "medium", "03": "low", "04": "low"},
 		},
 		{
 			name:    "recommended codex varies by capability",

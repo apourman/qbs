@@ -83,6 +83,16 @@ limitation and enforce the selected level through the dispatch choices.
    require approval of the selected cost plan. Missing information that could
    change intent always requires clarification.
 
+   Use the `internal/agents` implement-spec workflow seam for this artifact:
+   build an `ImplementSpecInput`, call `PrepareImplementSpec`, and present its
+   `Table`. Do not hand-render a role-only substitute. The returned approval
+   remains pending until the user approves it; then call
+   `ApproveImplementSpec` to create the `ImplementationContext`. Pass every
+   harness invocation through `AuthorizeImplementSpecDispatch`, and use
+   `FormatImplementSpecHandoff` for the final handoff. These calls are the
+   executable boundary for model resolution, approval, enforcement, and plan
+   preservation.
+
    Approval is a binding constraint. Record the selected plan, complete
    ticket dispatch table, role assignments, resolved models, reasoning,
    isolation, concurrency, token budget, workflow overhead, optional roles,
