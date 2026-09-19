@@ -10,7 +10,8 @@ separate workflow owned by `to-tickets`; run that skill only when the user
 explicitly requests tickets. A successful `to-spec` run leaves implementation
 ticket creation to a later, explicit `to-tickets` run.
 
-The issue tracker and triage label vocabulary should have been provided to you. If not, tell the user to run `/setup-matt-pocock-skills`.
+Use the repository's local Markdown tracker convention and canonical triage
+statuses when no repository-specific tracker configuration is present.
 
 ## Process
 
