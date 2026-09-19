@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1](https://github.com/apourman/qbs/compare/v0.6.0...v0.6.1) (2026-09-19)
+
+
+### Bug Fixes
+
+* keep to-spec from creating tickets ([#25](https://github.com/apourman/qbs/issues/25)) ([5f93247](https://github.com/apourman/qbs/commit/5f932471957acb34278e72b61b43857099007f17))
+
 ## [0.6.0](https://github.com/apourman/qbs/compare/v0.5.0...v0.6.0) (2026-09-19)
 
 
