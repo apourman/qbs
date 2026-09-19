@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/trues/qbs/internal/agents"
 	"github.com/trues/qbs/internal/git"
 	"github.com/trues/qbs/internal/skills"
 	"github.com/trues/qbs/internal/templates"
@@ -88,9 +87,6 @@ func prepareProvisioning(repo git.Repository, target string) error {
 
 func provisionWorkspace(root string, stderr io.Writer) error {
 	if err := provisionInstructions(root, stderr); err != nil {
-		return err
-	}
-	if err := provisionAgents(root, stderr); err != nil {
 		return err
 	}
 	if err := provisionEngineeringConfig(root, stderr); err != nil {
@@ -254,49 +250,10 @@ func isLegacyInstruction(path string, data []byte) bool {
 	return err == nil && bytes.Equal(data, legacy)
 }
 
-func provisionAgents(root string, stderr io.Writer) error {
-	files, err := canonicalAgentFiles()
-	if err != nil {
-		return err
-	}
-	for _, file := range files {
-		path := filepath.Join(root, filepath.FromSlash(file.Path))
-		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-			return fmt.Errorf("create agent directory for %s: %w", file.Path, err)
-		}
-		if existing, err := os.ReadFile(path); err == nil {
-			if !agents.IsGenerated(existing) {
-				if string(existing) != string(file.Data) {
-					_, _ = fmt.Fprintf(stderr, "warning: preserving unmanaged local agent %s\n", path)
-				}
-				continue
-			}
-		} else if !os.IsNotExist(err) {
-			return fmt.Errorf("inspect agent %s: %w", file.Path, err)
-		}
-		if err := os.WriteFile(path, file.Data, 0o644); err != nil {
-			return fmt.Errorf("generate agent %s: %w", file.Path, err)
-		}
-	}
-	return nil
-}
-
-func canonicalAgentFiles() ([]agents.File, error) {
-	catalog, err := agents.Canonical()
-	if err != nil {
-		return nil, err
-	}
-	files, err := agents.GenerateAll(catalog)
-	if err != nil {
-		return nil, err
-	}
-	return files, nil
-}
-
 // validateProvisioningTargets checks every path that provisioning may need
 // before any exclude or file changes are made. Existing instruction files are
-// preserved; managed agent files are regenerated. Project-local skills are not
-// provisioning targets.
+// preserved. Harness-native agent and skill directories are not provisioning
+// targets.
 func validateProvisioningTargets(root string) error {
 	for _, name := range []string{"AGENTS.md", "CLAUDE.md"} {
 		if err := validateFileTarget(filepath.Join(root, name)); err != nil {
@@ -319,15 +276,6 @@ func validateProvisioningTargets(root string) error {
 	}
 	for _, base := range []string{".claude/agents", ".codex/agents", ".opencode/agents"} {
 		if err := validateDirectoryTarget(filepath.Join(root, filepath.FromSlash(base))); err != nil {
-			return err
-		}
-	}
-	agentFiles, err := canonicalAgentFiles()
-	if err != nil {
-		return err
-	}
-	for _, file := range agentFiles {
-		if err := validateFileTarget(filepath.Join(root, filepath.FromSlash(file.Path))); err != nil {
 			return err
 		}
 	}
