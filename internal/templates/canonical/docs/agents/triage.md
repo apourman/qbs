@@ -1,7 +1,7 @@
 # Local triage
 
-Triage the authoritative Markdown issue record under
-`.specs/<domain-or-feature>/issues/`. Store the issue's current state in its
+Triage the authoritative Markdown ticket record under
+`.specs/<domain-or-feature>/tickets/`. Store the ticket's current state in its
 `Status` field using one of these values:
 
 - `needs-triage`: the issue has not been assessed.
@@ -20,6 +20,6 @@ Triage the authoritative Markdown issue record under
   same issue record.
 - Preserve prior notes so the reasoning behind status changes remains durable.
 
-Do not create or manage hosted labels, comments, or issues during local
+Do not create or manage hosted labels, comments, or tickets during local
 triage. Publishing a local issue to a hosted tracker requires a separate,
 explicit request.

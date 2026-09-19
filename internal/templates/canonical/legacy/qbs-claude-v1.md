@@ -22,8 +22,8 @@ Organize project knowledge by a stable, lowercase kebab-case domain or feature
 name:
 
 - Research notes go in `.research/<domain-or-feature>/<research-slug>.md`.
-- Specs go in `.specs/<domain-or-feature>/<spec-slug>.md`.
-- Tickets created for a spec go in `.specs/<domain-or-feature>/issues/<NN>-<ticket-slug>.md`.
+- Specs go in `.specs/<domain-or-feature>/spec.md`, with exactly one spec per directory.
+- Tickets created for a spec go in `.specs/<domain-or-feature>/tickets/<NN>-<ticket-slug>.md`.
 
 Use the same domain-or-feature directory across related research, the spec, and
 its tickets. When creating any of these artifacts, create the directory if it
