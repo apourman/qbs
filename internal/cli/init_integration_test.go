@@ -6,12 +6,21 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
 	"github.com/trues/qbs/internal/cli"
 	"github.com/trues/qbs/internal/templates"
 )
+
+func TestMain(m *testing.M) {
+	if marker := os.Getenv("QBS_TEST_GH_HELPER_MARKER"); marker != "" {
+		_ = os.WriteFile(marker, []byte("invoked\n"), 0o644)
+		os.Exit(99)
+	}
+	os.Exit(m.Run())
+}
 
 func TestInitProvisionsIgnoredAIWorkspaceIdempotently(t *testing.T) {
 	repo := t.TempDir()
@@ -141,6 +150,7 @@ func TestInitProvisionsIgnoredAIWorkspaceIdempotently(t *testing.T) {
 func TestInitUsesLocalIssueTrackerRegardlessOfRemoteAndPreservesLocalRecords(t *testing.T) {
 	const issueContent = "# Existing issue\n\n**Status:** ready-for-agent\n\n## Triage notes\n\nVerified locally.\n\n## Agent brief\n\nImplement from this record.\n"
 	var trackerWithoutRemote []byte
+	var triageWithoutRemote []byte
 	for _, test := range []struct {
 		name         string
 		githubRemote bool
@@ -151,6 +161,7 @@ func TestInitUsesLocalIssueTrackerRegardlessOfRemoteAndPreservesLocalRecords(t *
 		t.Run(test.name, func(t *testing.T) {
 			repo := t.TempDir()
 			runGit(t, repo, "init", "-q")
+			writeSkill(t, filepath.Join(repo, ".agents", "skills"), "triage")
 			const remoteURL = "git@github.com:example/project.git"
 			if test.githubRemote {
 				runGit(t, repo, "remote", "add", "origin", remoteURL)
@@ -186,6 +197,14 @@ func TestInitUsesLocalIssueTrackerRegardlessOfRemoteAndPreservesLocalRecords(t *
 			if !strings.Contains(string(data), "authoritative source") {
 				t.Fatalf("tracker template = %q", data)
 			}
+			triageData, err := os.ReadFile(filepath.Join(repo, "docs", "agents", "triage.md"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !strings.Contains(string(triageData), "authoritative Markdown issue record") ||
+				!strings.Contains(string(triageData), "`Status` field") {
+				t.Fatalf("triage template = %q", triageData)
+			}
 			for _, forbidden := range []string{"gh issue ", "This repository uses GitHub Issues"} {
 				if strings.Contains(string(data), forbidden) {
 					t.Errorf("local tracker template contains hosted instruction %q", forbidden)
@@ -195,11 +214,15 @@ func TestInitUsesLocalIssueTrackerRegardlessOfRemoteAndPreservesLocalRecords(t *
 				if !bytes.Equal(data, trackerWithoutRemote) {
 					t.Errorf("GitHub remote changed tracker guidance\nwithout remote:\n%s\nwith remote:\n%s", trackerWithoutRemote, data)
 				}
+				if !bytes.Equal(triageData, triageWithoutRemote) {
+					t.Errorf("GitHub remote changed triage guidance\nwithout remote:\n%s\nwith remote:\n%s", triageWithoutRemote, triageData)
+				}
 				if got := strings.TrimSpace(runGit(t, repo, "remote", "get-url", "origin")); got != remoteURL {
 					t.Errorf("init changed origin remote: got %q, want %q", got, remoteURL)
 				}
 			} else {
 				trackerWithoutRemote = append([]byte(nil), data...)
+				triageWithoutRemote = append([]byte(nil), triageData...)
 			}
 
 			if err := os.WriteFile(tracker, []byte("custom tracker\n"), 0o644); err != nil {
@@ -229,6 +252,40 @@ func TestInitUsesLocalIssueTrackerRegardlessOfRemoteAndPreservesLocalRecords(t *
 				}
 			}
 		})
+	}
+}
+
+func TestInitWithGitHubRemoteDoesNotInvokeHostedTrackerCLI(t *testing.T) {
+	repo := t.TempDir()
+	runGit(t, repo, "init", "-q")
+	runGit(t, repo, "remote", "add", "origin", "git@github.com:example/project.git")
+
+	binDir := t.TempDir()
+	marker := filepath.Join(t.TempDir(), "gh-invoked")
+	executable, err := os.Executable()
+	if err != nil {
+		t.Fatal(err)
+	}
+	fakeGHName := "gh"
+	if runtime.GOOS == "windows" {
+		fakeGHName += ".exe"
+	}
+	fakeGH := filepath.Join(binDir, fakeGHName)
+	executableData, err := os.ReadFile(executable)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(fakeGH, executableData, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("QBS_TEST_GH_HELPER_MARKER", marker)
+	t.Setenv("PATH", binDir+string(os.PathListSeparator)+os.Getenv("PATH"))
+
+	if err := runInDirectory(repo, []string{"init"}, &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(marker); !os.IsNotExist(err) {
+		t.Fatalf("qbs init invoked the hosted-tracker CLI: %v", err)
 	}
 }
 
