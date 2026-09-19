@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.1](https://github.com/apourman/qbs/compare/v0.9.0...v0.9.1) (2026-09-19)
+
+
+### Bug Fixes
+
+* trigger release ([7638dd8](https://github.com/apourman/qbs/commit/7638dd809778e8ad15d461b5015bdb4352f02c6a))
+
 ## [0.9.0](https://github.com/apourman/qbs/compare/v0.8.0...v0.9.0) (2026-09-19)
 
 
