@@ -221,7 +221,7 @@ func TestInitUsesLocalIssueTrackerRegardlessOfRemoteAndPreservesLocalRecords(t *
 	}
 }
 
-func TestInitProvisionsTriageLabelsWhenLocalTriageSkillExists(t *testing.T) {
+func TestInitProvisionsLocalTriageStatusesWhenLocalTriageSkillExists(t *testing.T) {
 	repo := t.TempDir()
 	runGit(t, repo, "init", "-q")
 	skill := filepath.Join(repo, ".agents", "skills", "triage")
@@ -234,18 +234,35 @@ func TestInitProvisionsTriageLabelsWhenLocalTriageSkillExists(t *testing.T) {
 	if err := runInDirectory(repo, []string{"init"}, &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
 		t.Fatal(err)
 	}
-	data, err := os.ReadFile(filepath.Join(repo, "docs", "agents", "triage-labels.md"))
+	data, err := os.ReadFile(filepath.Join(repo, "docs", "agents", "triage.md"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, label := range []string{"needs-triage", "needs-info", "ready-for-agent", "ready-for-human", "wontfix"} {
-		if !strings.Contains(string(data), label) {
-			t.Errorf("triage mapping missing %q", label)
+	for state, definition := range map[string]string{
+		"needs-triage":    "`needs-triage`: the issue has not been assessed.",
+		"needs-info":      "`needs-info`: more information is required before the issue can proceed.",
+		"ready-for-agent": "`ready-for-agent`: the issue is sufficiently specified for implementation.",
+		"ready-for-human": "`ready-for-human`: the issue needs a maintainer decision or action.",
+		"wontfix":         "`wontfix`: the issue will not be pursued.",
+	} {
+		if !strings.Contains(string(data), definition) {
+			t.Errorf("local triage guidance is missing %q and its meaning", state)
+		}
+	}
+	for _, want := range []string{
+		"authoritative Markdown issue record",
+		"`Status` field",
+		"`## Triage notes`",
+		"`## Agent brief`",
+		"Do not create or manage hosted labels, comments, or issues",
+	} {
+		if !strings.Contains(string(data), want) {
+			t.Errorf("local triage guidance is missing %q", want)
 		}
 	}
 }
 
-func TestInitProvisionsTriageLabelsFromGlobalSkillLocations(t *testing.T) {
+func TestInitProvisionsLocalTriageGuidanceFromGlobalSkillLocations(t *testing.T) {
 	tests := []struct {
 		name  string
 		setup func(t *testing.T, qbsHome string)
@@ -276,8 +293,8 @@ func TestInitProvisionsTriageLabelsFromGlobalSkillLocations(t *testing.T) {
 			if err := runInDirectory(repo, []string{"init"}, &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
 				t.Fatal(err)
 			}
-			if _, err := os.Stat(filepath.Join(repo, "docs", "agents", "triage-labels.md")); err != nil {
-				t.Fatalf("global triage skill did not provision mapping: %v", err)
+			if _, err := os.Stat(filepath.Join(repo, "docs", "agents", "triage.md")); err != nil {
+				t.Fatalf("global triage skill did not provision local guidance: %v", err)
 			}
 		})
 	}

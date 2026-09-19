@@ -120,12 +120,12 @@ func provisionEngineeringConfig(root string, stderr io.Writer) error {
 		return err
 	}
 	if hasTriage {
-		data, err := templates.Read("docs/agents/triage-labels.md")
+		data, err := templates.Read("docs/agents/triage.md")
 		if err != nil {
 			return err
 		}
-		if err := writeIfAbsent(filepath.Join(root, "docs", "agents", "triage-labels.md"), data, stderr); err != nil {
-			return fmt.Errorf("provision docs/agents/triage-labels.md: %w", err)
+		if err := writeIfAbsent(filepath.Join(root, "docs", "agents", "triage.md"), data, stderr); err != nil {
+			return fmt.Errorf("provision docs/agents/triage.md: %w", err)
 		}
 	}
 	return nil
@@ -312,7 +312,7 @@ func validateProvisioningTargets(root string) error {
 	if err := validateDirectoryTarget(filepath.Join(root, "docs", "agents")); err != nil {
 		return err
 	}
-	for _, name := range []string{"domain.md", "issue-tracker.md", "triage-labels.md"} {
+	for _, name := range []string{"domain.md", "issue-tracker.md", "triage.md"} {
 		if err := validateFileTarget(filepath.Join(root, "docs", "agents", name)); err != nil {
 			return err
 		}
