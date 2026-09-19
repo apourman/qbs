@@ -3,6 +3,7 @@ package agents
 import (
 	"fmt"
 	"sort"
+	"strings"
 )
 
 // Role describes the work and constraints of a named dispatched sub-agent.
@@ -90,6 +91,129 @@ type TicketDispatchAssignment struct {
 	AccountQuota        CostStatus
 	MonetaryCost        CostStatus
 }
+
+// WorkflowBudget keeps work around ticket implementation visible in its own
+// approval section. These ranges must not be folded into ticket budgets.
+type WorkflowBudget struct {
+	Explorer    TokenRange
+	Merger      TokenRange
+	Reviewer    TokenRange
+	RedTeam     TokenRange
+	Fixes       TokenRange
+	CI          TokenRange
+	Integration TokenRange
+}
+
+// OptionalRoleStatus records whether an optional workflow role is omitted,
+// selected, or conditionally available in the approved plan.
+type OptionalRoleStatus struct {
+	Name   string
+	Status string
+	Detail string
+}
+
+// DispatchApproval is the complete user-facing approval artifact. It retains
+// the resolved ticket plan rather than only the role defaults so the approval
+// can be checked before every implementation dispatch.
+type DispatchApproval struct {
+	Plan           Plan
+	TicketPlan     TicketDispatchPlan
+	WorkflowBudget WorkflowBudget
+	OptionalRoles  []OptionalRoleStatus
+	Approved       bool
+}
+
+// Validate checks that an approval contains the information required to show
+// and record a complete ticket-level dispatch decision.
+func (a DispatchApproval) Validate() error {
+	if a.Plan != Recommended && a.Plan != Economy && a.Plan != Deep && a.Plan != Customize {
+		return fmt.Errorf("validate dispatch approval: unsupported plan %q", a.Plan)
+	}
+	if len(a.TicketPlan.Tickets) == 0 {
+		return fmt.Errorf("validate dispatch approval: ticket plan is empty")
+	}
+	for _, role := range a.OptionalRoles {
+		if strings.TrimSpace(role.Name) == "" {
+			return fmt.Errorf("validate dispatch approval: optional role name is empty")
+		}
+		if role.Status != "omitted" && role.Status != "selected" && role.Status != "conditional" {
+			return fmt.Errorf("validate dispatch approval: optional role %q has unsupported status %q", role.Name, role.Status)
+		}
+	}
+	return nil
+}
+
+// FormatDispatchApproval renders the approval artifact as deterministic
+// Markdown suitable for the user prompt and implementation context.
+func FormatDispatchApproval(approval DispatchApproval) (string, error) {
+	if err := approval.Validate(); err != nil {
+		return "", err
+	}
+	var b strings.Builder
+	status := "pending"
+	if approval.Approved {
+		status = "approved"
+	}
+	fmt.Fprintf(&b, "Plan: %s\nApproval: %s\n\n", approval.Plan, status)
+	b.WriteString("### Ticket dispatch\n\n")
+	b.WriteString("| Ticket | Scope | Dependencies | Role | Profile | Resolved model | Reasoning | Estimate | Approved budget | Concurrency | Isolation | Fix reserve | Account quota | Monetary cost |\n")
+	b.WriteString("|---|---|---|---|---|---|---|---:|---:|---|---|---:|---|---|\n")
+	for _, ticket := range approval.TicketPlan.Tickets {
+		dependencies := strings.Join(ticket.Dependencies, ", ")
+		if dependencies == "" {
+			dependencies = "none"
+		}
+		eligibility := "eligible"
+		if len(ticket.Dependencies) > 0 {
+			eligibility = "after " + dependencies
+		}
+		concurrency := fmt.Sprintf("%s; global <= %d", eligibility, approval.TicketPlan.GlobalConcurrencyLimit)
+		if ticket.ConcurrencyLimit > 0 {
+			concurrency += fmt.Sprintf("; role <= %d", ticket.ConcurrencyLimit)
+		}
+		if classLimit, ok := approval.TicketPlan.ClassConcurrencyLimits[ticket.ConcurrencyClass]; ok {
+			concurrency += fmt.Sprintf("; class <= %d", classLimit)
+		}
+		fmt.Fprintf(&b, "| %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s |\n",
+			markdownCell(ticket.TicketID), markdownCell(ticket.Scope), markdownCell(dependencies), markdownCell(ticket.Role.Name), markdownCell(ticket.ModelProfile), markdownCell(ticket.ResolvedModel), markdownCell(ticket.Reasoning), formatRange(ticket.EstimatedTokens), formatRange(ticket.TokenBudget), markdownCell(concurrency), markdownCell(ticket.Isolation), formatRange(ticket.ReservedFixCapacity), formatStatus(ticket.AccountQuota), formatStatus(ticket.MonetaryCost))
+	}
+	fmt.Fprintf(&b, "\nGlobal implementation concurrency: %d\n", approval.TicketPlan.GlobalConcurrencyLimit)
+	b.WriteString("\n### Workflow overhead\n\n")
+	b.WriteString("| Work | Approved budget |\n|---|---:|\n")
+	workflow := []struct {
+		name  string
+		value TokenRange
+	}{
+		{"explorer", approval.WorkflowBudget.Explorer},
+		{"merger", approval.WorkflowBudget.Merger},
+		{"reviewer", approval.WorkflowBudget.Reviewer},
+		{"red-team", approval.WorkflowBudget.RedTeam},
+		{"fixes", approval.WorkflowBudget.Fixes},
+		{"CI", approval.WorkflowBudget.CI},
+		{"integration", approval.WorkflowBudget.Integration},
+	}
+	for _, item := range workflow {
+		fmt.Fprintf(&b, "| %s | %s |\n", item.name, formatRange(item.value))
+	}
+	if len(approval.OptionalRoles) > 0 {
+		b.WriteString("\n### Optional roles\n\n| Role | Status | Detail |\n|---|---|---|\n")
+		for _, role := range approval.OptionalRoles {
+			fmt.Fprintf(&b, "| %s | %s | %s |\n", markdownCell(role.Name), markdownCell(role.Status), markdownCell(role.Detail))
+		}
+	}
+	return b.String(), nil
+}
+
+func formatRange(value TokenRange) string { return fmt.Sprintf("%d–%d", value.Min, value.Max) }
+
+func formatStatus(value CostStatus) string {
+	if value.Detail == "" {
+		return markdownCell(value.Status)
+	}
+	return markdownCell(value.Status + ": " + value.Detail)
+}
+
+func markdownCell(value string) string { return strings.ReplaceAll(value, "|", "\\|") }
 
 // TicketDispatchPlan is the complete approved implementation dispatch plan.
 // Global, role, and class limits are intentionally separate so their

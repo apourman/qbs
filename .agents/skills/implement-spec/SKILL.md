@@ -64,6 +64,14 @@ limitation and enforce the selected level through the dispatch choices.
    - the `Recommended`, `Economy`, `Deep`, and `Customize` plan choices;
    - each role's neutral model profile and harness-resolved model, approved
      reasoning, concurrency limit, and token budget; and
+   - a ticket dispatch approval table with one row for every known
+     implementation ticket. Each row must show the ticket ID, concise scope,
+     dependencies, assigned role, neutral profile, resolved model, reasoning,
+     estimate, approved budget, concurrency eligibility, isolation, reserved
+     fix capacity, account-quota status, and monetary-cost status;
+   - a separate workflow-overhead budget table for explorer, merger, reviewer,
+     red-team, fixes, CI, and integration capacity, plus an optional-role
+     table marking each optional role omitted, selected, or conditional; and
    - separate token-estimate, account-quota, and monetary-cost statuses,
      including the reserved review, fixes, CI, and integration capacity.
 
@@ -75,10 +83,12 @@ limitation and enforce the selected level through the dispatch choices.
    require approval of the selected cost plan. Missing information that could
    change intent always requires clarification.
 
-   Approval is a binding constraint. Record the selected plan, role
-   assignments, resolved models, reasoning, isolation, concurrency, token
-   budget, optional roles, and cost-status fields in the implementation
-   context. Do not dispatch until the required approval is present.
+   Approval is a binding constraint. Record the selected plan, complete
+   ticket dispatch table, role assignments, resolved models, reasoning,
+   isolation, concurrency, token budget, workflow overhead, optional roles,
+   and cost-status fields in the implementation context. Mark the artifact
+   pending until the user approves it, then record the approval state before
+   dispatch. Do not dispatch a ticket whose row is absent or unresolved.
 
 3. Apply the Branch and delivery invariants before dispatching any role. Resolve
    the spec directory and starting revision, create the spec branch and its
