@@ -6,12 +6,21 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
 	"github.com/trues/qbs/internal/cli"
 	"github.com/trues/qbs/internal/templates"
 )
+
+func TestMain(m *testing.M) {
+	if marker := os.Getenv("QBS_TEST_GH_HELPER_MARKER"); marker != "" {
+		_ = os.WriteFile(marker, []byte("invoked\n"), 0o644)
+		os.Exit(99)
+	}
+	os.Exit(m.Run())
+}
 
 func TestInitProvisionsIgnoredAIWorkspaceIdempotently(t *testing.T) {
 	repo := t.TempDir()
@@ -138,52 +147,243 @@ func TestInitProvisionsIgnoredAIWorkspaceIdempotently(t *testing.T) {
 	}
 }
 
-func TestInitUsesGitHubIssueTrackerAndPreservesEngineeringConfig(t *testing.T) {
+func TestInitUsesLocalIssueTrackerRegardlessOfRemoteAndPreservesLocalRecords(t *testing.T) {
+	const issueContent = "# Existing issue\n\n**Status:** ready-for-agent\n\n## Triage notes\n\nVerified locally.\n\n## Agent brief\n\nImplement from this record.\n"
+	var trackerWithoutRemote []byte
+	var triageWithoutRemote []byte
+	for _, test := range []struct {
+		name         string
+		githubRemote bool
+	}{
+		{name: "without remote"},
+		{name: "with GitHub remote", githubRemote: true},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			repo := t.TempDir()
+			runGit(t, repo, "init", "-q")
+			writeSkill(t, filepath.Join(repo, ".agents", "skills"), "triage")
+			const remoteURL = "git@github.com:example/project.git"
+			if test.githubRemote {
+				runGit(t, repo, "remote", "add", "origin", remoteURL)
+			}
+
+			research := filepath.Join(repo, ".research", "local-first", "background.md")
+			spec := filepath.Join(repo, ".specs", "local-first", "spec.md")
+			issue := filepath.Join(repo, ".specs", "local-first", "issues", "01-existing.md")
+			if err := os.MkdirAll(filepath.Dir(research), 0o755); err != nil {
+				t.Fatal(err)
+			}
+			if err := os.MkdirAll(filepath.Dir(issue), 0o755); err != nil {
+				t.Fatal(err)
+			}
+			for path, content := range map[string]string{
+				research: "existing local research\n",
+				spec:     "existing local spec\n",
+				issue:    issueContent,
+			} {
+				if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+					t.Fatal(err)
+				}
+			}
+
+			if err := runInDirectory(repo, []string{"init"}, &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
+				t.Fatal(err)
+			}
+			tracker := filepath.Join(repo, "docs", "agents", "issue-tracker.md")
+			data, err := os.ReadFile(tracker)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !strings.Contains(string(data), "authoritative source") {
+				t.Fatalf("tracker template = %q", data)
+			}
+			triageData, err := os.ReadFile(filepath.Join(repo, "docs", "agents", "triage.md"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !strings.Contains(string(triageData), "authoritative Markdown issue record") ||
+				!strings.Contains(string(triageData), "`Status` field") {
+				t.Fatalf("triage template = %q", triageData)
+			}
+			for _, forbidden := range []string{"gh issue ", "This repository uses GitHub Issues"} {
+				if strings.Contains(string(data), forbidden) {
+					t.Errorf("local tracker template contains hosted instruction %q", forbidden)
+				}
+			}
+			if test.githubRemote {
+				if !bytes.Equal(data, trackerWithoutRemote) {
+					t.Errorf("GitHub remote changed tracker guidance\nwithout remote:\n%s\nwith remote:\n%s", trackerWithoutRemote, data)
+				}
+				if !bytes.Equal(triageData, triageWithoutRemote) {
+					t.Errorf("GitHub remote changed triage guidance\nwithout remote:\n%s\nwith remote:\n%s", triageWithoutRemote, triageData)
+				}
+				if got := strings.TrimSpace(runGit(t, repo, "remote", "get-url", "origin")); got != remoteURL {
+					t.Errorf("init changed origin remote: got %q, want %q", got, remoteURL)
+				}
+			} else {
+				trackerWithoutRemote = append([]byte(nil), data...)
+				triageWithoutRemote = append([]byte(nil), triageData...)
+			}
+
+			if err := os.WriteFile(tracker, []byte("custom tracker\n"), 0o644); err != nil {
+				t.Fatal(err)
+			}
+			if err := runInDirectory(repo, []string{"init"}, &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
+				t.Fatal(err)
+			}
+			data, err = os.ReadFile(tracker)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if string(data) != "custom tracker\n" {
+				t.Fatalf("existing tracker was overwritten: %q", data)
+			}
+			for path, want := range map[string]string{
+				research: "existing local research\n",
+				spec:     "existing local spec\n",
+				issue:    issueContent,
+			} {
+				record, err := os.ReadFile(path)
+				if err != nil {
+					t.Fatal(err)
+				}
+				if string(record) != want {
+					t.Fatalf("existing local record %s was overwritten: %q", path, record)
+				}
+			}
+		})
+	}
+}
+
+func TestInitWithGitHubRemoteDoesNotInvokeHostedTrackerCLI(t *testing.T) {
 	repo := t.TempDir()
 	runGit(t, repo, "init", "-q")
 	runGit(t, repo, "remote", "add", "origin", "git@github.com:example/project.git")
 
-	if err := runInDirectory(repo, []string{"init"}, &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
-		t.Fatal(err)
-	}
-	tracker := filepath.Join(repo, "docs", "agents", "issue-tracker.md")
-	data, err := os.ReadFile(tracker)
+	binDir := t.TempDir()
+	marker := filepath.Join(t.TempDir(), "gh-invoked")
+	executable, err := os.Executable()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(data), "GitHub Issues") {
-		t.Fatalf("tracker template = %q", data)
+	fakeGHName := "gh"
+	if runtime.GOOS == "windows" {
+		fakeGHName += ".exe"
 	}
-	for _, want := range []string{
-		"gh issue status",
-		"gh issue list",
-		"gh issue view",
-		"gh issue create",
-		"gh issue edit",
-		"gh issue comment",
-		"gh issue close",
-		"gh issue reopen",
-	} {
-		if !strings.Contains(string(data), want) {
-			t.Errorf("GitHub tracker template is missing %q", want)
-		}
-	}
-	if err := os.WriteFile(tracker, []byte("custom tracker\n"), 0o644); err != nil {
-		t.Fatal(err)
-	}
-	if err := runInDirectory(repo, []string{"init"}, &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
-		t.Fatal(err)
-	}
-	data, err = os.ReadFile(tracker)
+	fakeGH := filepath.Join(binDir, fakeGHName)
+	executableData, err := os.ReadFile(executable)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if string(data) != "custom tracker\n" {
-		t.Fatalf("existing tracker was overwritten: %q", data)
+	if err := os.WriteFile(fakeGH, executableData, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("QBS_TEST_GH_HELPER_MARKER", marker)
+	t.Setenv("PATH", binDir+string(os.PathListSeparator)+os.Getenv("PATH"))
+
+	if err := runInDirectory(repo, []string{"init"}, &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(marker); !os.IsNotExist(err) {
+		t.Fatalf("qbs init invoked the hosted-tracker CLI: %v", err)
 	}
 }
 
-func TestInitProvisionsTriageLabelsWhenLocalTriageSkillExists(t *testing.T) {
+func TestInitPreservesCustomizedEngineeringGuidance(t *testing.T) {
+	repo := t.TempDir()
+	runGit(t, repo, "init", "-q")
+	writeSkill(t, filepath.Join(repo, ".agents", "skills"), "triage")
+	if err := runInDirectory(repo, []string{"init"}, &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
+		t.Fatal(err)
+	}
+
+	custom := map[string][]byte{
+		"domain.md":        []byte("custom domain guidance\n"),
+		"issue-tracker.md": []byte("custom tracker guidance\n"),
+		"triage.md":        []byte("custom triage guidance\n"),
+	}
+	for name, content := range custom {
+		if err := os.WriteFile(filepath.Join(repo, "docs", "agents", name), content, 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := runInDirectory(repo, []string{"init"}, &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
+		t.Fatal(err)
+	}
+	for name, want := range custom {
+		data, err := os.ReadFile(filepath.Join(repo, "docs", "agents", name))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !bytes.Equal(data, want) {
+			t.Errorf("custom %s was overwritten: %q", name, data)
+		}
+	}
+}
+
+func TestInitKeepsLocalContextWorktreeLocalAndUsesSharedExcludes(t *testing.T) {
+	repo := t.TempDir()
+	runGit(t, repo, "init", "-q")
+	runGit(t, repo, "config", "user.email", "qbs-tests@example.invalid")
+	runGit(t, repo, "config", "user.name", "QBS Tests")
+	if err := os.WriteFile(filepath.Join(repo, "README.md"), []byte("test repository\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	runGit(t, repo, "add", "README.md")
+	runGit(t, repo, "commit", "-qm", "initialize repository")
+
+	mainResearch := filepath.Join(repo, ".research", "main-only.md")
+	mainSpec := filepath.Join(repo, ".specs", "main-only.md")
+	if err := os.MkdirAll(filepath.Dir(mainResearch), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(filepath.Dir(mainSpec), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(mainResearch, []byte("main research\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(mainSpec, []byte("main spec\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	linked := filepath.Join(t.TempDir(), "linked")
+	runGit(t, repo, "worktree", "add", "-q", "-b", "linked-test", linked)
+	if err := runInDirectory(linked, []string{"init"}, &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
+		t.Fatal(err)
+	}
+
+	for _, name := range []string{".research", ".specs", filepath.Join("docs", "agents", "issue-tracker.md")} {
+		if _, err := os.Stat(filepath.Join(linked, name)); err != nil {
+			t.Errorf("linked worktree did not receive %s: %v", name, err)
+		}
+	}
+	for _, path := range []string{mainResearch, mainSpec} {
+		if _, err := os.Stat(path); err != nil {
+			t.Errorf("initializing linked worktree changed main-worktree context %s: %v", path, err)
+		}
+	}
+	for _, path := range []string{
+		filepath.Join(linked, ".research", "main-only.md"),
+		filepath.Join(linked, ".specs", "main-only.md"),
+	} {
+		if _, err := os.Stat(path); !os.IsNotExist(err) {
+			t.Errorf("worktree-local context leaked into linked worktree %s: %v", path, err)
+		}
+	}
+	exclude := filepath.Join(repo, ".git", "info", "exclude")
+	data, err := os.ReadFile(exclude)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, entry := range []string{".research/", ".specs/", "docs/agents/"} {
+		if count := strings.Count(string(data), entry); count != 1 {
+			t.Errorf("shared exclude entry %q occurs %d times", entry, count)
+		}
+	}
+}
+
+func TestInitProvisionsLocalTriageStatusesWhenLocalTriageSkillExists(t *testing.T) {
 	repo := t.TempDir()
 	runGit(t, repo, "init", "-q")
 	skill := filepath.Join(repo, ".agents", "skills", "triage")
@@ -196,18 +396,35 @@ func TestInitProvisionsTriageLabelsWhenLocalTriageSkillExists(t *testing.T) {
 	if err := runInDirectory(repo, []string{"init"}, &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
 		t.Fatal(err)
 	}
-	data, err := os.ReadFile(filepath.Join(repo, "docs", "agents", "triage-labels.md"))
+	data, err := os.ReadFile(filepath.Join(repo, "docs", "agents", "triage.md"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, label := range []string{"needs-triage", "needs-info", "ready-for-agent", "ready-for-human", "wontfix"} {
-		if !strings.Contains(string(data), label) {
-			t.Errorf("triage mapping missing %q", label)
+	for state, definition := range map[string]string{
+		"needs-triage":    "`needs-triage`: the issue has not been assessed.",
+		"needs-info":      "`needs-info`: more information is required before the issue can proceed.",
+		"ready-for-agent": "`ready-for-agent`: the issue is sufficiently specified for implementation.",
+		"ready-for-human": "`ready-for-human`: the issue needs a maintainer decision or action.",
+		"wontfix":         "`wontfix`: the issue will not be pursued.",
+	} {
+		if !strings.Contains(string(data), definition) {
+			t.Errorf("local triage guidance is missing %q and its meaning", state)
+		}
+	}
+	for _, want := range []string{
+		"authoritative Markdown issue record",
+		"`Status` field",
+		"`## Triage notes`",
+		"`## Agent brief`",
+		"Do not create or manage hosted labels, comments, or issues",
+	} {
+		if !strings.Contains(string(data), want) {
+			t.Errorf("local triage guidance is missing %q", want)
 		}
 	}
 }
 
-func TestInitProvisionsTriageLabelsFromGlobalSkillLocations(t *testing.T) {
+func TestInitProvisionsLocalTriageGuidanceFromGlobalSkillLocations(t *testing.T) {
 	tests := []struct {
 		name  string
 		setup func(t *testing.T, qbsHome string)
@@ -238,8 +455,8 @@ func TestInitProvisionsTriageLabelsFromGlobalSkillLocations(t *testing.T) {
 			if err := runInDirectory(repo, []string{"init"}, &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
 				t.Fatal(err)
 			}
-			if _, err := os.Stat(filepath.Join(repo, "docs", "agents", "triage-labels.md")); err != nil {
-				t.Fatalf("global triage skill did not provision mapping: %v", err)
+			if _, err := os.Stat(filepath.Join(repo, "docs", "agents", "triage.md")); err != nil {
+				t.Fatalf("global triage skill did not provision local guidance: %v", err)
 			}
 		})
 	}
@@ -311,11 +528,12 @@ func TestInitLocalIssueTrackerTemplateDescribesFilesystemWorkflow(t *testing.T) 
 		t.Fatal(err)
 	}
 	for _, want := range []string{
-		"local Markdown issue records",
+		"Local Markdown issue records",
+		"authoritative source",
 		"List issues",
 		"Create a ticket",
 		"Update the issue file",
-		"filesystem-only",
+		"separate, explicit request",
 	} {
 		if !strings.Contains(string(data), want) {
 			t.Errorf("local tracker template is missing %q", want)

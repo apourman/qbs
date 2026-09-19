@@ -20,4 +20,4 @@ domain directories, not directly at the root of `.specs/`.
 
 - Issue tracker: see `docs/agents/issue-tracker.md` for the repository's tracker workflow.
 - Domain documentation: see `docs/agents/domain.md` for `CONTEXT.md` and `docs/adr/`.
-- Triage labels: when triage is installed, see `docs/agents/triage-labels.md` for the label mapping.
+- Local triage: when triage is installed, see `docs/agents/triage.md` for the status workflow.
