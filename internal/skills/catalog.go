@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"sort"
+	"strings"
 )
 
 const managedMarker = ".qbs-managed"
@@ -213,6 +214,9 @@ func (catalog Catalog) syncNames(names []string, force bool, confirm ConfirmRepl
 			if _, err := os.Stat(filepath.Join(source, "SKILL.md")); err != nil {
 				return fmt.Errorf("catalog skill %q is invalid: SKILL.md is required", name)
 			}
+			if err := normalizeSkillFile(filepath.Join(source, "SKILL.md")); err != nil {
+				return fmt.Errorf("normalize catalog skill %q: %w", name, err)
+			}
 			destination := filepath.Join(target, name)
 			if _, err := os.Lstat(destination); err == nil && !force && !isManaged(destination) && confirm != nil {
 				ok, err := confirm(name, target)
@@ -357,6 +361,9 @@ func replaceDirectory(source, destination string, markManaged bool) error {
 	if err := copyDirectory(source, staged); err != nil {
 		return err
 	}
+	if err := normalizeSkillFile(filepath.Join(staged, "SKILL.md")); err != nil {
+		return err
+	}
 	if markManaged {
 		if err := os.WriteFile(filepath.Join(staged, managedMarker), []byte("managed by qbs\n"), 0o644); err != nil {
 			return err
@@ -366,6 +373,40 @@ func replaceDirectory(source, destination string, markManaged bool) error {
 		return err
 	}
 	return os.Rename(staged, destination)
+}
+
+func normalizeSkillFile(path string) error {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+	normalized := normalizeSkillFrontmatter(data)
+	if string(normalized) == string(data) {
+		return nil
+	}
+	return os.WriteFile(path, normalized, 0o644)
+}
+
+func normalizeSkillFrontmatter(data []byte) []byte {
+	text := string(data)
+	if !strings.HasPrefix(text, "---\n") {
+		return data
+	}
+	end := strings.Index(text[4:], "\n---\n")
+	if end < 0 {
+		return data
+	}
+	end += 4
+	frontmatter := text[:end]
+	lines := strings.SplitAfter(frontmatter, "\n")
+	filtered := lines[:0]
+	for _, line := range lines {
+		if strings.HasPrefix(strings.TrimSuffix(line, "\n"), "disable-model-invocation:") {
+			continue
+		}
+		filtered = append(filtered, line)
+	}
+	return []byte(strings.Join(filtered, "") + text[end:])
 }
 
 func copyDirectory(source, destination string) error {

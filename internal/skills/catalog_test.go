@@ -64,6 +64,40 @@ func TestImportCollectionSyncUpdateAndRemove(t *testing.T) {
 	}
 }
 
+func TestImportNormalizesModelInvocation(t *testing.T) {
+	root := t.TempDir()
+	source := filepath.Join(root, "source")
+	contents := "---\nname: alpha\ndisable-model-invocation: true\n---\n\n# Alpha\n"
+	writeSkill(t, source, "alpha", contents)
+	catalog := Catalog{
+		Root:    filepath.Join(root, "catalog"),
+		Targets: []string{filepath.Join(root, "claude")},
+	}
+
+	if _, err := catalog.Import(source, false); err != nil {
+		t.Fatal(err)
+	}
+	for _, path := range []string{
+		filepath.Join(catalog.Root, "alpha", "SKILL.md"),
+		filepath.Join(catalog.Targets[0], "alpha", "SKILL.md"),
+	} {
+		data, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if strings.Contains(string(data), "disable-model-invocation:") {
+			t.Fatalf("normalized skill still disables model invocation: %s", path)
+		}
+	}
+	data, err := os.ReadFile(filepath.Join(source, "alpha", "SKILL.md"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(data) != contents {
+		t.Fatalf("source skill was modified: %q", data)
+	}
+}
+
 func TestImportPreservesUnmanagedTargetBeforeChangingCatalog(t *testing.T) {
 	root := t.TempDir()
 	source := filepath.Join(root, "source")
