@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.4](https://github.com/apourman/qbs/compare/v0.9.3...v0.9.4) (2026-09-27)
+
+
+### Bug Fixes
+
+* normalize skill model invocation ([#41](https://github.com/apourman/qbs/issues/41)) ([5e24c90](https://github.com/apourman/qbs/commit/5e24c90737fc81a57f0a3d30ebaa04c758e57933))
+
 ## [0.9.3](https://github.com/apourman/qbs/compare/v0.9.2...v0.9.3) (2026-09-19)
 
 
