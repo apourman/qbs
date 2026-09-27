@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 220" role="img" aria-labelledby="title desc">
+  <title id="title">QBS prepares an AI workspace</title>
+  <desc id="desc">A terminal animation showing qbs init, qbs skills sync, and a ready workspace.</desc>
+  <rect width="720" height="220" rx="18" fill="#101827"/>
+  <rect width="720" height="42" rx="18" fill="#1d2a3d"/>
+  <rect y="24" width="720" height="18" fill="#1d2a3d"/>
+  <circle cx="24" cy="21" r="6" fill="#ff6b6b"/>
+  <circle cx="46" cy="21" r="6" fill="#ffd166"/>
+  <circle cx="68" cy="21" r="6" fill="#4ecdc4"/>
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="20">
+    <text x="36" y="88" fill="#8fa7c2">$</text>
+    <text x="58" y="88" fill="#f4f7fb">qbs init</text>
+    <text x="58" y="122" fill="#7ee787" opacity="0">✓ workspace ready">
+      <animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.18;0.28;0.72;0.82" dur="6s" repeatCount="indefinite"/>
+    </text>
+    <text x="36" y="160" fill="#8fa7c2">$</text>
+    <text x="58" y="160" fill="#f4f7fb">qbs skills sync</text>
+    <text x="58" y="194" fill="#7ee787" opacity="0">✓ skills available everywhere">
+      <animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.48;0.58;0.92;1" dur="6s" repeatCount="indefinite"/>
+    </text>
+  </g>
+</svg>
