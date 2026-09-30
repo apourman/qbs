@@ -114,6 +114,53 @@ func TestRunSkillsImportPromptsForExistingTarget(t *testing.T) {
 	}
 }
 
+func TestRunSyncCountsSkippedSkillsAndInstallsGlobalAgents(t *testing.T) {
+	root := t.TempDir()
+	t.Setenv("HOME", root)
+	t.Setenv("USERPROFILE", root)
+	t.Setenv("QBS_HOME", filepath.Join(root, "qbs-home"))
+	source := filepath.Join(root, "source", "review")
+	if err := os.MkdirAll(source, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(source, "SKILL.md"), []byte("catalog skill\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("QBS_SKILL_TARGETS", filepath.Join(root, "managed-skills"))
+	if err := cli.Run([]string{"skills", "import", source}, &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
+		t.Fatal(err)
+	}
+	target := filepath.Join(root, "unmanaged-skills", "review")
+	if err := os.MkdirAll(target, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(target, "SKILL.md"), []byte("existing skill\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("QBS_SKILL_TARGETS", filepath.Dir(target))
+	var out bytes.Buffer
+	if err := cli.RunWithInput([]string{"sync"}, strings.NewReader("n\n"), &out, &bytes.Buffer{}); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(out.String(), "Synchronized 0 skill copy/copies (1 skipped)") {
+		t.Fatalf("sync output = %q", out.String())
+	}
+	data, err := os.ReadFile(filepath.Join(target, "SKILL.md"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(data) != "existing skill\n" {
+		t.Fatalf("unmanaged skill changed: %q", data)
+	}
+	agent, err := os.ReadFile(filepath.Join(root, ".claude", "agents", "review-spec.md"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(agent), "Re-run qbs sync to refresh.") {
+		t.Fatalf("generated agent has stale refresh command: %q", agent)
+	}
+}
+
 func TestRunInitOutsideGitRepository(t *testing.T) {
 	old, err := os.Getwd()
 	if err != nil {

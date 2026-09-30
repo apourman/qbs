@@ -26,7 +26,7 @@ work to a hosted service.
 | Need | QBS provides |
 | --- | --- |
 | Start a repository | `qbs init` creates local AI workspace structure and guidance. |
-| Reuse skills | A single catalog syncs curated skills to Codex, Claude, and OpenCode. |
+| Reuse skills and agents | `qbs sync` installs curated skills and generated agents globally for Codex, Claude, and OpenCode. |
 | Keep context local | Research, specifications, triage records, and domain context stay in the workspace. |
 | Stay predictable | Existing files are preserved, generated copies are marked, and hosted projection is opt-in. |
 
@@ -71,6 +71,8 @@ qbs skills import /path/to/skill-collection
 
 QBS keeps the canonical catalog at `~/.qbs/skills/` and synchronizes managed
 copies to the global discovery locations for Codex, Claude, and OpenCode.
+Run `qbs sync` to refresh those skills and install QBS's built-in agents into
+each harness's global agent directory.
 
 ## The skill lifecycle
 
@@ -94,6 +96,7 @@ skill. The original source directory is not changed.
 | Command | What it does |
 | --- | --- |
 | `qbs init` | Prepare the current Git repository for local AI work. |
+| `qbs sync` | Sync cataloged skills and generated agents to global harness directories. |
 | `qbs skills import <path>` | Add a skill or collection to the catalog and sync it. |
 | `qbs skills list` | Show the catalog and configured global targets. |
 | `qbs skills sync` | Re-sync every cataloged skill. |
