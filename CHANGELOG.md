@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.0](https://github.com/apourman/qbs/compare/v0.10.0...v0.11.0) (2026-09-30)
+
+
+### Features
+
+* add goal-ticket skill ([#46](https://github.com/apourman/qbs/issues/46)) ([2cf80dc](https://github.com/apourman/qbs/commit/2cf80dc9d5f52a576e302100997210e7907bc119))
+
 ## [0.10.0](https://github.com/apourman/qbs/compare/v0.9.4...v0.10.0) (2026-09-30)
 
 
