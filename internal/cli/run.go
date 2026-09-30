@@ -29,6 +29,7 @@ const usage = `qbs — AI workspace and curated skill manager
 
 Usage:
   qbs init
+  qbs sync
   qbs skills import <path> [--force]
   qbs skills list
   qbs skills sync
@@ -59,6 +60,11 @@ func RunWithInput(args []string, input io.Reader, stdout, stderr io.Writer) erro
 		return err
 	}
 	switch args[0] {
+	case "sync":
+		if len(args) != 1 {
+			return errors.New("sync does not accept arguments")
+		}
+		return syncAll(input, stdout)
 	case "init":
 		if len(args) != 1 {
 			return errors.New("init does not accept arguments")
