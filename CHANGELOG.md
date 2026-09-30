@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.0](https://github.com/apourman/qbs/compare/v0.9.4...v0.10.0) (2026-09-30)
+
+
+### Features
+
+* sync global skills and agents ([#44](https://github.com/apourman/qbs/issues/44)) ([3d1c7f4](https://github.com/apourman/qbs/commit/3d1c7f438c9ef6c591d1ed58c328b9b660b76252))
+
 ## [0.9.4](https://github.com/apourman/qbs/compare/v0.9.3...v0.9.4) (2026-09-27)
 
 
