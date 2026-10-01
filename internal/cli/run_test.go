@@ -114,6 +114,41 @@ func TestRunSkillsImportPromptsForExistingTarget(t *testing.T) {
 	}
 }
 
+func TestRunSyncPreservesImportedSameNameSkill(t *testing.T) {
+	root := t.TempDir()
+	t.Setenv("HOME", root)
+	t.Setenv("USERPROFILE", root)
+	t.Setenv("QBS_HOME", filepath.Join(root, "qbs-home"))
+	target := filepath.Join(root, "managed-skills")
+	t.Setenv("QBS_SKILL_TARGETS", target)
+
+	source := filepath.Join(root, "source", "goal-ticket")
+	if err := os.MkdirAll(filepath.Join(source, "references"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(source, "SKILL.md"), []byte("custom goal-ticket\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(source, "references", "custom.md"), []byte("custom supporting file\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := cli.Run([]string{"skills", "import", source}, &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
+		t.Fatalf("import custom skill: %v", err)
+	}
+
+	var stderr bytes.Buffer
+	if err := cli.Run([]string{"sync"}, &bytes.Buffer{}, &stderr); err != nil {
+		t.Fatalf("qbs sync failed: %v\nstderr: %s", err, stderr.String())
+	}
+
+	for _, destination := range []string{
+		filepath.Join(root, "qbs-home", "skills", "goal-ticket"),
+		filepath.Join(target, "goal-ticket"),
+	} {
+		assertDirectoryFilesMatch(t, source, destination)
+	}
+}
+
 func TestRunSyncCountsSkippedSkillsAndInstallsGlobalAgents(t *testing.T) {
 	root := t.TempDir()
 	t.Setenv("HOME", root)
@@ -142,7 +177,7 @@ func TestRunSyncCountsSkippedSkillsAndInstallsGlobalAgents(t *testing.T) {
 	if err := cli.RunWithInput([]string{"sync"}, strings.NewReader("n\n"), &out, &bytes.Buffer{}); err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(out.String(), "Synchronized 0 skill copy/copies (1 skipped)") {
+	if !strings.Contains(out.String(), "Synchronized ") || !strings.Contains(out.String(), " (1 skipped) and ") || !strings.Contains(out.String(), " agent(s) globally") {
 		t.Fatalf("sync output = %q", out.String())
 	}
 	data, err := os.ReadFile(filepath.Join(target, "SKILL.md"))

@@ -5,6 +5,7 @@ import (
 	"io"
 	"strings"
 
+	"github.com/trues/qbs"
 	"github.com/trues/qbs/internal/agents"
 	"github.com/trues/qbs/internal/skills"
 )
@@ -84,6 +85,9 @@ func syncSkills(input io.Reader, stdout io.Writer) error {
 }
 
 func syncSkillCopies(catalog skills.Catalog, input io.Reader, stdout io.Writer) (int, int, error) {
+	if _, err := catalog.InstallBuiltins(qbs.BuiltinSkills()); err != nil {
+		return 0, 0, err
+	}
 	skipped := 0
 	confirm := replacementPrompt(input, stdout)
 	names, err := catalog.SyncInteractive(func(name, target string) (bool, error) {

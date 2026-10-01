@@ -71,14 +71,19 @@ qbs skills import /path/to/skill-collection
 
 QBS keeps the canonical catalog at `~/.qbs/skills/` and synchronizes managed
 copies to the global discovery locations for Codex, Claude, and OpenCode.
-Run `qbs sync` to refresh those skills and install QBS's built-in agents into
-each harness's global agent directory.
+Each QBS release ships the skills tracked in its repository. `qbs sync` and
+`qbs skills sync` refresh those built-in skills in the canonical catalog, sync
+them to each harness, and preserve separately imported skills. `qbs sync` also
+installs QBS's built-in agents.
+Separately imported skills take precedence when their names match bundled
+skills.
 
 ## The skill lifecycle
 
 ```mermaid
 flowchart LR
     A[Skill source] -->|qbs skills import| B[Canonical catalog<br/>~/.qbs/skills]
+    R[Skills shipped in this QBS release] -->|qbs sync or qbs skills sync| B
     B -->|qbs skills sync| C[Codex]
     B -->|qbs skills sync| D[Claude]
     B -->|qbs skills sync| E[OpenCode]
@@ -96,10 +101,10 @@ skill. The original source directory is not changed.
 | Command | What it does |
 | --- | --- |
 | `qbs init` | Prepare the current Git repository for local AI work. |
-| `qbs sync` | Sync cataloged skills and generated agents to global harness directories. |
+| `qbs sync` | Refresh skills shipped with this release, sync cataloged skills, and install generated agents globally. |
 | `qbs skills import <path>` | Add a skill or collection to the catalog and sync it. |
 | `qbs skills list` | Show the catalog and configured global targets. |
-| `qbs skills sync` | Re-sync every cataloged skill. |
+| `qbs skills sync` | Refresh release skills and re-sync every cataloged skill. |
 | `qbs skills remove <name>` | Remove a cataloged skill and its managed copies. |
 | `qbs update` | Update an installed QBS release on supported platforms. |
 

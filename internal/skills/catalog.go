@@ -11,7 +11,19 @@ import (
 	"strings"
 )
 
-const managedMarker = ".qbs-managed"
+const (
+	managedMarker = ".qbs-managed"
+	builtinMarker = ".qbs-builtin"
+	builtinValue  = "builtin skill shipped with qbs\n"
+)
+
+type replacementOwnership uint8
+
+const (
+	replacementUser replacementOwnership = iota
+	replacementManaged
+	replacementBuiltin
+)
 
 var validName = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._-]*$`)
 
@@ -141,7 +153,7 @@ func (catalog Catalog) importWithConfirmation(source string, force bool, confirm
 	}
 
 	for _, item := range sources {
-		if err := replaceDirectory(item.path, filepath.Join(catalog.Root, item.name), false); err != nil {
+		if err := replaceDirectory(item.path, filepath.Join(catalog.Root, item.name), replacementUser); err != nil {
 			return names, fmt.Errorf("import skill %q: %w", item.name, err)
 		}
 	}
@@ -180,6 +192,49 @@ func (catalog Catalog) Sync() ([]string, error) {
 		return nil, err
 	}
 	return names, catalog.SyncNames(names)
+}
+
+// InstallBuiltins refreshes the catalog entries shipped with this QBS release.
+// Other catalog entries are left untouched.
+func (catalog Catalog) InstallBuiltins(source fs.FS) ([]string, error) {
+	entries, err := fs.ReadDir(source, ".")
+	if err != nil {
+		return nil, fmt.Errorf("read embedded skill catalog: %w", err)
+	}
+	var names []string
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+		name := entry.Name()
+		if err := validateName(name); err != nil {
+			return nil, err
+		}
+		info, err := fs.Stat(source, filepath.ToSlash(filepath.Join(name, "SKILL.md")))
+		if err != nil || !info.Mode().IsRegular() {
+			if err == nil {
+				err = fmt.Errorf("SKILL.md is not a regular file")
+			}
+			return nil, fmt.Errorf("embedded skill %q is invalid: %w", name, err)
+		}
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	if err := os.MkdirAll(catalog.Root, 0o755); err != nil {
+		return nil, fmt.Errorf("create skill catalog: %w", err)
+	}
+	for _, name := range names {
+		destination := filepath.Join(catalog.Root, name)
+		if _, err := os.Lstat(destination); err == nil && !isBuiltin(destination) {
+			continue
+		} else if err != nil && !os.IsNotExist(err) {
+			return names, fmt.Errorf("inspect catalog skill %q: %w", name, err)
+		}
+		if err := replaceEmbeddedDirectory(source, name, destination); err != nil {
+			return names, fmt.Errorf("install embedded skill %q: %w", name, err)
+		}
+	}
+	return names, nil
 }
 
 // SyncInteractive synchronizes skills and asks before replacing unmanaged
@@ -229,7 +284,7 @@ func (catalog Catalog) syncNames(names []string, force bool, confirm ConfirmRepl
 			} else if err != nil && !os.IsNotExist(err) {
 				return fmt.Errorf("inspect skill target %s: %w", destination, err)
 			}
-			if err := replaceDirectory(source, destination, true); err != nil {
+			if err := replaceDirectory(source, destination, replacementManaged); err != nil {
 				return fmt.Errorf("sync skill %q to %s: %w", name, target, err)
 			}
 		}
@@ -291,6 +346,11 @@ func isManaged(directory string) bool {
 	return err == nil && string(data) == "managed by qbs\n"
 }
 
+func isBuiltin(directory string) bool {
+	data, err := os.ReadFile(filepath.Join(directory, builtinMarker))
+	return err == nil && string(data) == builtinValue
+}
+
 type sourceSkill struct {
 	name string
 	path string
@@ -347,7 +407,19 @@ func validateName(name string) error {
 	return nil
 }
 
-func replaceDirectory(source, destination string, markManaged bool) error {
+func replaceDirectory(source, destination string, ownership replacementOwnership) error {
+	return replaceSkillDirectory(destination, ownership, func(staged string) error {
+		return copyDirectory(source, staged)
+	})
+}
+
+func replaceEmbeddedDirectory(source fs.FS, name, destination string) error {
+	return replaceSkillDirectory(destination, replacementBuiltin, func(staged string) error {
+		return copyEmbeddedDirectory(source, name, staged)
+	})
+}
+
+func replaceSkillDirectory(destination string, ownership replacementOwnership, copyTo func(string) error) error {
 	parent := filepath.Dir(destination)
 	if err := os.MkdirAll(parent, 0o755); err != nil {
 		return err
@@ -358,14 +430,22 @@ func replaceDirectory(source, destination string, markManaged bool) error {
 	}
 	defer os.RemoveAll(temporary)
 	staged := filepath.Join(temporary, filepath.Base(destination))
-	if err := copyDirectory(source, staged); err != nil {
+	if err := copyTo(staged); err != nil {
 		return err
 	}
 	if err := normalizeSkillFile(filepath.Join(staged, "SKILL.md")); err != nil {
 		return err
 	}
-	if markManaged {
+	if err := os.Remove(filepath.Join(staged, builtinMarker)); err != nil && !os.IsNotExist(err) {
+		return err
+	}
+	switch ownership {
+	case replacementManaged:
 		if err := os.WriteFile(filepath.Join(staged, managedMarker), []byte("managed by qbs\n"), 0o644); err != nil {
+			return err
+		}
+	case replacementBuiltin:
+		if err := os.WriteFile(filepath.Join(staged, builtinMarker), []byte(builtinValue), 0o644); err != nil {
 			return err
 		}
 	}
@@ -434,6 +514,30 @@ func copyDirectory(source, destination string) error {
 			return err
 		}
 		return os.WriteFile(target, data, info.Mode().Perm())
+	})
+}
+
+func copyEmbeddedDirectory(source fs.FS, directory, destination string) error {
+	return fs.WalkDir(source, directory, func(path string, entry fs.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		relative, err := filepath.Rel(directory, filepath.FromSlash(path))
+		if err != nil {
+			return err
+		}
+		target := destination
+		if relative != "." {
+			target = filepath.Join(destination, relative)
+		}
+		if entry.IsDir() {
+			return os.MkdirAll(target, 0o755)
+		}
+		data, err := fs.ReadFile(source, path)
+		if err != nil {
+			return err
+		}
+		return os.WriteFile(target, data, 0o644)
 	})
 }
 
