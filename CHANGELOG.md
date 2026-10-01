@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.0](https://github.com/apourman/qbs/compare/v0.11.0...v0.12.0) (2026-10-01)
+
+
+### Features
+
+* bundle skills and refresh them during sync ([#48](https://github.com/apourman/qbs/issues/48)) ([a549a13](https://github.com/apourman/qbs/commit/a549a13c879eda7bcf9db913a800b685f94c19b9))
+
 ## [0.11.0](https://github.com/apourman/qbs/compare/v0.10.0...v0.11.0) (2026-09-30)
 
 
