@@ -1,0 +1,3 @@
+interface:
+  display_name: "Goal Spec"
+  short_description: "Prepare a whole-spec implementation goal"
