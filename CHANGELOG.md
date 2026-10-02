@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.13.1](https://github.com/apourman/qbs/compare/v0.13.0...v0.13.1) (2026-10-02)
+
+
+### Bug Fixes
+
+* **release:** include docs in release notes ([#53](https://github.com/apourman/qbs/issues/53)) ([06ddd4e](https://github.com/apourman/qbs/commit/06ddd4e4d5e40a502f2fc677512afc0232a4f669))
+
+
+### Documentation
+
+* separate goal prompt from command ([#52](https://github.com/apourman/qbs/issues/52)) ([6443fc6](https://github.com/apourman/qbs/commit/6443fc654834c0e2aab19458aec826dfdae910ad))
+
 ## [0.13.0](https://github.com/apourman/qbs/compare/v0.12.0...v0.13.0) (2026-10-02)
 
 
