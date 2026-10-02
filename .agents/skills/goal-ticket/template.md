@@ -1,9 +1,9 @@
-# /goal command template
+# Goal prompt template
 
-Replace every placeholder. Omit prior-research wording when no prior notes exist, but still create the ticket findings file. Keep the completed command at or below 4,000 bytes.
+Replace every placeholder. Omit prior-research wording when no prior notes exist, but still create the ticket findings file. Keep the completed prompt at or below 4,000 bytes.
 
 ```text
-/goal Complete ticket NN from spec S, review it, merge it into `B`, and hand it off. Done only when: BUILD and touched suites pass; `/code-review` against BASE is complete and findings are fixed or explained; `git log --oneline -3 B` shows `Merge B NN` and merge checks pass; every acceptance criterion is complete/partial/missing with evidence and confidence 1–5; ticket status, handoff, run state and findings are updated; and `git branch --list B-NN` is empty. If a blocker is not merged, a prerequisite is unavailable, or a spec decision is impossible, record `BLOCKED: <reason>`. Stop after TURNS turns.
+Complete ticket NN from spec S, review it, merge it into `B`, and hand it off. Done only when: BUILD and touched suites pass; `/code-review` against BASE is complete and findings are fixed or explained; `git log --oneline -3 B` shows `Merge B NN` and merge checks pass; every acceptance criterion is complete/partial/missing with evidence and confidence 1–5; ticket status, handoff, run state and findings are updated; and `git branch --list B-NN` is empty. If a blocker is not merged, a prerequisite is unavailable, or a spec decision is impossible, record `BLOCKED: <reason>`. Stop after TURNS turns.
 
 Orchestrator: ORCHESTRATOR_MODEL. It reads, plans, delegates, monitors and reviews; it writes no repository files. Approved subagents and assignments (profile/resolved model/reasoning/budget/isolation/concurrency): implementer=IMPLEMENTER; review-standards=REVIEW_STANDARDS; review-spec=REVIEW_SPEC; merger (integration and serial recorder)=MERGER. User approved these assignments. Pass each through the active subagent mechanism; if unavailable, stop without substitution or dispatch.
 
