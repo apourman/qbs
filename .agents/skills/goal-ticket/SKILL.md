@@ -1,9 +1,11 @@
 ---
 name: goal-ticket
-description: Prepare a bounded `/goal` prompt to implement one ready ticket from a QBS feature spec in `.specs/`. Use when the user wants an implementation prompt for a fresh Claude Code session; this skill prepares the prompt and never implements the ticket.
+description: Prepare a bounded `/goal` prompt to implement one ready ticket from a QBS feature spec in `.specs/`, with approved subagent model assignments. Use when the user wants a goal prompt for one ticket; this skill prepares the prompt and never implements the ticket.
 ---
 
-Prepare a `/goal` command for one ticket in a spec. The user will paste it into a fresh Claude Code session. Discover facts before asking questions; ask only for choices or facts that cannot be established. Never implement the ticket in this session.
+Prepare a `/goal` command for one ticket in a spec. The user will run it in a goal-capable session. Discover facts before asking questions; ask only for choices or facts that cannot be established. Never dispatch agents or implement the ticket in this preparation session.
+
+Use the shared [orchestration-gate](../orchestration-gate/SKILL.md) for confidence, model planning, approval, cost status, and evidence vocabulary, and read the shared [goal prompt orchestration contract](../../goal-prompt-orchestration.md). The generated prompt must identify the active goal session as orchestrator and assign models to its worker subagents without naming or assuming a particular harness.
 
 ## Discover
 
@@ -13,20 +15,20 @@ Read the chosen spec's build/test decisions, README, CI/build configuration, pro
 
 ## Ask once
 
-Use the available question tool for one round. Ask which spec only if there are multiple; ask which ready ticket, recommending the lowest number first. Show blocked tickets and blockers in the question text, but do not offer blocked tickets unless the user chooses Other. Offer no more than four ticket options. Also ask the user to confirm/correct the discovered build, tests, and prerequisites, and choose a turn limit. Use 60 turns by default; suggest 80 for substantial work and 100 for especially large tickets. Ask only unresolved questions that change the output. If no ticket is ready, report blockers and generate no command.
+Use the available question tool for one round. Ask which spec only if there are multiple; ask which ready ticket, recommending the lowest number first. Show blocked tickets and blockers in the question text, but do not offer blocked tickets unless the user chooses Other. Offer no more than four ticket options. Also ask the user to confirm/correct the discovered build, tests, prerequisites, base/integration branches, and turn limit. Present the subagent roster and ask the user to choose a model profile and reasoning level for every worker role: `implementer`, `review-standards`, `review-spec`, and `merger` (also the serial recorder). Record the active goal model as the orchestrator when visible, separately from these worker assignments. Offer `Recommended`, `Economy`, `Deep`, and `Customize` plans as defined by orchestration-gate; resolve every selected role through `internal/agents` and obtain approval before generating the command. Use 60 turns by default; suggest 80 for substantial work and 100 for especially large tickets. Ask only unresolved questions that change the output. If no ticket is ready, report blockers and generate no command.
 
 Confirm the integration and base branches, defaulting to the spec run state (or spec folder name) and repository default branch. For a first run, explain that the integration branch will start at the base branch's current SHA. The goal should adopt an existing integration branch only if it is at that SHA.
 
 ## Generate
 
-Fill [template.md](template.md) with discovered facts and the user's answers. Include absolute paths from the primary worktree, exact build/test commands, relevant research files or sections, blocker handoffs, prerequisites, needed test seams, and 2–3 compact project rules. Include ignored-file setup and baseline failures from run state/handoffs when available, not from assumptions. Do not assume README alone contains those facts.
+Fill [template.md](template.md) with discovered facts and the user's answers. Include absolute paths from the primary worktree, exact build/test commands, relevant research files or sections, blocker handoffs, prerequisites, needed test seams, 2–3 compact project rules, and the approved orchestrator/subagent role split with resolved models and reasoning. Include ignored-file setup and baseline failures from run state/handoffs when available, not from assumptions. Do not assume README alone contains those facts.
 
 This skill establishes `S/implementation-state.md` and `S/handoffs/NN.md` as its own execution journal. Discover them if present; on the first run, have the goal create the run state and record the starting SHA and baseline. Create the selected ticket's handoff at completion. QBS does not provide these files by default. Preserve any existing spec-level handoff and use it as context rather than replacing it.
 
 Preserve these workflow invariants in every generated command:
 
 - Work on one ticket only. Never implement the ticket in this preparation session.
-- `.specs/` and `.research/` are shared, ignored QBS context. Keep updates local: edit only the selected ticket, its handoff, run state, and ticket findings note. Do not commit them. Use the primary worktree's absolute paths.
+- `.specs/` and `.research/` are shared, ignored QBS context. Keep updates local and uncommitted. The implementer and reviewers treat them as read-only; the merger/recorder is the single writer for the selected ticket, its handoff, run state, and ticket findings note. The orchestrator reads and verifies those records but does not author code or project documents. Use the primary worktree's absolute paths.
 - Use ticket branch `B-NN` (not `B/NN`). Work in the session's own worktree, create the branch from latest `B`, run the baseline, and use baseline results from run state. Never recreate or rebase `B`. On first run, record BASE's SHA and adopt an existing `B` only if it is at that SHA.
 - Research step A reads the ticket's cited files or sections and relevant later findings; verify stale code pointers and record drift. Include an explicit `BLOCKED` outcome for unresolved blockers, unavailable required prerequisites, or impossible spec decisions.
 - Map every acceptance criterion to a change and an appropriate test seam before implementation. Test first, run the build and all relevant suites, review with `/code-review`, fix findings, then integrate with `--no-ff` into `B` in the primary worktree. If that checkout is on another branch, switch it to `B` only when clean, otherwise block; restore its branch afterwards.
@@ -34,6 +36,6 @@ Preserve these workflow invariants in every generated command:
 - Never weaken, skip, or delete tests. No push, no PR, and never touch BASE. Do not claim baseline failures as regressions.
 - Keep the completed command at 4,000 bytes or fewer, counting `/goal ` and the final newline. Trim project rules, then parentheticals, then filler. Never remove a done condition, workflow step, research read/update instruction, or `BLOCKED` clause.
 
-Measure the final command with a byte count. Print it in one fenced `text` block. Below it, report the count; tell the user to paste it into a fresh auto-mode session opened in the primary worktree; list other ready tickets not to run concurrently (they share run state); say what finishing this ticket unblocks; ask them to run this prompt again for the next ticket; and briefly list what's different from the previous prompt, if available.
+Measure the final command with a byte count. Print it in one fenced `text` block. Below it, report the count; tell the user to paste it into a fresh goal-capable session opened in the primary worktree; list other ready tickets not to run concurrently (they share run state); say what finishing this ticket unblocks; ask them to run this prompt again for the next ticket; and briefly list what's different from the previous prompt, if available.
 
 If the chosen ticket is not ready, do not generate a command. Explain its blockers. Do not modify project files or run the generated goal.

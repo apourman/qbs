@@ -1,24 +1,21 @@
 # /goal command template
 
-Replace every placeholder. Omit the research-read wording when no prior notes exist; still create the ticket findings file. Keep the entire command at or below 4,000 bytes.
+Replace every placeholder. Omit prior-research wording when no prior notes exist, but still create the ticket findings file. Keep the completed command at or below 4,000 bytes.
 
 ```text
-/goal Ticket NN of spec S is built, reviewed, merged into branch `B` and handed off. Done only when this conversation shows ALL of: (1) passing output of BUILD and every test suite touched; (2) a /code-review of the ticket branch, with every finding fixed or given a reason; (3) `git log --oneline -3 B` showing "Merge B NN", and tests passing on that merge; (4) a final report marking every acceptance criterion complete/partial/missing with evidence (test name or file:symbol) and confidence 1-5; (5) ticket Status done, handoff, run state and ticket findings updated; (6) `git branch --list B-NN` empty. Also done if this session prints "BLOCKED: <reason>" (a blocker is not done and merged, a required prerequisite is unavailable, or a spec decision is impossible in code). Stop after TURNS turns.
+/goal Complete ticket NN from spec S, review it, merge it into `B`, and hand it off. Done only when: BUILD and touched suites pass; `/code-review` against BASE is complete and findings are fixed or explained; `git log --oneline -3 B` shows `Merge B NN` and merge checks pass; every acceptance criterion is complete/partial/missing with evidence and confidence 1–5; ticket status, handoff, run state and findings are updated; and `git branch --list B-NN` is empty. If a blocker is not merged, a prerequisite is unavailable, or a spec decision is impossible, record `BLOCKED: <reason>`. Stop after TURNS turns.
 
-Primary worktree MAIN (S=SPEC): spec S/spec.md; ticket S/tickets/NN-*.md; prior research RESEARCH_PATHS; run state S/implementation-state.md; handoff S/handoffs/NN.md; findings MAIN/.research/FEATURE/ticket-NN-implementation-findings.md. `.specs` and `.research` are ignored shared QBS context; use these absolute paths, edit only this ticket and its execution records, never commit them. BUILD: BUILD. TEST: TEST.
+Orchestrator: ORCHESTRATOR_MODEL. It reads, plans, delegates, monitors and reviews; it writes no repository files. Approved subagents and assignments (profile/resolved model/reasoning/budget/isolation/concurrency): implementer=IMPLEMENTER; review-standards=REVIEW_STANDARDS; review-spec=REVIEW_SPEC; merger (integration and serial recorder)=MERGER. User approved these assignments. Pass each through the active subagent mechanism; if unavailable, stop without substitution or dispatch.
 
-Steps:
-A. Read the spec, ticket, cited research files/sections RESEARCH and relevant later findings, available run state and blocker handoffs HANDOFFS. Verify code leads pinned to COMMIT against current code and note drift. Every blocker must be done and merged, else print BLOCKED. Check relevant prerequisites PREREQUISITES and clean tracked status.
-B. First run only: create the run state with BASE's SHA; adopt B if already at that SHA, otherwise create B there. Later runs: never recreate or rebase B.
-C. In this session's worktree, with clean `git status`, create branch `B-NN` from latest `B`. Set up ignored inputs INPUTS. Run TEST; record first-run baseline in run state.
-D. Explore, then print a plan mapping every acceptance criterion to a change and test at needed seams SEAMS, with confidence, assumptions and risks. If confidence <3 or intent may change, print BLOCKED.
-E. Test first: per criterion add a test in project style, observe failure, implement. Run BUILD and TEST. Commit "B NN: <title>".
-F. Run /code-review against the base commit; fix findings in one pass, re-test, commit "B NN: review fixes".
-G. If B moved, merge it into the ticket branch and re-test. In the primary worktree (switch to B only if clean, else BLOCKED; restore branch after), merge --no-ff as "Merge B NN: <title>", then build and test the merge.
-H. Tick met criteria in ticket; Status done only if all met, otherwise in-progress with reason. Write handoff with implementation, uncovered decisions, research drift, review, acceptance report and later-ticket notes. Update run state with status, merge SHA, handoff and recomputed frontier (include omitted ready tickets and what NN unblocks).
-I. Switch this worktree back to its session branch; delete B-NN.
-J. Write the ticket findings file with merge SHA, evidence-backed findings, unaddressed items and a `Still unclear or open` list. Then print final report.
+Primary worktree MAIN; spec S/spec.md; ticket S/tickets/NN-*.md; prior research RESEARCH; blocker handoffs HANDOFFS; state S/implementation-state.md; handoff S/handoffs/NN.md; findings MAIN/.research/FEATURE/ticket-NN-implementation-findings.md. `.specs`/`.research` are shared, ignored, local context; do not commit. BUILD: BUILD. TEST: TEST. Project rules: PROJECT_RULES.
 
-Rules: this ticket only; stub minimum later-ticket needs and note them. Spec decisions are settled; if one is wrong, print BLOCKED. Never weaken, skip or delete tests; baseline failures are not regressions. No push, no PR, never touch BASE.
-PROJECT_RULES
+A. Read the spec, ticket, cited research and relevant later findings, run state and blocker handoffs. Verify code pointers against current code and note drift. Every blocker must be done and merged. Check prerequisites PREREQUISITES and tracked status; otherwise BLOCKED.
+B. First run: record BASE SHA and baseline in the state. Create `B` at that SHA or adopt it only if its recorded SHA matches; otherwise BLOCKED. Later runs never recreate or rebase `B`.
+C. Create `B-NN` from latest `B` in an isolated worktree and delegate it to implementer. Set up ignored inputs INPUTS. Map every acceptance criterion to a change and test seam; test first, implement, run BUILD/TEST, commit `B NN: <title>`. Implementer does not edit shared spec or research records.
+D. Run `/code-review` against BASE with the approved review-standards and review-spec assignments. Delegate fixes to implementer, re-test, and commit review fixes.
+E. If `B` moved, merge it into `B-NN` and re-test. Merger switches the primary worktree to `B` only when clean (otherwise BLOCKED), merges with `--no-ff` as `Merge B NN: <title>`, tests the merge, then restores the prior branch.
+F. Merger alone updates ticket status, handoff, state, frontier, and findings. Include acceptance evidence, implementation/review results, research drift, later-ticket notes, and what NN unblocks. Findings include merge SHA, evidence-backed results, open items, and `Still unclear or open`. On a blocker or turn limit, record status and remaining frontier; do not create findings without a merge SHA.
+G. Merger returns the worktree to its session branch and deletes `B-NN`; verify it is absent. Orchestrator reports the result without repository edits.
+
+Never weaken, skip, or delete tests; baseline failures are not regressions. This ticket only; note later-ticket needs. No push or PR; never modify BASE.
 ```
