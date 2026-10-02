@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.0](https://github.com/apourman/qbs/compare/v0.12.0...v0.13.0) (2026-10-02)
+
+
+### Features
+
+* add whole-spec goal skill ([#50](https://github.com/apourman/qbs/issues/50)) ([6030ca2](https://github.com/apourman/qbs/commit/6030ca2a7c524109c45d4e8005c0d5d94fd57e8f))
+
 ## [0.12.0](https://github.com/apourman/qbs/compare/v0.11.0...v0.12.0) (2026-10-01)
 
 
