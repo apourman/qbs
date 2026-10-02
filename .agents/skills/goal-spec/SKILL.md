@@ -3,7 +3,7 @@ name: goal-spec
 description: Prepare one `/goal` prompt to implement every ticket in a QBS feature spec under `.specs/`, with approved sub-agent model assignments, parallel ready-ticket work, per-ticket handoffs, and research findings. Use when the user wants a complete spec implemented through a goal; this skill prepares the prompt and never implements tickets itself.
 ---
 
-Prepare a single `/goal` command for an entire QBS feature spec. The user runs the generated command in a goal-capable session. This preparation session discovers facts, gathers required choices, and generates the command; it never dispatches agents or implements tickets.
+Prepare a single goal prompt for an entire QBS feature spec. The user starts `/goal` in a goal-capable session, then pastes the generated prompt. Keep the prompt text separate from the `/goal` command. This preparation session discovers facts, gathers required choices, and generates the prompt; it never dispatches agents or implements tickets.
 
 Use the shared [orchestration-gate](../orchestration-gate/SKILL.md) for confidence, model planning, approval, cost status, and evidence vocabulary, and read the shared [goal prompt orchestration contract](../../goal-prompt-orchestration.md). Keep this skill portable: refer to the active environment's available sub-agent dispatch mechanism, and do not name or assume a particular harness.
 
@@ -31,7 +31,7 @@ Ask in one round, only for choices that change the command: which spec if there 
 
 ## Generate
 
-Fill [template.md](template.md) with discovered facts and approved choices. Use absolute paths from the primary worktree, exact build and test commands, the initial frontier, all ticket paths and dependencies, relevant research pointers, branch names, baseline knowledge, prerequisites, test seams, and 2–3 compact project rules. Keep the prompt compact by pointing to canonical spec and ticket files rather than duplicating their contents. Do not run or dispatch the generated goal.
+Fill [template.md](template.md) with discovered facts and approved choices. Use absolute paths from the primary worktree, exact build and test commands, the initial frontier, all ticket paths and dependencies, relevant research pointers, branch names, baseline knowledge, prerequisites, test seams, and 2–3 compact project rules. Keep the prompt compact by pointing to canonical spec and ticket files rather than duplicating their contents. Do not include `/goal` in the generated prompt; the user starts `/goal` and then pastes the prompt. Do not run or dispatch the generated goal.
 
 The generated goal establishes `S/implementation-state.md` as the spec run journal and `S/handoffs/NN.md` as each ticket's handoff. On the first run, record the immutable starting SHA, base and integration branches, baseline results, and initial frontier. Preserve existing run state and spec-level handoffs; do not replace a handoff from another run.
 
@@ -47,4 +47,4 @@ Preserve these execution invariants in the generated command:
 - Never weaken, skip, or delete tests. Record baseline failures and do not claim them as regressions. Keep `.specs/` and `.research/` changes local and uncommitted. Do not push, create a pull request, or modify the base branch.
 - Clean up completed ticket worktrees and branches, preserving `B` and its final revision. The goal is complete only when all tickets are done, each has a handoff and findings note, the final integration checks pass, no `B-NN` ticket branches remain, and a spec-level `implementation-review-handoff.md` records requirement coverage, checks, review findings, final revision, assumptions, confidence, and remaining risks. If the turn limit arrives first, update state and report the exact remaining frontier.
 
-Print the completed `/goal` command in one fenced `text` block. Below it, report the approved role/model assignments and concurrency, identify blocked and ready tickets, state what completion unblocks, and give the command's byte count. If no command is generated, explain why. Do not modify project files or run the generated goal.
+Print only the completed goal prompt in one fenced `text` block, without a leading `/goal`. Tell the user to start `/goal` and then paste the prompt. Below it, report the approved role/model assignments and concurrency, identify blocked and ready tickets, state what completion unblocks, and give the prompt's byte count. If no prompt is generated, explain why. Do not modify project files or run the generated goal.

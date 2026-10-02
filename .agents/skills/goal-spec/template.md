@@ -1,9 +1,9 @@
-# `/goal` command template
+# Goal prompt template
 
 Replace every placeholder with discovered facts and approved choices. Keep the prompt pointer-rich: the canonical spec and tickets contain the source requirements; this prompt supplies execution policy and the approved dispatch plan.
 
 ```text
-/goal Implement every unfinished ticket in SPEC_DIR, integrate the complete change on branch `INTEGRATION_BRANCH`, and finish with a spec-level review handoff. Completion requires every ticket to be done and merged with its acceptance criteria evidenced, every ticket handoff and implementation findings note written, all relevant checks passing, no `INTEGRATION_BRANCH-NN` branches remaining, and `SPEC_DIR/implementation-review-handoff.md` complete. If an unresolved blocker prevents all remaining work, print `BLOCKED: <reason>` after recording the finished work and remaining frontier. Stop after TURN_LIMIT turns; if incomplete then, leave the run state ready to resume.
+Implement every unfinished ticket in SPEC_DIR, integrate the complete change on branch `INTEGRATION_BRANCH`, and finish with a spec-level review handoff. Completion requires every ticket to be done and merged with its acceptance criteria evidenced, every ticket handoff and implementation findings note written, all relevant checks passing, no `INTEGRATION_BRANCH-NN` branches remaining, and `SPEC_DIR/implementation-review-handoff.md` complete. If an unresolved blocker prevents all remaining work, print `BLOCKED: <reason>` after recording the finished work and remaining frontier. Stop after TURN_LIMIT turns; if incomplete then, leave the run state ready to resume.
 
 Primary worktree: PRIMARY. Canonical spec: SPEC_PATH. Tickets and dependencies: TICKET_GRAPH. Run state: STATE_PATH. Ticket handoffs: HANDOFF_DIR/NN.md. Research directory: RESEARCH_DIR. Base branch: BASE_BRANCH at immutable starting SHA START_SHA. Integration branch: INTEGRATION_BRANCH. Build: BUILD_COMMAND. Tests: TEST_COMMANDS. Baseline: BASELINE. Prerequisites and ignored-file setup: PREREQUISITES. Project rules: PROJECT_RULES.
 

@@ -3,7 +3,7 @@ name: goal-ticket
 description: Prepare a bounded `/goal` prompt to implement one ready ticket from a QBS feature spec in `.specs/`, with approved subagent model assignments. Use when the user wants a goal prompt for one ticket; this skill prepares the prompt and never implements the ticket.
 ---
 
-Prepare a `/goal` command for one ticket in a spec. The user will run it in a goal-capable session. Discover facts before asking questions; ask only for choices or facts that cannot be established. Never dispatch agents or implement the ticket in this preparation session.
+Prepare a goal prompt for one ticket in a spec. The user starts `/goal` in a goal-capable session, then pastes the generated prompt. Keep the prompt text separate from the `/goal` command. Discover facts before asking questions; ask only for choices or facts that cannot be established. Never dispatch agents or implement the ticket in this preparation session.
 
 Use the shared [orchestration-gate](../orchestration-gate/SKILL.md) for confidence, model planning, approval, cost status, and evidence vocabulary, and read the shared [goal prompt orchestration contract](../../goal-prompt-orchestration.md). The generated prompt must identify the active goal session as orchestrator and assign models to its worker subagents without naming or assuming a particular harness.
 
@@ -21,7 +21,7 @@ Confirm the integration and base branches, defaulting to the spec run state (or 
 
 ## Generate
 
-Fill [template.md](template.md) with discovered facts and the user's answers. Include absolute paths from the primary worktree, exact build/test commands, relevant research files or sections, blocker handoffs, prerequisites, needed test seams, 2–3 compact project rules, and the approved orchestrator/subagent role split with resolved models and reasoning. Include ignored-file setup and baseline failures from run state/handoffs when available, not from assumptions. Do not assume README alone contains those facts.
+Fill [template.md](template.md) with discovered facts and the user's answers. Include absolute paths from the primary worktree, exact build/test commands, relevant research files or sections, blocker handoffs, prerequisites, needed test seams, 2–3 compact project rules, and the approved orchestrator/subagent role split with resolved models and reasoning. Include ignored-file setup and baseline failures from run state/handoffs when available, not from assumptions. Do not assume README alone contains those facts. Do not include `/goal` in the generated prompt; the user starts `/goal` and then pastes the prompt.
 
 This skill establishes `S/implementation-state.md` and `S/handoffs/NN.md` as its own execution journal. Discover them if present; on the first run, have the goal create the run state and record the starting SHA and baseline. Create the selected ticket's handoff at completion. QBS does not provide these files by default. Preserve any existing spec-level handoff and use it as context rather than replacing it.
 
@@ -34,8 +34,8 @@ Preserve these workflow invariants in every generated command:
 - Map every acceptance criterion to a change and an appropriate test seam before implementation. Test first, run the build and all relevant suites, review with `/code-review`, fix findings, then integrate with `--no-ff` into `B` in the primary worktree. If that checkout is on another branch, switch it to `B` only when clean, otherwise block; restore its branch afterwards.
 - Update ticket status, handoff, run state, and frontier; include what the ticket unblocks. Before the final report, create `.research/<feature>/ticket-NN-implementation-findings.md` with the merge SHA, evidence-backed findings, and a `Still unclear or open` list. Choose the research feature directory by subject, even when the spec path is nested. Clean up by switching the worktree back to its session branch and deleting `B-NN`; done condition checks `git branch --list B-NN` is empty.
 - Never weaken, skip, or delete tests. No push, no PR, and never touch BASE. Do not claim baseline failures as regressions.
-- Keep the completed command at 4,000 bytes or fewer, counting `/goal ` and the final newline. Trim project rules, then parentheticals, then filler. Never remove a done condition, workflow step, research read/update instruction, or `BLOCKED` clause.
+- Keep the completed prompt at 4,000 bytes or fewer, excluding the `/goal` command and any surrounding newline. Trim project rules, then parentheticals, then filler. Never remove a done condition, workflow step, research read/update instruction, or `BLOCKED` clause.
 
-Measure the final command with a byte count. Print it in one fenced `text` block. Below it, report the count; tell the user to paste it into a fresh goal-capable session opened in the primary worktree; list other ready tickets not to run concurrently (they share run state); say what finishing this ticket unblocks; ask them to run this prompt again for the next ticket; and briefly list what's different from the previous prompt, if available.
+Measure the final prompt with a byte count. Print only the prompt in one fenced `text` block, without a leading `/goal`. Below it, report the count; tell the user to start `/goal` in a fresh goal-capable session opened in the primary worktree and then paste the prompt; list other ready tickets not to run concurrently (they share run state); say what finishing this ticket unblocks; ask them to run this prompt again for the next ticket; and briefly list what's different from the previous prompt, if available.
 
-If the chosen ticket is not ready, do not generate a command. Explain its blockers. Do not modify project files or run the generated goal.
+If the chosen ticket is not ready, do not generate a prompt. Explain its blockers. Do not modify project files or run the generated goal.
