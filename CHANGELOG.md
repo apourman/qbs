@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.0](https://github.com/apourman/qbs/compare/v0.13.1...v0.14.0) (2026-10-06)
+
+
+### Features
+
+* bundle ponytail skills and sync shared instructions globally ([#55](https://github.com/apourman/qbs/issues/55)) ([7cee67e](https://github.com/apourman/qbs/commit/7cee67ed35d13ce1d20667cc4332e1680ea7e32a))
+
 ## [0.13.1](https://github.com/apourman/qbs/compare/v0.13.0...v0.13.1) (2026-10-02)
 
 
