@@ -1,0 +1,5 @@
+interface:
+  display_name: "Ponytail Review"
+  short_description: "Review a diff for over-engineering"
+policy:
+  allow_implicit_invocation: true

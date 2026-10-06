@@ -91,8 +91,9 @@ Set `QBS_UPDATE_BRANCH=master` when the checkout uses `master` instead of
 
 ## Project initialization
 
-Initialize the current repository with local instructions, specifications,
-research storage, and shared Git excludes:
+Initialize the current repository with specifications, research storage,
+engineering guidance, and shared Git excludes. Shared agent instructions are
+installed globally by `qbs sync`, not per repository:
 
 ```text
 qbs init

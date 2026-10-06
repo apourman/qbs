@@ -23,7 +23,14 @@ func syncAll(input io.Reader, stdout io.Writer) error {
 	if err != nil {
 		return err
 	}
-	_, err = fmt.Fprintf(stdout, "Synchronized %d skill copy/copies (%d skipped) and %d agent(s) globally\n", skillCopies, skippedCopies, agentCount)
+	instructions, err := syncGlobalInstructions()
+	if err != nil {
+		return err
+	}
+	if _, err := fmt.Fprintf(stdout, "Synchronized %d skill copy/copies (%d skipped) and %d agent(s) globally\n", skillCopies, skippedCopies, agentCount); err != nil {
+		return err
+	}
+	_, err = fmt.Fprintf(stdout, "Synchronized shared instructions: %s\n", strings.Join(instructions, ", "))
 	return err
 }
 

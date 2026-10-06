@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"os"
@@ -13,8 +12,6 @@ import (
 	"github.com/trues/qbs/internal/templates"
 )
 
-const managedInstructionMarker = "<!-- qbs-managed-instruction: v2 -->"
-
 var projectSkillDirectories = []string{
 	".agents/skills",
 	".claude/skills",
@@ -22,8 +19,6 @@ var projectSkillDirectories = []string{
 }
 
 var excludedPaths = []string{
-	"AGENTS.md",
-	"CLAUDE.md",
 	"context.md",
 	".agents/skills/",
 	".claude/agents/",
@@ -37,8 +32,6 @@ var excludedPaths = []string{
 }
 
 var provisionedPathspecs = []string{
-	"AGENTS.md",
-	"CLAUDE.md",
 	".agents/skills",
 	".claude/agents",
 	".claude/skills",
@@ -61,6 +54,9 @@ func provisionRepositoryWithLabel(dir, label string, stdout, stderr io.Writer) e
 	}
 	if err := prepareProvisioning(repo, repo.Root); err != nil {
 		return fmt.Errorf("cannot provision local AI workspace: %w", err)
+	}
+	if err := removeLegacyInstructions(repo, stderr); err != nil {
+		return fmt.Errorf("remove per-repository QBS instructions: %w", err)
 	}
 	if err := provisionWorkspace(repo.Root, stderr); err != nil {
 		return fmt.Errorf("initialize local AI workspace after Git excludes were configured: %w; existing exclude changes and any files already provisioned remain", err)
@@ -87,9 +83,6 @@ func prepareProvisioning(repo git.Repository, target string) error {
 }
 
 func provisionWorkspace(root string, stderr io.Writer) error {
-	if err := provisionInstructions(root, stderr); err != nil {
-		return err
-	}
 	if err := provisionEngineeringConfig(root, stderr); err != nil {
 		return err
 	}
@@ -190,77 +183,10 @@ func updateExcludeFile(path string) error {
 	return os.WriteFile(path, []byte(content), 0o644)
 }
 
-func provisionInstructions(root string, stderr io.Writer) error {
-	for _, name := range []string{"AGENTS.md", "CLAUDE.md"} {
-		data, err := templates.Read(name)
-		if err != nil {
-			return err
-		}
-		if err := writeInstruction(filepath.Join(root, name), data, stderr); err != nil {
-			return fmt.Errorf("provision %s: %w", name, err)
-		}
-	}
-	return nil
-}
-
-// writeInstruction updates an unchanged instruction file produced by an older
-// QBS version, while preserving files that a user has customized. Current
-// templates carry a version marker so future migrations can identify their
-// ownership without treating an edited file as disposable.
-func writeInstruction(path string, data []byte, stderr io.Writer) error {
-	existing, err := os.ReadFile(path)
-	if err == nil {
-		if bytes.Equal(existing, data) {
-			return nil
-		}
-		if isLegacyInstruction(path, existing) {
-			return os.WriteFile(path, data, 0o644)
-		}
-		_, _ = fmt.Fprintf(stderr, "warning: preserving existing local file %s\n", path)
-		return nil
-	}
-	if !os.IsNotExist(err) {
-		return err
-	}
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-		return err
-	}
-	return os.WriteFile(path, data, 0o644)
-}
-
-func isMarkedInstruction(data []byte) bool {
-	return bytes.HasPrefix(data, []byte(managedInstructionMarker+"\n"))
-}
-
-func isLegacyInstruction(path string, data []byte) bool {
-	// A marked file may be an older QBS version or a user-customized QBS file.
-	// Preserve it unless a future migration explicitly adds its exact bytes to
-	// the legacy templates.
-	if isMarkedInstruction(data) {
-		return false
-	}
-	name := filepath.Base(path)
-	if name != "AGENTS.md" && name != "CLAUDE.md" {
-		return false
-	}
-	legacyName := map[string]string{
-		"AGENTS.md": "legacy/qbs-agents-v1.md",
-		"CLAUDE.md": "legacy/qbs-claude-v1.md",
-	}[name]
-	legacy, err := templates.Read(legacyName)
-	return err == nil && bytes.Equal(data, legacy)
-}
-
 // validateProvisioningTargets checks every path that provisioning may need
-// before any exclude or file changes are made. Existing instruction files are
-// preserved. Harness-native agent and skill directories are not provisioning
-// targets.
+// before any exclude or file changes are made. Harness-native agent and skill
+// directories are not provisioning targets.
 func validateProvisioningTargets(root string) error {
-	for _, name := range []string{"AGENTS.md", "CLAUDE.md"} {
-		if err := validateFileTarget(filepath.Join(root, name)); err != nil {
-			return err
-		}
-	}
 	if err := validateDirectoryTarget(filepath.Join(root, ".research")); err != nil {
 		return err
 	}

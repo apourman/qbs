@@ -7,14 +7,11 @@ import (
 )
 
 func TestReadReturnsEmbeddedCanonicalTemplate(t *testing.T) {
-	data, err := templates.Read("AGENTS.md")
+	data, err := templates.Read("instructions.md")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(data) == 0 {
-		t.Fatal("embedded template is empty")
-	}
-	if string(data) == "" || !contains(string(data), "CLAUDE.md") {
+	if !contains(string(data), "`ponytail` skill") {
 		t.Errorf("unexpected template: %q", data)
 	}
 }

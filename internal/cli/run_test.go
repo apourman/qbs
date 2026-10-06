@@ -118,6 +118,7 @@ func TestRunSyncPreservesImportedSameNameSkill(t *testing.T) {
 	root := t.TempDir()
 	t.Setenv("HOME", root)
 	t.Setenv("USERPROFILE", root)
+	t.Setenv("CODEX_HOME", "")
 	t.Setenv("QBS_HOME", filepath.Join(root, "qbs-home"))
 	target := filepath.Join(root, "managed-skills")
 	t.Setenv("QBS_SKILL_TARGETS", target)
@@ -153,6 +154,7 @@ func TestRunSyncCountsSkippedSkillsAndInstallsGlobalAgents(t *testing.T) {
 	root := t.TempDir()
 	t.Setenv("HOME", root)
 	t.Setenv("USERPROFILE", root)
+	t.Setenv("CODEX_HOME", "")
 	t.Setenv("QBS_HOME", filepath.Join(root, "qbs-home"))
 	source := filepath.Join(root, "source", "review")
 	if err := os.MkdirAll(source, 0o755); err != nil {

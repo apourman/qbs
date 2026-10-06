@@ -101,7 +101,7 @@ skill. The original source directory is not changed.
 | Command | What it does |
 | --- | --- |
 | `qbs init` | Prepare the current Git repository for local AI work. |
-| `qbs sync` | Refresh skills shipped with this release, sync cataloged skills, and install generated agents globally. |
+| `qbs sync` | Refresh skills shipped with this release, sync cataloged skills, and install generated agents and shared instructions globally. |
 | `qbs skills import <path>` | Add a skill or collection to the catalog and sync it. |
 | `qbs skills list` | Show the catalog and configured global targets. |
 | `qbs skills sync` | Refresh release skills and re-sync every cataloged skill. |
@@ -120,10 +120,16 @@ Initialization is deliberately small:
 your-repository/
 ├── docs/agents/       # local engineering guidance
 ├── .research/         # local research notes
-├── .specs/            # local specifications and tickets
-├── AGENTS.md          # shared agent instructions
-└── CLAUDE.md          # Claude-specific entry point
+└── .specs/            # local specifications and tickets
 ```
+
+Shared agent instructions are global, not per repository. `qbs sync` writes
+them to `~/.claude/rules/qbs.md` for Claude and to a marked QBS block in
+`~/.codex/AGENTS.md` (or `$CODEX_HOME/AGENTS.md`) and
+`~/.config/opencode/AGENTS.md`, leaving the rest of those files untouched. A
+repository's own `AGENTS.md` and `CLAUDE.md` are left to its owners; `qbs init`
+removes only unedited copies that older QBS versions generated, along with
+their Git excludes.
 
 Curated skills remain global. QBS does not create or modify project-local
 harness skill directories during initialization.

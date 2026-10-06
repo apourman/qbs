@@ -40,8 +40,6 @@ func TestInitProvisionsIgnoredAIWorkspaceIdempotently(t *testing.T) {
 	}
 
 	wants := []string{
-		"AGENTS.md",
-		"CLAUDE.md",
 		".research",
 		".specs",
 		filepath.Join("docs", "agents", "domain.md"),
@@ -59,6 +57,11 @@ func TestInitProvisionsIgnoredAIWorkspaceIdempotently(t *testing.T) {
 	}
 	if status := runGit(t, repo, "status", "--short"); status != "" {
 		t.Fatalf("initialized repository has Git changes: %q", status)
+	}
+	for _, name := range []string{"AGENTS.md", "CLAUDE.md"} {
+		if _, err := os.Stat(filepath.Join(repo, name)); !os.IsNotExist(err) {
+			t.Errorf("init created per-repository %s: %v", name, err)
+		}
 	}
 	for _, name := range []string{".agents/skills", ".claude/skills", ".opencode/skills"} {
 		if _, err := os.Stat(filepath.Join(repo, name)); !os.IsNotExist(err) {
@@ -146,7 +149,12 @@ func TestInitProvisionsIgnoredAIWorkspaceIdempotently(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, entry := range []string{"AGENTS.md", "CLAUDE.md", "context.md", ".agents/skills/", ".claude/agents/", ".claude/skills/", ".codex/agents/", ".opencode/agents/", ".opencode/skills/", ".research/", ".specs/", "docs/agents/"} {
+	for _, line := range strings.Split(string(excludeData), "\n") {
+		if line == "AGENTS.md" || line == "CLAUDE.md" {
+			t.Errorf("init excluded %s", line)
+		}
+	}
+	for _, entry := range []string{"context.md", ".agents/skills/", ".claude/agents/", ".claude/skills/", ".codex/agents/", ".opencode/agents/", ".opencode/skills/", ".research/", ".specs/", "docs/agents/"} {
 		if count := strings.Count(string(excludeData), entry); count != 1 {
 			t.Errorf("exclude entry %q occurs %d times", entry, count)
 		}
@@ -468,69 +476,85 @@ func TestInitProvisionsLocalTriageGuidanceFromGlobalSkillLocations(t *testing.T)
 	}
 }
 
-func TestInitUpgradesLegacyInstructionsAndPreservesCustomizedFiles(t *testing.T) {
-	repo := t.TempDir()
-	runGit(t, repo, "init", "-q")
-	legacyAgents, err := templates.Read("legacy/qbs-agents-v1.md")
-	if err != nil {
-		t.Fatal(err)
-	}
-	legacyClaude, err := templates.Read("legacy/qbs-claude-v1.md")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(repo, "AGENTS.md"), legacyAgents, 0o644); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(repo, "CLAUDE.md"), legacyClaude, 0o644); err != nil {
-		t.Fatal(err)
-	}
-	if err := runInDirectory(repo, []string{"init"}, &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
-		t.Fatal(err)
-	}
-	for _, name := range []string{"AGENTS.md", "CLAUDE.md"} {
-		data, err := os.ReadFile(filepath.Join(repo, name))
+func TestInitRemovesUnchangedLegacyInstructionsAndTheirExcludes(t *testing.T) {
+	for _, legacy := range []map[string]string{
+		{"AGENTS.md": "legacy/qbs-agents-v1.md", "CLAUDE.md": "legacy/qbs-claude-v1.md"},
+		{"AGENTS.md": "legacy/qbs-agents-v2.md", "CLAUDE.md": "legacy/qbs-claude-v2.md"},
+	} {
+		repo := t.TempDir()
+		runGit(t, repo, "init", "-q")
+		exclude := filepath.Join(repo, ".git", "info", "exclude")
+		if err := os.WriteFile(exclude, []byte("# user rule\nAGENTS.md\nCLAUDE.md\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		for name, template := range legacy {
+			data, err := templates.Read(template)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(filepath.Join(repo, name), data, 0o644); err != nil {
+				t.Fatal(err)
+			}
+		}
+		if err := runInDirectory(repo, []string{"init"}, &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
+			t.Fatal(err)
+		}
+		for name, template := range legacy {
+			if _, err := os.Stat(filepath.Join(repo, name)); !os.IsNotExist(err) {
+				t.Errorf("unchanged %s from %s was not removed: %v", name, template, err)
+			}
+		}
+		data, err := os.ReadFile(exclude)
 		if err != nil {
 			t.Fatal(err)
 		}
-		if !strings.Contains(string(data), "qbs-managed-instruction: v2") {
-			t.Errorf("%s was not marked as current QBS instruction", name)
+		if !strings.HasPrefix(string(data), "# user rule\n") || strings.Contains(string(data), "AGENTS.md") || strings.Contains(string(data), "CLAUDE.md") {
+			t.Errorf("exclude was not cleaned: %q", data)
 		}
 	}
-	agentsData, err := os.ReadFile(filepath.Join(repo, "AGENTS.md"))
+}
+
+func TestInitPreservesEditedAndTrackedInstructions(t *testing.T) {
+	repo := t.TempDir()
+	runGit(t, repo, "init", "-q")
+	runGit(t, repo, "config", "user.email", "qbs-tests@example.invalid")
+	runGit(t, repo, "config", "user.name", "QBS Tests")
+	tracked, err := templates.Read("legacy/qbs-agents-v2.md")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(agentsData), "read and\nfollow that file") {
-		t.Errorf("AGENTS.md does not point to CLAUDE.md: %q", agentsData)
-	}
-	claudeData, err := os.ReadFile(filepath.Join(repo, "CLAUDE.md"))
-	if err != nil {
+	if err := os.WriteFile(filepath.Join(repo, "AGENTS.md"), tracked, 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(claudeData), "## Agent skills") {
-		t.Errorf("CLAUDE.md is missing shared project instructions")
+	runGit(t, repo, "add", "AGENTS.md")
+	runGit(t, repo, "commit", "-qm", "track agent instructions")
+	edited := []byte("<!-- qbs-managed-instruction: v2 -->\n\nMy edits.\n")
+	if err := os.WriteFile(filepath.Join(repo, "CLAUDE.md"), edited, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	exclude := filepath.Join(repo, ".git", "info", "exclude")
+	if err := os.WriteFile(exclude, []byte("CLAUDE.md\n"), 0o644); err != nil {
+		t.Fatal(err)
 	}
 
-	customAgents := []byte("# User-managed instructions\n\nKeep this exact text.\n")
-	customClaude := []byte("# User-managed Claude instructions\n")
-	if err := os.WriteFile(filepath.Join(repo, "AGENTS.md"), customAgents, 0o644); err != nil {
+	var stderr bytes.Buffer
+	if err := runInDirectory(repo, []string{"init"}, &bytes.Buffer{}, &stderr); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(repo, "CLAUDE.md"), customClaude, 0o644); err != nil {
-		t.Fatal(err)
-	}
-	if err := runInDirectory(repo, []string{"init"}, &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
-		t.Fatal(err)
-	}
-	for name, want := range map[string][]byte{"AGENTS.md": customAgents, "CLAUDE.md": customClaude} {
+	for name, want := range map[string][]byte{"AGENTS.md": tracked, "CLAUDE.md": edited} {
 		data, err := os.ReadFile(filepath.Join(repo, name))
 		if err != nil {
 			t.Fatal(err)
 		}
 		if !bytes.Equal(data, want) {
-			t.Errorf("custom %s was overwritten: %q", name, data)
+			t.Errorf("%s was changed: %q", name, data)
 		}
+	}
+	if !strings.Contains(stderr.String(), "preserving edited QBS file") {
+		t.Errorf("no warning for edited CLAUDE.md: %q", stderr.String())
+	}
+	if out := runGit(t, repo, "check-ignore", "--", "CLAUDE.md"); strings.TrimSpace(out) == "" {
+		t.Error("exclude for preserved CLAUDE.md was removed")
 	}
 }
 
@@ -566,13 +590,13 @@ func TestInitPreflightsFilesystemConflictsBeforeChangingExcludes(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := os.Mkdir(filepath.Join(repo, "AGENTS.md"), 0o755); err != nil {
+	if err := os.WriteFile(filepath.Join(repo, ".research"), nil, 0o644); err != nil {
 		t.Fatal(err)
 	}
 
 	var out, errOut bytes.Buffer
 	err = runInDirectory(repo, []string{"init"}, &out, &errOut)
-	if err == nil || !strings.Contains(err.Error(), "not a regular file, but a file is required") {
+	if err == nil || !strings.Contains(err.Error(), "not a directory, but a directory is required") {
 		t.Fatalf("conflict error = %v", err)
 	}
 	after, err := os.ReadFile(exclude)
@@ -589,11 +613,14 @@ func TestInitRejectsTrackedAIFileBeforeChangingExcludes(t *testing.T) {
 	runGit(t, repo, "init", "-q")
 	runGit(t, repo, "config", "user.email", "qbs-tests@example.invalid")
 	runGit(t, repo, "config", "user.name", "QBS Tests")
-	if err := os.WriteFile(filepath.Join(repo, "AGENTS.md"), []byte("tracked instructions\n"), 0o644); err != nil {
+	if err := os.MkdirAll(filepath.Join(repo, ".specs"), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	runGit(t, repo, "add", "AGENTS.md")
-	runGit(t, repo, "commit", "-qm", "track agent instructions")
+	if err := os.WriteFile(filepath.Join(repo, ".specs", "spec.md"), []byte("tracked spec\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	runGit(t, repo, "add", ".specs/spec.md")
+	runGit(t, repo, "commit", "-qm", "track spec")
 	exclude := filepath.Join(repo, ".git", "info", "exclude")
 	before, err := os.ReadFile(exclude)
 	if err != nil {
@@ -601,7 +628,7 @@ func TestInitRejectsTrackedAIFileBeforeChangingExcludes(t *testing.T) {
 	}
 
 	err = runInDirectory(repo, []string{"init"}, &bytes.Buffer{}, &bytes.Buffer{})
-	if err == nil || !strings.Contains(err.Error(), "tracked") || !strings.Contains(err.Error(), "AGENTS.md") {
+	if err == nil || !strings.Contains(err.Error(), "tracked") || !strings.Contains(err.Error(), ".specs/spec.md") {
 		t.Fatalf("error = %v", err)
 	}
 	after, err := os.ReadFile(exclude)
