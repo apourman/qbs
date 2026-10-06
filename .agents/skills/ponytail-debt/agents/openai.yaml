@@ -1,0 +1,5 @@
+interface:
+  display_name: "Ponytail Debt"
+  short_description: "List deliberate ponytail shortcuts"
+policy:
+  allow_implicit_invocation: true

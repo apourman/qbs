@@ -1,0 +1,5 @@
+interface:
+  display_name: "Ponytail"
+  short_description: "Build the simplest solution that works"
+policy:
+  allow_implicit_invocation: true

@@ -5,9 +5,11 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/trues/qbs/internal/cli"
+	"github.com/trues/qbs/internal/templates"
 )
 
 func TestSyncInstallsSkillsShippedWithThisRelease(t *testing.T) {
@@ -23,6 +25,7 @@ func TestSyncInstallsSkillsShippedWithThisRelease(t *testing.T) {
 	root := t.TempDir()
 	t.Setenv("HOME", root)
 	t.Setenv("USERPROFILE", root)
+	t.Setenv("CODEX_HOME", "")
 	catalog := filepath.Join(root, ".qbs")
 	codexSkills := filepath.Join(root, "codex", "skills")
 	claudeSkills := filepath.Join(root, "claude", "skills")
@@ -56,6 +59,53 @@ func TestSyncInstallsSkillsShippedWithThisRelease(t *testing.T) {
 	}
 	for _, destination := range destinations {
 		assertDirectoryFilesMatch(t, source, destination)
+	}
+}
+
+func TestSyncInstallsSharedInstructionsGlobally(t *testing.T) {
+	root := t.TempDir()
+	t.Setenv("HOME", root)
+	t.Setenv("USERPROFILE", root)
+	t.Setenv("QBS_HOME", filepath.Join(root, ".qbs"))
+	t.Setenv("QBS_SKILL_TARGETS", filepath.Join(root, "skills"))
+	codexHome := filepath.Join(root, "codex-home")
+	t.Setenv("CODEX_HOME", codexHome)
+	instructions, err := templates.Read("instructions.md")
+	if err != nil {
+		t.Fatal(err)
+	}
+	block := "<!-- qbs:begin -->\n" + string(instructions) + "<!-- qbs:end -->\n"
+
+	codex := filepath.Join(codexHome, "AGENTS.md")
+	if err := os.MkdirAll(codexHome, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(codex, []byte("My rules.\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := cli.Run([]string{"sync"}, &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
+		t.Fatal(err)
+	}
+	stale := strings.Replace(block, "ponytail", "stale", 1)
+	if err := os.WriteFile(codex, []byte("My rules.\n\n"+stale+"More rules.\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := cli.Run([]string{"sync"}, &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
+		t.Fatal(err)
+	}
+
+	for path, want := range map[string]string{
+		filepath.Join(root, ".claude", "rules", "qbs.md"): string(instructions),
+		codex: "My rules.\n\n" + block + "More rules.\n",
+		filepath.Join(root, ".config", "opencode", "AGENTS.md"): block,
+	} {
+		data, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if string(data) != want {
+			t.Errorf("%s = %q, want %q", path, data, want)
+		}
 	}
 }
 
