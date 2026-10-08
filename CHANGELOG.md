@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.1](https://github.com/apourman/qbs/compare/v0.14.0...v0.14.1) (2026-10-08)
+
+
+### Bug Fixes
+
+* treat .specs and .research as shared primary-checkout context ([#57](https://github.com/apourman/qbs/issues/57)) ([11fc34a](https://github.com/apourman/qbs/commit/11fc34a3bb555eb24a938b244ce2353babdca4b8))
+
 ## [0.14.0](https://github.com/apourman/qbs/compare/v0.13.1...v0.14.0) (2026-10-06)
 
 
