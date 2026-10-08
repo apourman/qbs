@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.0](https://github.com/apourman/qbs/compare/v0.14.1...v0.15.0) (2026-10-08)
+
+
+### Features
+
+* add .artifacts/ as shared local context ([#59](https://github.com/apourman/qbs/issues/59)) ([97fc966](https://github.com/apourman/qbs/commit/97fc96677a3eddfe4b9a7c0d3a4cb0aa9cf24fb1))
+
 ## [0.14.1](https://github.com/apourman/qbs/compare/v0.14.0...v0.14.1) (2026-10-08)
 
 
