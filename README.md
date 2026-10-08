@@ -119,6 +119,7 @@ Initialization is deliberately small:
 ```text
 your-repository/
 ├── docs/agents/       # local engineering guidance
+├── .artifacts/        # local HTML pages
 ├── .research/         # local research notes
 └── .specs/            # local specifications and tickets
 ```

@@ -16,8 +16,8 @@ that can reliably handle the work, subject to the user's model constraints.
 When Firstmate or another orchestrator supplies an isolated workspace, it owns
 branch, worktree, PR, and merge lifecycle; agents work within that workspace.
 
-`.specs/` and `.research/` are shared, Git-ignored context that lives in the
-primary checkout. From a linked worktree, read and write the primary checkout's
+`.specs/`, `.research/`, and `.artifacts/` are shared, Git-ignored context that
+lives in the primary checkout. From a linked worktree, read and write the primary checkout's
 copies, not the worktree's, and never commit them.
 
 ## Ponytail
@@ -35,9 +35,13 @@ name:
 - Research notes go in `.research/<domain-or-feature>/<research-slug>.md`.
 - Specs go in `.specs/<domain-or-feature>/spec.md`, with exactly one spec per directory.
 - Tickets created for a spec go in `.specs/<domain-or-feature>/tickets/<NN>-<ticket-slug>.md`.
+- Visual pages (HTML artifacts) go in `.artifacts/<domain-or-feature>/<slug>.html`,
+  listed in `.artifacts/index.md` with one line per page: title, path, and what
+  it is the source of truth for. Keep them as HTML and edit them in place; the
+  local file stays authoritative even when a copy is published elsewhere.
 
-Use the same domain-or-feature directory across related research, the spec, and
-its tickets. When creating any of these artifacts, create the directory if it
+Use the same domain-or-feature directory across related research, the spec, its
+tickets, and its artifacts. When creating any of these artifacts, create the directory if it
 does not exist and report the path. Existing files outside this layout are
 legacy context; do not move them unless asked.
 
