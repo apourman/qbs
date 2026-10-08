@@ -382,7 +382,7 @@ func TestInitKeepsLocalContextWorktreeLocalAndUsesSharedExcludes(t *testing.T) {
 		filepath.Join(linked, ".specs", "main-only.md"),
 	} {
 		if _, err := os.Stat(path); !os.IsNotExist(err) {
-			t.Errorf("worktree-local context leaked into linked worktree %s: %v", path, err)
+			t.Errorf("main-checkout context copied into linked worktree %s: %v", path, err)
 		}
 	}
 	exclude := filepath.Join(repo, ".git", "info", "exclude")

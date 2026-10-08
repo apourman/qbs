@@ -16,7 +16,9 @@ that can reliably handle the work, subject to the user's model constraints.
 When Firstmate or another orchestrator supplies an isolated workspace, it owns
 branch, worktree, PR, and merge lifecycle; agents work within that workspace.
 
-Treat `.specs/` and `.research/` as worktree-local context.
+`.specs/` and `.research/` are shared, Git-ignored context that lives in the
+primary checkout. From a linked worktree, read and write the primary checkout's
+copies, not the worktree's, and never commit them.
 
 ## Ponytail
 
