@@ -107,9 +107,9 @@ limitation and enforce the selected level through the dispatch choices.
    exist before any role receives a repository worktree.
 
    Resolve the canonical spec and every ticket to absolute paths in the shared
-   checkout before dispatch. `.specs/` is intentionally worktree-local and
-   ignored by Git, so implementation worktrees may contain an empty `.specs/`
-   directory rather than the canonical files. Include the absolute canonical
+   checkout before dispatch. `.specs/` is shared context that lives in the
+   primary checkout and is ignored by Git, so implementation worktrees may
+   contain an empty `.specs/` directory rather than the canonical files. Include the absolute canonical
    spec path and the absolute paths for the assigned ticket(s) in every agent
    handoff. Tell agents to read those files from the shared checkout as
    authoritative, read-only context, and to make changes only in their
