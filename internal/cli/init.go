@@ -26,10 +26,14 @@ var excludedPaths = []string{
 	".codex/agents/",
 	".opencode/agents/",
 	".opencode/skills/",
+	".artifacts/",
 	".research/",
 	".specs/",
 	"docs/agents/",
 }
+
+// contextDirectories hold shared, Git-ignored project knowledge.
+var contextDirectories = []string{".artifacts", ".research", ".specs"}
 
 var provisionedPathspecs = []string{
 	".agents/skills",
@@ -38,6 +42,7 @@ var provisionedPathspecs = []string{
 	".codex/agents",
 	".opencode/agents",
 	".opencode/skills",
+	".artifacts",
 	".research",
 	".specs",
 	"docs/agents",
@@ -86,11 +91,10 @@ func provisionWorkspace(root string, stderr io.Writer) error {
 	if err := provisionEngineeringConfig(root, stderr); err != nil {
 		return err
 	}
-	if err := os.MkdirAll(filepath.Join(root, ".research"), 0o755); err != nil {
-		return fmt.Errorf("create .research: %w", err)
-	}
-	if err := os.MkdirAll(filepath.Join(root, ".specs"), 0o755); err != nil {
-		return fmt.Errorf("create .specs: %w", err)
+	for _, name := range contextDirectories {
+		if err := os.MkdirAll(filepath.Join(root, name), 0o755); err != nil {
+			return fmt.Errorf("create %s: %w", name, err)
+		}
 	}
 	return nil
 }
@@ -187,11 +191,10 @@ func updateExcludeFile(path string) error {
 // before any exclude or file changes are made. Harness-native agent and skill
 // directories are not provisioning targets.
 func validateProvisioningTargets(root string) error {
-	if err := validateDirectoryTarget(filepath.Join(root, ".research")); err != nil {
-		return err
-	}
-	if err := validateDirectoryTarget(filepath.Join(root, ".specs")); err != nil {
-		return err
+	for _, name := range contextDirectories {
+		if err := validateDirectoryTarget(filepath.Join(root, name)); err != nil {
+			return err
+		}
 	}
 	if err := validateDirectoryTarget(filepath.Join(root, "docs", "agents")); err != nil {
 		return err

@@ -99,8 +99,8 @@ installed globally by `qbs sync`, not per repository:
 qbs init
 ```
 
-Initialization creates `.research/` for local research and `.specs/` for local
-specifications. It does not create or modify harness-native agent or skill
+Initialization creates `.research/` for local research, `.specs/` for local
+specifications, and `.artifacts/` for local HTML pages. It does not create or modify harness-native agent or skill
 directories in the project. Curated skills are managed only through the global
 skill catalog and global harness targets described below. The repository-root
 `context.md` file is also added to the repository-local Git common exclude, so
