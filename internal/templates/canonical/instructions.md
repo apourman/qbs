@@ -36,9 +36,22 @@ name:
 - Specs go in `.specs/<domain-or-feature>/spec.md`, with exactly one spec per directory.
 - Tickets created for a spec go in `.specs/<domain-or-feature>/tickets/<NN>-<ticket-slug>.md`.
 - Visual pages (HTML artifacts) go in `.artifacts/<domain-or-feature>/<slug>.html`,
-  listed in `.artifacts/index.md` with one line per page: title, path, and what
-  it is the source of truth for. Keep them as HTML and edit them in place; the
-  local file stays authoritative even when a copy is published elsewhere.
+  listed in `.artifacts/index.md` with one line per page: title, path, what it
+  is the source of truth for, and, when published, its URL, owning account and
+  current version. Keep them as HTML and edit them in place. Show the version
+  in the page header too.
+- A published artifact and its local file stay identical. Edit the local file,
+  then publish that same file to the artifact's existing URL. Never publish
+  edits that are not in the local file, and never create a second URL for the
+  same page.
+- Before editing a published artifact, read the live version and compare it
+  with the local file, ignoring the hosting wrapper the service adds before
+  the page. Keep the newer one; if the live copy is newer, save it locally
+  first. If a published artifact has no local copy, save one and add its index
+  line.
+- If the current account or runner cannot read or publish an artifact, still
+  update the local file and its index version, and tell the user it needs
+  republishing from the owning account.
 
 Use the same domain-or-feature directory across related research, the spec, its
 tickets, and its artifacts. When creating any of these artifacts, create the directory if it
