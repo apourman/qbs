@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.16.0](https://github.com/apourman/qbs/compare/v0.15.0...v0.16.0) (2026-10-10)
+
+
+### Features
+
+* keep published artifacts mirrored in .artifacts/ ([#61](https://github.com/apourman/qbs/issues/61)) ([e4abbb5](https://github.com/apourman/qbs/commit/e4abbb5c16640135ac46fdbb598374b739ecd105))
+
 ## [0.15.0](https://github.com/apourman/qbs/compare/v0.14.1...v0.15.0) (2026-10-08)
 
 
