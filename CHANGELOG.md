@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.0](https://github.com/apourman/qbs/compare/v0.16.0...v0.17.0) (2026-10-20)
+
+
+### Features
+
+* write goal plans to spec files and paste a short pointer prompt ([#63](https://github.com/apourman/qbs/issues/63)) ([c8caf69](https://github.com/apourman/qbs/commit/c8caf69bfab12b44b89cff48f6efc338cac29181))
+
 ## [0.16.0](https://github.com/apourman/qbs/compare/v0.15.0...v0.16.0) (2026-10-10)
 
 
