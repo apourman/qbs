@@ -55,11 +55,25 @@ offer to create it from `origin/<default>` and push it.
 
    ```bash
    gh pr checks <number> --watch
-   gh pr merge <number> --squash --subject "<title> (#<number>)"
+   gh pr merge <number> --squash --delete-branch --subject "<title> (#<number>)"
    ```
 
 4. Report the features now waiting on staging:
    `git log --oneline --no-merges origin/<default>..origin/<staging>`.
+5. Clean up. Candidates are the feature branch's worktree and the ticket
+   worktrees whose branches are merged into the feature branch
+   (`git branch --merged <feature>`). A squash merge hides the feature branch
+   from `git branch -d`, so a candidate qualifies only when all hold:
+   - `gh pr view <number> --json state,headRefOid` shows `MERGED`, and the
+     feature branch tip equals `headRefOid`.
+   - `git -C <worktree> status --porcelain` is empty.
+   - The worktree was created for this feature; other sessions' and tools'
+     worktrees stay.
+
+   List the qualifying worktrees and branches, ask once, then run
+   `git worktree remove <path>` and `git branch -D <branch>` for each. The
+   worktree this session runs in stays: tell the user to archive the session
+   so its host removes it.
 
 ## Promote
 
