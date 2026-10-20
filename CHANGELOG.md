@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.18.0](https://github.com/apourman/qbs/compare/v0.17.0...v0.18.0) (2026-10-20)
+
+
+### Features
+
+* replace ship-current-changes with ship-staged ([#65](https://github.com/apourman/qbs/issues/65)) ([68d433c](https://github.com/apourman/qbs/commit/68d433c1bc9e91121653bc5978ecaf01022ea678))
+
 ## [0.17.0](https://github.com/apourman/qbs/compare/v0.16.0...v0.17.0) (2026-10-20)
 
 
