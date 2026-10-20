@@ -1,8 +1,16 @@
-# Goal prompt template
+# Goal plan and prompt templates
 
-Replace every placeholder with discovered facts and approved choices. Keep the prompt pointer-rich: the canonical spec and tickets contain the source requirements; this prompt supplies execution policy and the approved dispatch plan.
+Replace every placeholder with discovered facts and approved choices. The canonical spec and tickets contain the source requirements; the plan supplies execution policy and the approved dispatch plan; the prompt only points to the plan.
 
-```text
+## Plan
+
+Write to `SPEC_DIR/goal-plan.md` (PLAN_PATH).
+
+```markdown
+# FEATURE goal plan
+
+Full run instructions for the /goal. The pasted goal prompt points here; follow this file exactly.
+
 Implement every unfinished ticket in SPEC_DIR, integrate the complete change on branch `INTEGRATION_BRANCH`, and finish with a spec-level review handoff. Completion requires every ticket to be done and merged with its acceptance criteria evidenced, every ticket handoff and implementation findings note written, all relevant checks passing, no `INTEGRATION_BRANCH-NN` branches remaining, and `SPEC_DIR/implementation-review-handoff.md` complete. If an unresolved blocker prevents all remaining work, print `BLOCKED: <reason>` after recording the finished work and remaining frontier. Stop after TURN_LIMIT turns; if incomplete then, leave the run state ready to resume.
 
 Primary worktree: PRIMARY. Canonical spec: SPEC_PATH. Tickets and dependencies: TICKET_GRAPH. Run state: STATE_PATH. Ticket handoffs: HANDOFF_DIR/NN.md. Research directory: RESEARCH_DIR. Base branch: BASE_BRANCH at immutable starting SHA START_SHA. Integration branch: INTEGRATION_BRANCH. Build: BUILD_COMMAND. Tests: TEST_COMMANDS. Baseline: BASELINE. Prerequisites and ignored-file setup: PREREQUISITES. Project rules: PROJECT_RULES.
@@ -21,4 +29,18 @@ H. Run selected optional final red-team review only with its approved assignment
 I. Have the approved merger/recorder clean completed ticket worktrees and delete their `INTEGRATION_BRANCH-NN` branches; confirm `git branch --list INTEGRATION_BRANCH-NN` is empty. Preserve incomplete ticket branches only when STATE_PATH records how to resume them. Retain INTEGRATION_BRANCH. Never weaken, skip, or delete tests; baseline failures are not regressions. Keep .specs/.research updates local and uncommitted. Do not push, create a pull request, or modify BASE_BRANCH. The orchestrator does not write code or project documents; delegate every edit to the assigned subagent role.
 
 Final report: final revision, checks, ticket coverage, handoff and research paths, approved plan, confidence and remaining gates. If turn-limited, report the exact unfinished frontier and preserve all completed ticket records.
+```
+
+## Prompt
+
+Paste into `/goal`. Keep it at 4,000 bytes or fewer.
+
+```text
+Implement every unfinished ticket in SPEC_DIR and integrate the complete change on branch `INTEGRATION_BRANCH`, following the goal plan at PLAN_PATH. Read that plan in full before doing anything else and follow it exactly: it holds the approved subagent assignments, ticket graph, branches, checks, and steps. If it is missing, or any approved assignment cannot be honored, stop and report without dispatch or substitution.
+
+Done only when: every ticket is done and merged into `INTEGRATION_BRANCH` with acceptance criteria evidenced; every ticket has SPEC_DIR/handoffs/NN.md and a RESEARCH_DIR/ticket-NN-implementation-findings.md note; all relevant checks pass; no `INTEGRATION_BRANCH-NN` branches remain; and SPEC_DIR/implementation-review-handoff.md is complete. If an unresolved blocker prevents all remaining work, have the merger record finished work and the remaining frontier, then print `BLOCKED: <reason>`. Stop after TURN_LIMIT turns, leaving the run state at STATE_PATH ready to resume.
+
+Orchestrator: ORCHESTRATOR_MODEL_AND_REASONING. It reads, plans, delegates, monitors, and reviews; it writes no code or project documents. Every edit goes to the assigned subagent; the merger is the single writer of shared records.
+
+Never weaken, skip, or delete tests; baseline failures are not regressions. Keep .specs, .research, and .artifacts local and uncommitted. Do not push, open a pull request, or modify BASE_BRANCH.
 ```
