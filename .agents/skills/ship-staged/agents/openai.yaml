@@ -1,0 +1,3 @@
+interface:
+  display_name: "Ship Staged"
+  short_description: "Ship features through a staging branch"

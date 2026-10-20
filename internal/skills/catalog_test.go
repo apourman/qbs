@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"testing/fstest"
 )
 
 func TestImportCollectionSyncUpdateAndRemove(t *testing.T) {
@@ -291,5 +292,40 @@ func assertFile(t *testing.T, path string) {
 	t.Helper()
 	if info, err := os.Stat(path); err != nil || !info.Mode().IsRegular() {
 		t.Fatalf("expected file %s: %v", path, err)
+	}
+}
+
+func TestInstallBuiltinsRetiresDroppedBuiltins(t *testing.T) {
+	root := t.TempDir()
+	target := filepath.Join(root, "claude")
+	catalog := Catalog{Root: filepath.Join(root, "catalog"), Targets: []string{target}}
+	shipped := fstest.MapFS{
+		"alpha/SKILL.md": {Data: []byte("alpha\n")},
+		"beta/SKILL.md":  {Data: []byte("beta\n")},
+	}
+	if _, err := catalog.InstallBuiltins(shipped); err != nil {
+		t.Fatal(err)
+	}
+	source := filepath.Join(root, "source")
+	writeSkill(t, source, "user", "user\n")
+	if _, err := catalog.Import(source, false); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := catalog.Sync(); err != nil {
+		t.Fatal(err)
+	}
+
+	delete(shipped, "beta/SKILL.md")
+	if _, err := catalog.InstallBuiltins(shipped); err != nil {
+		t.Fatal(err)
+	}
+	for _, path := range []string{filepath.Join(catalog.Root, "beta"), filepath.Join(target, "beta")} {
+		if _, err := os.Stat(path); !os.IsNotExist(err) {
+			t.Fatalf("retired builtin remains at %s: %v", path, err)
+		}
+	}
+	for _, name := range []string{"alpha", "user"} {
+		assertFile(t, filepath.Join(catalog.Root, name, "SKILL.md"))
+		assertFile(t, filepath.Join(target, name, "SKILL.md"))
 	}
 }

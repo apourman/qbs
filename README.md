@@ -73,7 +73,9 @@ QBS keeps the canonical catalog at `~/.qbs/skills/` and synchronizes managed
 copies to the global discovery locations for Codex, Claude, and OpenCode.
 Each QBS release ships the skills tracked in its repository. `qbs sync` and
 `qbs skills sync` refresh those built-in skills in the canonical catalog, sync
-them to each harness, and preserve separately imported skills. `qbs sync` also
+them to each harness, and preserve separately imported skills. Built-in
+skills a newer release drops are removed from the catalog and their managed
+copies. `qbs sync` also
 installs QBS's built-in agents.
 Separately imported skills take precedence when their names match bundled
 skills.
