@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.20.0](https://github.com/apourman/qbs/compare/v0.19.0...v0.20.0) (2026-10-21)
+
+
+### Features
+
+* write goal plans to files and scope goal testing to touched code ([#69](https://github.com/apourman/qbs/issues/69)) ([3db035f](https://github.com/apourman/qbs/commit/3db035fd12cce53129c241c25232a6a54cc198ed))
+
 ## [0.19.0](https://github.com/apourman/qbs/compare/v0.18.0...v0.19.0) (2026-10-20)
 
 
