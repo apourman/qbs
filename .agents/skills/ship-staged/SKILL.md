@@ -50,7 +50,8 @@ resync staging (below) before continuing.
 2. Merge `origin/<staging>` into the feature branch; stop and report on
    conflicts. A merge keeps the push fast-forward, and the squash discards the
    history anyway. Run the repository's tests.
-3. Push and open the pull request:
+3. Run the final review (below) and commit the fixes it calls for.
+4. Push and open the pull request:
 
    ```bash
    git push -u origin HEAD
@@ -59,22 +60,22 @@ resync staging (below) before continuing.
 
    Body: a `## Summary` (why the feature exists, what it delivers) and a
    `## Changes` list.
-4. Show the pull request URL and title, and ask before merging. Then:
+5. Show the pull request URL and title, and ask before merging. Then:
 
    ```bash
    gh pr checks <number> --watch
    gh pr merge <number> --squash --delete-branch --subject "<title> (#<number>)"
    ```
 
-5. Report the features now waiting on staging:
+6. Report the features now waiting on staging:
    `git log --oneline --no-merges origin/<default>..origin/<staging>`.
-6. Record the merge in shared context: invoke `update-docs` again, limited
+7. Record the merge in shared context: invoke `update-docs` again, limited
    to `.specs/`, `.backlog/`, `.research/`, and `.artifacts/`, so pages that
    list what waits on staging pick up this pull request. Mark the feature's
    tickets and backlog items `done` with the pull request link. Repository
    docs already shipped in step 1. In the final report, say that both
    `update-docs` runs happened, or which one was skipped and why.
-7. Clean up. Candidates are the feature branch's worktree and the ticket
+8. Clean up. Candidates are the feature branch's worktree and the ticket
    worktrees whose branches are merged into the feature branch
    (`git branch --merged <feature>`). A squash merge hides the feature branch
    from `git branch -d`, so a candidate qualifies only when all hold:
@@ -88,13 +89,23 @@ resync staging (below) before continuing.
    `git worktree remove <path>` and `git branch -D <branch>` for each. The
    worktree this session runs in stays: tell the user to archive the session
    so its host removes it.
-8. Sync the other in-flight feature branches (below), so they build on the
+9. Sync the other in-flight feature branches (below), so they build on the
    feature that just landed.
+
+## Final review
+
+Before a branch merges into staging or the default branch, review everything
+it adds over its base. Invoke `code-review` and `ponytail-review` (with the
+Skill tool) on the changes since `origin/<base>`; they are independent, so
+run them in parallel. Show both reports side by side, then ask which findings
+to fix. Commit the fixes to the branch and rerun the repository's tests. If a
+skill is unavailable, say so and continue with the other. In the final report,
+say that both reviews ran and what was fixed or deferred.
 
 ## Promote
 
 1. Resync staging (below) so it contains every commit on the default branch.
-2. List the waiting features with the `git log` from Ship step 5. Stop if
+2. List the waiting features with the `git log` from Ship step 6. Stop if
    there are none.
 3. Open the pull request with a fixed, non-conventional title:
 
