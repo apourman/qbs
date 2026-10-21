@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.21.0](https://github.com/apourman/qbs/compare/v0.20.0...v0.21.0) (2026-10-21)
+
+
+### Features
+
+* save goal prompts beside their plans for resuming ([#71](https://github.com/apourman/qbs/issues/71)) ([f750fbc](https://github.com/apourman/qbs/commit/f750fbc79c4a68033527035b4619926df8d19bf1))
+
 ## [0.20.0](https://github.com/apourman/qbs/compare/v0.19.0...v0.20.0) (2026-10-21)
 
 
