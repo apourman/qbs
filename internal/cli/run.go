@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"runtime/debug"
+	"strconv"
 	"strings"
 )
 
@@ -30,6 +31,7 @@ const usage = `qbs — AI workspace and curated skill manager
 Usage:
   qbs init
   qbs sync
+  qbs backlog [port]
   qbs skills import <path> [--force]
   qbs skills list
   qbs skills sync
@@ -71,6 +73,21 @@ func RunWithInput(args []string, input io.Reader, stdout, stderr io.Writer) erro
 		}
 		return fromCurrentDirectory(func(dir string) error {
 			return initializeRepository(dir, stdout, stderr)
+		})
+	case "backlog":
+		if len(args) > 2 {
+			return errors.New("backlog accepts an optional port")
+		}
+		port := defaultBacklogPort
+		if len(args) == 2 {
+			p, err := strconv.Atoi(args[1])
+			if err != nil {
+				return fmt.Errorf("invalid backlog port %q", args[1])
+			}
+			port = p
+		}
+		return fromCurrentDirectory(func(dir string) error {
+			return serveBacklog(dir, port, stdout)
 		})
 	case "update":
 		if len(args) > 2 {

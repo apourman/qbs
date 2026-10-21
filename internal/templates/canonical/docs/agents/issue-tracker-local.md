@@ -37,8 +37,9 @@ or possible future work and are not implementation tickets or automatic
 When a backlog item becomes actionable, create a separate numbered ticket
 under the spec's `tickets/` directory and link that ticket from the item. If
 the idea came from another ticket, preserve that originating-ticket link too.
-This keeps the local specification and ticket hierarchy authoritative without introducing
-a central backlog or hosted synchronization.
+This keeps the local specification and ticket hierarchy authoritative without
+hosted synchronization. Intake that no spec owns yet goes in the project
+backlog described in `docs/agents/backlog.md`.
 
 Treat GitHub, Jira, Linear, GitLab, and other hosted trackers only as optional
 projection targets. Publishing or synchronizing a local record requires a

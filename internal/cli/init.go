@@ -27,13 +27,14 @@ var excludedPaths = []string{
 	".opencode/agents/",
 	".opencode/skills/",
 	".artifacts/",
+	".backlog/",
 	".research/",
 	".specs/",
 	"docs/agents/",
 }
 
 // contextDirectories hold shared, Git-ignored project knowledge.
-var contextDirectories = []string{".artifacts", ".research", ".specs"}
+var contextDirectories = []string{".artifacts", ".backlog/items", ".research", ".specs"}
 
 var provisionedPathspecs = []string{
 	".agents/skills",
@@ -43,6 +44,7 @@ var provisionedPathspecs = []string{
 	".opencode/agents",
 	".opencode/skills",
 	".artifacts",
+	".backlog",
 	".research",
 	".specs",
 	"docs/agents",
@@ -100,7 +102,7 @@ func provisionWorkspace(root string, stderr io.Writer) error {
 }
 
 func provisionEngineeringConfig(root string, stderr io.Writer) error {
-	for _, name := range []string{"domain.md", "issue-tracker.md"} {
+	for _, name := range []string{"backlog.md", "domain.md", "issue-tracker.md"} {
 		data, err := engineeringTemplate(name)
 		if err != nil {
 			return err
@@ -199,7 +201,7 @@ func validateProvisioningTargets(root string) error {
 	if err := validateDirectoryTarget(filepath.Join(root, "docs", "agents")); err != nil {
 		return err
 	}
-	for _, name := range []string{"domain.md", "issue-tracker.md", "triage.md"} {
+	for _, name := range []string{"backlog.md", "domain.md", "issue-tracker.md", "triage.md"} {
 		if err := validateFileTarget(filepath.Join(root, "docs", "agents", name)); err != nil {
 			return err
 		}

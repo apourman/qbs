@@ -103,6 +103,7 @@ skill. The original source directory is not changed.
 | Command | What it does |
 | --- | --- |
 | `qbs init` | Prepare the current Git repository for local AI work. |
+| `qbs backlog [port]` | Browse and edit the repository's `.backlog/items/` at http://localhost:4317. |
 | `qbs sync` | Refresh skills shipped with this release, sync cataloged skills, and install generated agents and shared instructions globally. |
 | `qbs skills import <path>` | Add a skill or collection to the catalog and sync it. |
 | `qbs skills list` | Show the catalog and configured global targets. |
@@ -122,6 +123,7 @@ Initialization is deliberately small:
 your-repository/
 ├── docs/agents/       # local engineering guidance
 ├── .artifacts/        # local HTML pages
+├── .backlog/items/    # local backlog: bugs, reports, and ideas
 ├── .research/         # local research notes
 └── .specs/            # local specifications and tickets
 ```
