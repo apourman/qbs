@@ -42,9 +42,11 @@ resync staging (below) before continuing.
 
 ## Ship
 
-1. Run the `update-docs` skill for the feature's work, so repository docs
-   reach staging in the same pull request. Show the doc changes it makes and
-   ask before committing them to the feature branch.
+1. Invoke the `update-docs` skill (with the Skill tool) for the feature's
+   work, so repository docs reach staging in the same pull request. Editing
+   docs by hand does not replace it: the skill also walks `.artifacts/index.md`
+   and republishes stale pages, which hand edits miss. Show the doc changes
+   it makes and ask before committing them to the feature branch.
 2. Merge `origin/<staging>` into the feature branch; stop and report on
    conflicts. A merge keeps the push fast-forward, and the squash discards the
    history anyway. Run the repository's tests.
@@ -66,10 +68,12 @@ resync staging (below) before continuing.
 
 5. Report the features now waiting on staging:
    `git log --oneline --no-merges origin/<default>..origin/<staging>`.
-6. Record the merge in shared context: run `update-docs` again, limited to
-   `.specs/`, `.backlog/`, `.research/`, and `.artifacts/`. Mark the feature's
+6. Record the merge in shared context: invoke `update-docs` again, limited
+   to `.specs/`, `.backlog/`, `.research/`, and `.artifacts/`, so pages that
+   list what waits on staging pick up this pull request. Mark the feature's
    tickets and backlog items `done` with the pull request link. Repository
-   docs already shipped in step 1.
+   docs already shipped in step 1. In the final report, say that both
+   `update-docs` runs happened, or which one was skipped and why.
 7. Clean up. Candidates are the feature branch's worktree and the ticket
    worktrees whose branches are merged into the feature branch
    (`git branch --merged <feature>`). A squash merge hides the feature branch
