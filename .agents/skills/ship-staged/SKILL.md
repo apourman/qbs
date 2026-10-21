@@ -1,6 +1,6 @@
 ---
 name: ship-staged
-description: Ship work through a long-lived staging branch (`next` by default). Squash-merge a feature branch into staging, promote staging to the default branch with a merge commit, or hotfix the default branch, each through a GitHub pull request. Use when the user wants to ship, promote, release, or hotfix a branch.
+description: Ship work through a long-lived staging branch (`next` by default). Squash-merge a feature branch into staging, promote staging to the default branch with a merge commit, or hotfix the default branch, each through a GitHub pull request, and keep in-flight feature branches merged up with staging. Use when the user wants to ship, promote, release, or hotfix a branch, or sync branches with staging.
 ---
 
 # ship-staged
@@ -21,8 +21,8 @@ Each squash commit on staging becomes one changelog entry once staging is
 promoted, so its title is a conventional commit describing the whole feature.
 
 Pick the action from the request: **Ship** a feature branch into staging,
-**Promote** staging to the default branch, or **Hotfix** a branch straight to
-the default branch.
+**Promote** staging to the default branch, **Hotfix** a branch straight to
+the default branch, or **Sync** in-flight feature branches with staging.
 
 ## Preflight
 
@@ -35,7 +35,10 @@ git fetch origin
 
 The branch being shipped is clean and fully committed. Show any uncommitted
 changes and ask before committing them. If `origin/<staging>` does not exist,
-offer to create it from `origin/<default>` and push it.
+offer to create it from `origin/<default>` and push it. If
+`git merge-base --is-ancestor origin/<default> origin/<staging>` fails,
+staging is missing work from the default branch, such as a release commit:
+resync staging (below) before continuing.
 
 ## Ship
 
@@ -81,6 +84,8 @@ offer to create it from `origin/<default>` and push it.
    `git worktree remove <path>` and `git branch -D <branch>` for each. The
    worktree this session runs in stays: tell the user to archive the session
    so its host removes it.
+8. Sync the other in-flight feature branches (below), so they build on the
+   feature that just landed.
 
 ## Promote
 
@@ -114,6 +119,25 @@ offer to create it from `origin/<default>` and push it.
 
 Cut the branch from `origin/<default>`, then follow Ship with the default
 branch in place of staging throughout. Resync staging after it merges.
+
+## Sync
+
+Merge `origin/<staging>` into every in-flight feature branch so each one
+builds on what has already shipped. Run it after each Ship, or whenever the
+user asks. Merge, never rebase: rebasing would force-push the branch and break
+ticket worktrees, and the squash at ship time discards the merge commits.
+
+1. `git fetch origin`, then find the feature branches: local branches other
+   than staging and the default branch, with commits not on
+   `origin/<staging>`, whose upstream is not `[gone]` (`git branch -vv`).
+   Leave ticket branches; they pick up staging through their feature branch.
+   Ask when it is unclear which branches are features.
+2. For each, in the worktree where it is checked out (or a temporary one):
+   skip it if `git status --porcelain` is not empty, otherwise run
+   `git merge origin/<staging>`. On conflicts, run `git merge --abort` and
+   move on.
+3. Report each branch as updated, already current, skipped as dirty, or
+   conflicting. Do not push; each branch reaches GitHub when it ships.
 
 ## Resync staging
 
