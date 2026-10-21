@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.27.0](https://github.com/apourman/qbs/compare/v0.26.0...v0.27.0) (2026-10-21)
+
+
+### Features
+
+* run a final code review and ponytail review in ship-staged ([#85](https://github.com/apourman/qbs/issues/85)) ([3dcb7c0](https://github.com/apourman/qbs/commit/3dcb7c0799267fd43b2c578dc4b667c3d8ceafc6))
+
 ## [0.26.0](https://github.com/apourman/qbs/compare/v0.25.1...v0.26.0) (2026-10-21)
 
 
