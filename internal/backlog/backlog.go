@@ -4,7 +4,9 @@
 package backlog
 
 import (
+	"crypto/sha256"
 	_ "embed"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -44,13 +46,21 @@ func parse(id, text string) Item {
 		}
 	}
 	item["id"] = id
+	item["version"] = version([]byte(text))
 	return item
+}
+
+// version identifies a file's content, so a save made from a stale copy can
+// be refused instead of overwriting newer edits.
+func version(data []byte) string {
+	sum := sha256.Sum256(data)
+	return hex.EncodeToString(sum[:8])
 }
 
 func serialize(item Item) []byte {
 	var extra []string
 	for k := range item {
-		if k != "id" && k != "body" && !slices.Contains(fields, k) {
+		if k != "id" && k != "body" && k != "version" && !slices.Contains(fields, k) {
 			extra = append(extra, k)
 		}
 	}
@@ -101,10 +111,12 @@ func Handler(dir string) http.Handler {
 		if item["created"] == "" {
 			item["created"] = time.Now().Format("2006-01-02")
 		}
-		if err := os.WriteFile(filepath.Join(dir, id+".md"), serialize(item), 0o644); err != nil {
+		data := serialize(item)
+		if err := os.WriteFile(filepath.Join(dir, id+".md"), data, 0o644); err != nil {
 			fail(w, http.StatusInternalServerError, err.Error())
 			return
 		}
+		item["version"] = version(data)
 		send(w, http.StatusCreated, item)
 	})
 	mux.HandleFunc("PUT /api/items/{id}", func(w http.ResponseWriter, r *http.Request) {
@@ -129,14 +141,20 @@ func Handler(dir string) http.Handler {
 			fail(w, http.StatusBadRequest, err.Error())
 			return
 		}
+		if v := changes["version"]; v != "" && v != item["version"] {
+			fail(w, http.StatusConflict, "this item changed since you opened it; copy your edits, reload, and save again")
+			return
+		}
 		for k, v := range changes {
 			item[k] = v
 		}
 		item["id"] = id
-		if err := os.WriteFile(file, serialize(item), 0o644); err != nil {
+		data = serialize(item)
+		if err := os.WriteFile(file, data, 0o644); err != nil {
 			fail(w, http.StatusInternalServerError, err.Error())
 			return
 		}
+		item["version"] = version(data)
 		send(w, http.StatusOK, item)
 	})
 	return mux

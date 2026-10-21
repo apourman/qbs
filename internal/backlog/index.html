@@ -114,6 +114,7 @@ for (const id of ['fStatus', 'fArea', 'fKind', 'fText']) $(id).oninput = render;
 form.onsubmit = async e => {
   e.preventDefault();
   const data = Object.fromEntries(new FormData(form));
+  if (current) data.version = current.version;
   const res = await fetch(current ? `api/items/${current.id}` : 'api/items',
     { method: current ? 'PUT' : 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(data) });
   if (!res.ok) return alert((await res.json()).error);

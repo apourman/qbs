@@ -1,6 +1,6 @@
 ---
 name: update-docs
-description: Bring every document touched by this session's work up to date — repository docs plus the shared `.research/`, `.specs/`, and `.artifacts/` context, including republishing changed artifacts. Use when the user says "update docs", "sync the docs", or wants documentation caught up with what was done in a session, typically before shipping or handing off.
+description: Bring every document touched by this session's work up to date — repository docs plus the shared `.research/`, `.specs/`, `.artifacts/`, and `.backlog/` context, including republishing changed artifacts. Use when the user says "update docs", "sync the docs", or wants documentation caught up with what was done in a session, typically before shipping or handing off.
 ---
 
 # update-docs
@@ -25,6 +25,8 @@ Shared context lives in the primary checkout, even from a linked worktree:
 - `.specs/<domain>/spec.md` and its `tickets/` — the spec the work belongs to.
 - `.research/<domain>/` — notes whose findings the work confirmed, refuted,
   or extended.
+- `.backlog/items/` — items the work started, investigated, or resolved,
+  and items for bugs or ideas the session found but did not act on.
 - `.artifacts/index.md` and `.artifacts/<domain>/*.html` — pages that show
   behavior, plans, or status the work changed.
 - Repository docs: `README.md`, `CONTRIBUTING.md`, `INSTALL.md`, `docs/`,
@@ -37,6 +39,10 @@ Grep these for the names of changed commands, flags, files, and concepts.
 
 - **Specs**: record decisions and scope changes; mark finished tickets done
   with a pointer to the commit or PR; add follow-up tickets for deferred work.
+- **Backlog**: follow `docs/agents/backlog.md` — set worked items to `doing`
+  or `done` with a pointer to the commit or PR, add a dated `## Findings`
+  section, and link any spec or ticket created from the item. Add new items
+  for unrecorded bugs or ideas.
 - **Research**: add verified findings with sources; mark superseded claims.
 - **Artifacts**: follow the canonical layout rules — read the live version,
   keep the newer copy, edit the local file, bump its version in the page
@@ -52,6 +58,6 @@ New work with no home gets one in the canonical layout
 ## 4. Report
 
 List each document updated, created, or published (with URL and version),
-and anything left stale and why. Never commit `.specs/`, `.research/`, or
-`.artifacts/`. Leave repository doc changes uncommitted unless the user asked
+and anything left stale and why. Never commit `.specs/`, `.research/`,
+`.artifacts/`, or `.backlog/`. Leave repository doc changes uncommitted unless the user asked
 for a commit.

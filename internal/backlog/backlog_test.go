@@ -44,6 +44,17 @@ func TestCreateAndUpdateKeepItemFilesCompatible(t *testing.T) {
 		t.Errorf("updated file =\n%s\nwant\n%s", data, want)
 	}
 
+	stale := item["version"]
+	if code, _ := do(t, h, "PUT", "/api/items/012-old", `{"status":"open","version":"`+stale+`"}`); code != http.StatusOK {
+		t.Fatalf("PUT with current version = %d", code)
+	}
+	if code, _ := do(t, h, "PUT", "/api/items/012-old", `{"status":"dropped","version":"`+stale+`"}`); code != http.StatusConflict {
+		t.Errorf("PUT with stale version = %d, want 409", code)
+	}
+	if data, _ := os.ReadFile(filepath.Join(dir, "012-old.md")); string(data) != existing {
+		t.Errorf("stale save changed the file:\n%s", data)
+	}
+
 	if code, _ := do(t, h, "PUT", "/api/items/999-missing", `{}`); code != http.StatusNotFound {
 		t.Errorf("PUT missing = %d", code)
 	}
