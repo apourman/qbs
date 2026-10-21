@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.22.0](https://github.com/apourman/qbs/compare/v0.21.0...v0.22.0) (2026-10-21)
+
+
+### Features
+
+* add update-docs skill to sync docs, specs, research, and artifacts with session work ([#73](https://github.com/apourman/qbs/issues/73)) ([d4390cd](https://github.com/apourman/qbs/commit/d4390cde16fd76d92b54a36712df472c85c3b30e))
+
 ## [0.21.0](https://github.com/apourman/qbs/compare/v0.20.0...v0.21.0) (2026-10-21)
 
 
