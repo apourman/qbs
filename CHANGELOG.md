@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.28.0](https://github.com/apourman/qbs/compare/v0.27.0...v0.28.0) (2026-10-21)
+
+
+### Features
+
+* write and publish patch notes when promoting staging in ship-staged ([#87](https://github.com/apourman/qbs/issues/87)) ([c210ede](https://github.com/apourman/qbs/commit/c210edec69e3c91747fe4a8a2480ff7f88fc4618))
+
 ## [0.27.0](https://github.com/apourman/qbs/compare/v0.26.0...v0.27.0) (2026-10-21)
 
 
