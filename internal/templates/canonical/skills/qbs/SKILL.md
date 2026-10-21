@@ -1,11 +1,12 @@
 ---
 name: qbs
-description: Use QBS to initialize local AI workspace state or manage the user's global curated skill catalog. Applies to QBS initialization, `.specs/`, `.research/`, `.artifacts/`, and global skill synchronization.
+description: Use QBS to initialize local AI workspace state or manage the user's global curated skill catalog. Applies to QBS initialization, `.specs/`, `.research/`, `.artifacts/`, `.backlog/`, and global skill synchronization.
 ---
 
 # QBS
 
-Use `qbs init` for the current repository.
+Use `qbs init` for the current repository. Run `qbs backlog` to browse and
+edit the repository's `.backlog/items/` in a browser.
 
 Manage reusable skills globally with `qbs skills import`, `list`, `sync`, and
 `remove`. `qbs sync` also installs the shared QBS instructions globally for

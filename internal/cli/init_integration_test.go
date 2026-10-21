@@ -41,8 +41,10 @@ func TestInitProvisionsIgnoredAIWorkspaceIdempotently(t *testing.T) {
 
 	wants := []string{
 		".artifacts",
+		filepath.Join(".backlog", "items"),
 		".research",
 		".specs",
+		filepath.Join("docs", "agents", "backlog.md"),
 		filepath.Join("docs", "agents", "domain.md"),
 		filepath.Join("docs", "agents", "issue-tracker.md"),
 	}
@@ -155,7 +157,7 @@ func TestInitProvisionsIgnoredAIWorkspaceIdempotently(t *testing.T) {
 			t.Errorf("init excluded %s", line)
 		}
 	}
-	for _, entry := range []string{"context.md", ".agents/skills/", ".claude/agents/", ".claude/skills/", ".codex/agents/", ".opencode/agents/", ".opencode/skills/", ".artifacts/", ".research/", ".specs/", "docs/agents/"} {
+	for _, entry := range []string{"context.md", ".agents/skills/", ".claude/agents/", ".claude/skills/", ".codex/agents/", ".opencode/agents/", ".opencode/skills/", ".artifacts/", ".backlog/", ".research/", ".specs/", "docs/agents/"} {
 		if count := strings.Count(string(excludeData), entry); count != 1 {
 			t.Errorf("exclude entry %q occurs %d times", entry, count)
 		}

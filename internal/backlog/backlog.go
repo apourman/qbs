@@ -1,0 +1,196 @@
+// Package backlog serves a project's .backlog/items as a small local web app.
+// Each entry is .backlog/items/NNN-slug.md with simple `key: value`
+// frontmatter and a Markdown body.
+package backlog
+
+import (
+	_ "embed"
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"os"
+	"path/filepath"
+	"regexp"
+	"slices"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
+)
+
+//go:embed index.html
+var page []byte
+
+// fields are written first, in this order; any other frontmatter keys follow.
+var fields = []string{"title", "kind", "area", "status", "source", "created"}
+
+var (
+	frontmatter = regexp.MustCompile(`(?s)^---\n(.*?)\n---\n?(.*)$`)
+	idPattern   = regexp.MustCompile(`^[\w-]+$`)
+	nonSlug     = regexp.MustCompile(`[^a-z0-9]+`)
+)
+
+// Item is one backlog entry: its frontmatter keys plus "id" and "body".
+type Item map[string]string
+
+func parse(id, text string) Item {
+	item := Item{"body": strings.TrimSpace(text)}
+	if m := frontmatter.FindStringSubmatch(text); m != nil {
+		item["body"] = strings.TrimSpace(m[2])
+		for _, line := range strings.Split(m[1], "\n") {
+			if k, v, ok := strings.Cut(line, ":"); ok && strings.TrimSpace(k) != "" {
+				item[strings.TrimSpace(k)] = strings.TrimSpace(v)
+			}
+		}
+	}
+	item["id"] = id
+	return item
+}
+
+func serialize(item Item) []byte {
+	var extra []string
+	for k := range item {
+		if k != "id" && k != "body" && !slices.Contains(fields, k) {
+			extra = append(extra, k)
+		}
+	}
+	sort.Strings(extra)
+	var b strings.Builder
+	b.WriteString("---\n")
+	for _, k := range append(append([]string{}, fields...), extra...) {
+		b.WriteString(k + ": " + strings.ReplaceAll(item[k], "\n", " ") + "\n")
+	}
+	b.WriteString("---\n\n" + strings.TrimSpace(item["body"]) + "\n")
+	return []byte(b.String())
+}
+
+// Handler serves the backlog UI and its JSON API for the items in dir.
+func Handler(dir string) http.Handler {
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("content-type", "text/html; charset=utf-8")
+		_, _ = w.Write(page)
+	})
+	mux.HandleFunc("GET /api/items", func(w http.ResponseWriter, r *http.Request) {
+		items, err := list(dir)
+		if err != nil {
+			fail(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		send(w, http.StatusOK, items)
+	})
+	mux.HandleFunc("POST /api/items", func(w http.ResponseWriter, r *http.Request) {
+		var item Item
+		if err := json.NewDecoder(r.Body).Decode(&item); err != nil {
+			fail(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		if strings.TrimSpace(item["title"]) == "" {
+			fail(w, http.StatusBadRequest, "title required")
+			return
+		}
+		id, err := newID(dir, item["title"])
+		if err != nil {
+			fail(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		item["id"] = id
+		if item["status"] == "" {
+			item["status"] = "open"
+		}
+		if item["created"] == "" {
+			item["created"] = time.Now().Format("2006-01-02")
+		}
+		if err := os.WriteFile(filepath.Join(dir, id+".md"), serialize(item), 0o644); err != nil {
+			fail(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		send(w, http.StatusCreated, item)
+	})
+	mux.HandleFunc("PUT /api/items/{id}", func(w http.ResponseWriter, r *http.Request) {
+		id := r.PathValue("id")
+		if !idPattern.MatchString(id) {
+			fail(w, http.StatusNotFound, "not found")
+			return
+		}
+		file := filepath.Join(dir, id+".md")
+		data, err := os.ReadFile(file)
+		if os.IsNotExist(err) {
+			fail(w, http.StatusNotFound, "not found")
+			return
+		}
+		if err != nil {
+			fail(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		item := parse(id, string(data))
+		var changes Item
+		if err := json.NewDecoder(r.Body).Decode(&changes); err != nil {
+			fail(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		for k, v := range changes {
+			item[k] = v
+		}
+		item["id"] = id
+		if err := os.WriteFile(file, serialize(item), 0o644); err != nil {
+			fail(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		send(w, http.StatusOK, item)
+	})
+	return mux
+}
+
+func list(dir string) ([]Item, error) {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return nil, err
+	}
+	items := []Item{}
+	for _, e := range entries {
+		name := e.Name()
+		if e.IsDir() || !strings.HasSuffix(name, ".md") {
+			continue
+		}
+		data, err := os.ReadFile(filepath.Join(dir, name))
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, parse(strings.TrimSuffix(name, ".md"), string(data)))
+	}
+	return items, nil
+}
+
+func newID(dir, title string) (string, error) {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return "", err
+	}
+	n := 0
+	for _, e := range entries {
+		digits := strings.SplitN(e.Name(), "-", 2)[0]
+		if v, err := strconv.Atoi(digits); err == nil && v > n {
+			n = v
+		}
+	}
+	slug := nonSlug.ReplaceAllString(strings.ToLower(title), "-")
+	if len(slug) > 50 {
+		slug = slug[:50]
+	}
+	slug = strings.Trim(slug, "-")
+	if slug == "" {
+		slug = "item"
+	}
+	return fmt.Sprintf("%03d-%s", n+1, slug), nil
+}
+
+func send(w http.ResponseWriter, status int, body any) {
+	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(body)
+}
+
+func fail(w http.ResponseWriter, status int, msg string) {
+	send(w, status, map[string]string{"error": msg})
+}

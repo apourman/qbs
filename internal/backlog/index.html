@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Backlog</title>
+<style>
+  :root { --bg:#f6f4ef; --panel:#fff; --ink:#1f1d1a; --muted:#6b665d; --line:#ddd8cc; --accent:#8a5a14;
+          --bug:#b3261e; --feature:#2f6f3e; --polish:#5b4b9a; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#17150f; --panel:#211e17; --ink:#ece6d8; --muted:#9a9384; --line:#3a352a;
+          --accent:#d9a44a; --bug:#f08a80; --feature:#7fc48f; --polish:#b3a6ee; } }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.45 system-ui, sans-serif; }
+  header { display:flex; flex-wrap:wrap; gap:8px; align-items:center; padding:12px 16px; border-bottom:1px solid var(--line); }
+  h1 { font-size:18px; margin:0 12px 0 0; color:var(--accent); }
+  select, input, textarea, button { font:inherit; color:inherit; background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:5px 8px; }
+  button { cursor:pointer; } button.primary { background:var(--accent); color:var(--bg); border-color:var(--accent); }
+  main { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,420px); gap:16px; padding:16px; }
+  @media (max-width: 800px) { main { grid-template-columns:minmax(0,1fr); } }
+  .count { color:var(--muted); margin-left:auto; }
+  ul { list-style:none; margin:0; padding:0; }
+  li { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:10px 12px; margin-bottom:8px; cursor:pointer; }
+  li.sel { outline:2px solid var(--accent); }
+  li.done, li.dropped { opacity:.55; } li.dropped .t { text-decoration:line-through; }
+  .t { font-weight:600; } .meta { color:var(--muted); font-size:12px; display:flex; gap:10px; flex-wrap:wrap; margin-top:2px; }
+  .kind { font-weight:600; } .kind.bug { color:var(--bug); } .kind.feature { color:var(--feature); } .kind.polish { color:var(--polish); }
+  form { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:12px; display:grid; gap:8px; align-self:start; position:sticky; top:16px; }
+  form .row { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:8px; }
+  label { display:grid; gap:2px; font-size:12px; color:var(--muted); }
+  textarea { min-height:160px; resize:vertical; }
+  .actions { display:flex; gap:8px; justify-content:flex-end; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Backlog</h1>
+  <select id="fStatus"><option value="">All statuses</option><option selected value="active">Open + doing</option></select>
+  <select id="fArea"><option value="">All areas</option></select>
+  <select id="fKind"><option value="">All kinds</option></select>
+  <input id="fText" type="search" placeholder="Search">
+  <button id="new" class="primary">New</button>
+  <span class="count" id="count"></span>
+</header>
+<main>
+  <ul id="list"></ul>
+  <form id="form">
+    <label>Title <input name="title" required></label>
+    <div class="row">
+      <label>Kind <input name="kind" list="kinds"></label>
+      <label>Area <input name="area" list="areas"></label>
+      <label>Status <select name="status"></select></label>
+    </div>
+    <label>Source <input name="source"></label>
+    <label>Notes <textarea name="body"></textarea></label>
+    <div class="actions"><span class="meta" id="fileId"></span><button type="submit" class="primary">Save</button></div>
+  </form>
+</main>
+<datalist id="kinds"></datalist><datalist id="areas"></datalist>
+<script>
+const STATUSES = ['open', 'doing', 'done', 'dropped'];
+const $ = id => document.getElementById(id);
+const form = $('form');
+let items = [], current = null;
+
+form.status.innerHTML = STATUSES.map(s => `<option>${s}</option>`).join('');
+for (const s of STATUSES) $('fStatus').append(new Option(s, s));
+
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' })[c]);
+const uniq = key => [...new Set(items.map(i => i[key]).filter(Boolean))].sort();
+
+function fillOptions(selectId, listId, key) {
+  const sel = $(selectId), keep = sel.value;
+  sel.length = 1;
+  for (const v of uniq(key)) sel.append(new Option(v, v));
+  sel.value = keep;
+  $(listId).innerHTML = uniq(key).map(v => `<option value="${esc(v)}">`).join('');
+}
+
+function render() {
+  const st = $('fStatus').value, area = $('fArea').value, kind = $('fKind').value, q = $('fText').value.toLowerCase();
+  const shown = items.filter(i =>
+    (!st || (st === 'active' ? ['open', 'doing'].includes(i.status) : i.status === st)) &&
+    (!area || i.area === area) && (!kind || i.kind === kind) &&
+    (!q || `${i.title} ${i.body}`.toLowerCase().includes(q)));
+  $('list').innerHTML = shown.map(i => `
+    <li data-id="${i.id}" class="${esc(i.status)} ${current?.id === i.id ? 'sel' : ''}">
+      <div class="t">${esc(i.title)}</div>
+      <div class="meta"><span class="kind ${esc(i.kind)}">${esc(i.kind)}</span><span>${esc(i.area)}</span>
+        <span>${esc(i.status)}</span><span>${esc(i.source)}</span></div>
+    </li>`).join('');
+  $('count').textContent = `${shown.length} of ${items.length}`;
+}
+
+function edit(item) {
+  current = item;
+  for (const f of ['title', 'kind', 'area', 'status', 'source', 'body']) form[f].value = item?.[f] ?? '';
+  if (!item) form.status.value = 'open';
+  $('fileId').textContent = item ? `${item.id}.md` : 'new entry';
+  render();
+  form.title.focus();
+}
+
+async function load() {
+  items = await (await fetch('api/items')).json();
+  fillOptions('fArea', 'areas', 'area');
+  fillOptions('fKind', 'kinds', 'kind');
+  render();
+}
+
+$('list').onclick = e => { const li = e.target.closest('li'); if (li) edit(items.find(i => i.id === li.dataset.id)); };
+$('new').onclick = () => edit(null);
+for (const id of ['fStatus', 'fArea', 'fKind', 'fText']) $(id).oninput = render;
+
+form.onsubmit = async e => {
+  e.preventDefault();
+  const data = Object.fromEntries(new FormData(form));
+  const res = await fetch(current ? `api/items/${current.id}` : 'api/items',
+    { method: current ? 'PUT' : 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(data) });
+  if (!res.ok) return alert((await res.json()).error);
+  const saved = await res.json();
+  await load();
+  edit(items.find(i => i.id === saved.id));
+};
+
+load().then(() => edit(null));
+</script>
+</body>
+</html>
