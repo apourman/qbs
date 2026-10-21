@@ -22,7 +22,8 @@
   li { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:10px 12px; margin-bottom:8px; cursor:pointer; }
   li.sel { outline:2px solid var(--accent); }
   li.done, li.dropped { opacity:.55; } li.dropped .t { text-decoration:line-through; }
-  .t { font-weight:600; } .meta { color:var(--muted); font-size:12px; display:flex; gap:10px; flex-wrap:wrap; margin-top:2px; }
+  .t { font-weight:600; } .num { color:var(--muted); font-weight:400; font-variant-numeric:tabular-nums; margin-right:6px; }
+  .meta { color:var(--muted); font-size:12px; display:flex; gap:10px; flex-wrap:wrap; margin-top:2px; }
   .kind { font-weight:600; } .kind.bug { color:var(--bug); } .kind.feature { color:var(--feature); } .kind.polish { color:var(--polish); }
   form { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:12px; display:grid; gap:8px; align-self:start; position:sticky; top:16px; }
   form .row { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:8px; }
@@ -81,10 +82,10 @@ function render() {
   const shown = items.filter(i =>
     (!st || (st === 'active' ? ['open', 'doing'].includes(i.status) : i.status === st)) &&
     (!area || i.area === area) && (!kind || i.kind === kind) &&
-    (!q || `${i.title} ${i.body}`.toLowerCase().includes(q)));
+    (!q || `${i.id} ${i.title} ${i.body}`.toLowerCase().includes(q)));
   $('list').innerHTML = shown.map(i => `
     <li data-id="${i.id}" class="${esc(i.status)} ${current?.id === i.id ? 'sel' : ''}">
-      <div class="t">${esc(i.title)}</div>
+      <div class="t"><span class="num">#${esc(i.id.split('-')[0])}</span>${esc(i.title)}</div>
       <div class="meta"><span class="kind ${esc(i.kind)}">${esc(i.kind)}</span><span>${esc(i.area)}</span>
         <span>${esc(i.status)}</span><span>${esc(i.source)}</span></div>
     </li>`).join('');
