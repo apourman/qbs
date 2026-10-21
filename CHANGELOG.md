@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.25.1](https://github.com/apourman/qbs/compare/v0.25.0...v0.25.1) (2026-10-21)
+
+
+### Bug Fixes
+
+* make ship-staged invoke update-docs instead of hand-editing docs ([#81](https://github.com/apourman/qbs/issues/81)) ([fbbef28](https://github.com/apourman/qbs/commit/fbbef28fcc010d19d66f8b537e131e2f288effcb))
+
 ## [0.25.0](https://github.com/apourman/qbs/compare/v0.24.0...v0.25.0) (2026-10-21)
 
 
