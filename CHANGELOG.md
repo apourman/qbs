@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.24.0](https://github.com/apourman/qbs/compare/v0.23.0...v0.24.0) (2026-10-21)
+
+
+### Features
+
+* run update-docs when shipping and keep backlog items current ([#77](https://github.com/apourman/qbs/issues/77)) ([cecdd26](https://github.com/apourman/qbs/commit/cecdd261f538f94e2592bc8b4d96073264adffb3))
+
 ## [0.23.0](https://github.com/apourman/qbs/compare/v0.22.0...v0.23.0) (2026-10-21)
 
 
