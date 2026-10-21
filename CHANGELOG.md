@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.23.0](https://github.com/apourman/qbs/compare/v0.22.0...v0.23.0) (2026-10-21)
+
+
+### Features
+
+* add project backlog served by qbs backlog ([#75](https://github.com/apourman/qbs/issues/75)) ([657f2f0](https://github.com/apourman/qbs/commit/657f2f0ff91e8dae8ea673eb64897a1ecb04e02a))
+
 ## [0.22.0](https://github.com/apourman/qbs/compare/v0.21.0...v0.22.0) (2026-10-21)
 
 
