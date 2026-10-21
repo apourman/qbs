@@ -35,10 +35,10 @@ Final report: final revision, checks, ticket coverage, handoff and research path
 
 ## Prompt
 
-Paste into `/goal`. Keep it at 4,000 bytes or fewer.
+Write to `SPEC_DIR/goal-prompt.md` and paste into `/goal`; paste it again in a new session to resume. Keep it at 4,000 bytes or fewer.
 
 ```text
-Implement every unfinished ticket in SPEC_DIR and integrate the complete change on branch `INTEGRATION_BRANCH`, following the goal plan at PLAN_PATH. Read that plan in full before doing anything else and follow it exactly: it holds the approved subagent assignments, ticket graph, branches, checks, and steps. If it is missing, or any approved assignment cannot be honored, stop and report without dispatch or substitution.
+Implement every unfinished ticket in SPEC_DIR and integrate the complete change on branch `INTEGRATION_BRANCH`, following the goal plan at PLAN_PATH. Read that plan in full before doing anything else and follow it exactly: it holds the approved subagent assignments, ticket graph, branches, checks, and steps. If it is missing, or any approved assignment cannot be honored, stop and report without dispatch or substitution. If STATE_PATH already records progress, resume from it rather than starting over.
 
 Done only when: every ticket is done and merged into `INTEGRATION_BRANCH` with acceptance criteria evidenced; every ticket has SPEC_DIR/handoffs/NN.md and a RESEARCH_DIR/ticket-NN-implementation-findings.md note; targeted tests for touched code pass; no `INTEGRATION_BRANCH-NN` branches remain; and SPEC_DIR/implementation-review-handoff.md is complete. If an unresolved blocker prevents all remaining work, have the merger record finished work and the remaining frontier, then print `BLOCKED: <reason>`. Stop after TURN_LIMIT turns, leaving the run state at STATE_PATH ready to resume.
 
