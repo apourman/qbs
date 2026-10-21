@@ -1,6 +1,6 @@
 ---
 name: ship-staged
-description: Ship work through a long-lived staging branch (`next` by default). Squash-merge a feature branch into staging, promote staging to the default branch with a merge commit, or hotfix the default branch, each through a GitHub pull request, and keep in-flight feature branches merged up with staging. Use when the user wants to ship, promote, release, or hotfix a branch, or sync branches with staging.
+description: Ship work through a long-lived staging branch (`next` by default). Squash-merge a feature branch into staging, promote staging to the default branch with a merge commit and published patch notes, or hotfix the default branch, each through a GitHub pull request, and keep in-flight feature branches merged up with staging. Use when the user wants to ship, promote, release, or hotfix a branch, or sync branches with staging.
 ---
 
 # ship-staged
@@ -107,7 +107,8 @@ say that both reviews ran and what was fixed or deferred.
 1. Resync staging (below) so it contains every commit on the default branch.
 2. List the waiting features with the `git log` from Ship step 6. Stop if
    there are none.
-3. Open the pull request with a fixed, non-conventional title:
+3. Write the patch notes (below).
+4. Open the pull request with a fixed, non-conventional title:
 
    ```bash
    gh pr create --base <default> --head <staging> --title "Promote <staging> to <default>" --body-file <body>
@@ -115,8 +116,9 @@ say that both reviews ran and what was fixed or deferred.
 
    GitHub copies this title into the merge commit, and release tools such as
    release-please turn a `feat:` or `fix:` title into an extra changelog
-   entry. Body: the waiting features, one per line.
-4. Ask before merging. Then merge with a merge commit, which keeps each
+   entry. Body: the waiting features, one per line, and the patch notes
+   link.
+5. Ask before merging. Then merge with a merge commit, which keeps each
    feature commit visible to the release tooling:
 
    ```bash
@@ -125,10 +127,36 @@ say that both reviews ran and what was fixed or deferred.
    ```
 
    If the repository disallows merge commits, stop and tell the user.
-5. Resync staging.
-6. If release-please (or similar) opens a release pull request, tell the user
+6. Resync staging.
+7. If release-please (or similar) opens a release pull request, tell the user
    to check that each feature appears once in its changelog before merging
    it, and to resync staging after it merges.
+
+## Patch notes
+
+Promote only: a Ship into staging or a Hotfix writes none.
+
+1. Find the last release: `git describe --tags --abbrev=0 origin/<default>`.
+   With no tag, cover the whole history.
+2. Gather every change since it, including hotfixes already on the default
+   branch: `git log --no-merges --format='%h %s' <tag>..origin/<staging>`,
+   plus `gh pr view <number> --json title,body` for the pull requests those
+   commits name.
+3. Write `.artifacts/releases/<YYYY-MM-DD>-<staging>-to-<default>.md` in the
+   primary checkout, for people who use the project rather than its
+   maintainers. A `# Patch notes` heading with the date and the
+   `<tag>..<staging>` range, then `## New`, `## Improved`, and `## Fixed`,
+   leaving out empty sections. One plain-language bullet per change, saying
+   what users can now do or what no longer goes wrong, ending with its pull
+   request link. Rewrite commit titles; never paste them. Leave out changes
+   nobody outside the repository notices (tests, CI, refactors, chores).
+4. Publish it as a Claude Artifact: this skill asks for a Markdown artifact,
+   so publish the `.md` file itself, after loading `artifact-design`. When
+   `.artifacts/index.md` already lists this file, republish to its URL.
+   Add or update its index line with the URL. If the Artifact tool is
+   unavailable, keep the local file and say it still needs publishing.
+5. Show the notes and their link, and ask for changes before opening the
+   pull request.
 
 ## Hotfix
 
