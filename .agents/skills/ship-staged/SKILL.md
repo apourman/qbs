@@ -137,26 +137,30 @@ say that both reviews ran and what was fixed or deferred.
 Promote only: a Ship into staging or a Hotfix writes none.
 
 1. Find the last release: `git describe --tags --abbrev=0 origin/<default>`.
-   With no tag, cover the whole history.
-2. Gather every change since it, including hotfixes already on the default
-   branch: `git log --no-merges --format='%h %s' <tag>..origin/<staging>`,
-   plus `gh pr view <number> --json title,body` for the pull requests those
+   The range is `<tag>..origin/<staging>`; if the command finds no tag, use
+   `origin/<staging>` alone and call the range "all history".
+2. Gather every change in the range, including hotfixes already on the
+   default branch: `git log --no-merges --format='%h %s' <range>`, plus
+   `gh pr view <number> --json title,body` for the pull requests those
    commits name.
-3. Write `.artifacts/releases/<YYYY-MM-DD>-<staging>-to-<default>.md` in the
+3. Load `artifact-design`, then write
+   `.artifacts/releases/<YYYY-MM-DD>-<staging>-to-<default>.md` in the
    primary checkout, for people who use the project rather than its
-   maintainers. A `# Patch notes` heading with the date and the
-   `<tag>..<staging>` range, then `## New`, `## Improved`, and `## Fixed`,
-   leaving out empty sections. One plain-language bullet per change, saying
-   what users can now do or what no longer goes wrong, ending with its pull
-   request link. Rewrite commit titles; never paste them. Leave out changes
+   maintainers. A `# Patch notes` heading with the date, the range, and the
+   page version (`v1`, bumped on each edit), then `## New`, `## Improved`,
+   and `## Fixed`, leaving out empty sections. One plain-language bullet per
+   change, saying what users can now do or what no longer goes wrong, ending
+   with its pull request link, or its commit link when it has no pull
+   request. Rewrite commit titles; never paste them. Leave out changes
    nobody outside the repository notices (tests, CI, refactors, chores).
-4. Publish it as a Claude Artifact: this skill asks for a Markdown artifact,
-   so publish the `.md` file itself, after loading `artifact-design`. When
-   `.artifacts/index.md` already lists this file, republish to its URL.
-   Add or update its index line with the URL. If the Artifact tool is
-   unavailable, keep the local file and say it still needs publishing.
-5. Show the notes and their link, and ask for changes before opening the
-   pull request.
+4. Show the notes and ask for changes.
+5. Publish them as a Claude Artifact: this skill asks for a Markdown
+   artifact, so publish the `.md` file itself. When `.artifacts/index.md`
+   already lists the file, read the live version first, keep the newer
+   copy, and republish to its URL. Add or update its index line: title,
+   path, "patch notes for this promotion", URL, owning account, and
+   version. If the Artifact tool is unavailable, update the local file and
+   its index version, and say it needs publishing from the owning account.
 
 ## Hotfix
 
