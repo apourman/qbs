@@ -39,10 +39,13 @@ offer to create it from `origin/<default>` and push it.
 
 ## Ship
 
-1. Merge `origin/<staging>` into the feature branch; stop and report on
+1. Run the `update-docs` skill for the feature's work, so repository docs
+   reach staging in the same pull request. Show the doc changes it makes and
+   ask before committing them to the feature branch.
+2. Merge `origin/<staging>` into the feature branch; stop and report on
    conflicts. A merge keeps the push fast-forward, and the squash discards the
    history anyway. Run the repository's tests.
-2. Push and open the pull request:
+3. Push and open the pull request:
 
    ```bash
    git push -u origin HEAD
@@ -51,16 +54,20 @@ offer to create it from `origin/<default>` and push it.
 
    Body: a `## Summary` (why the feature exists, what it delivers) and a
    `## Changes` list.
-3. Show the pull request URL and title, and ask before merging. Then:
+4. Show the pull request URL and title, and ask before merging. Then:
 
    ```bash
    gh pr checks <number> --watch
    gh pr merge <number> --squash --delete-branch --subject "<title> (#<number>)"
    ```
 
-4. Report the features now waiting on staging:
+5. Report the features now waiting on staging:
    `git log --oneline --no-merges origin/<default>..origin/<staging>`.
-5. Clean up. Candidates are the feature branch's worktree and the ticket
+6. Record the merge in shared context: run `update-docs` again, limited to
+   `.specs/`, `.backlog/`, `.research/`, and `.artifacts/`. Mark the feature's
+   tickets and backlog items `done` with the pull request link. Repository
+   docs already shipped in step 1.
+7. Clean up. Candidates are the feature branch's worktree and the ticket
    worktrees whose branches are merged into the feature branch
    (`git branch --merged <feature>`). A squash merge hides the feature branch
    from `git branch -d`, so a candidate qualifies only when all hold:
@@ -78,7 +85,7 @@ offer to create it from `origin/<default>` and push it.
 ## Promote
 
 1. Resync staging (below) so it contains every commit on the default branch.
-2. List the waiting features with the `git log` from Ship step 4. Stop if
+2. List the waiting features with the `git log` from Ship step 5. Stop if
    there are none.
 3. Open the pull request with a fixed, non-conventional title:
 
