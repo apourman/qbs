@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.25.0](https://github.com/apourman/qbs/compare/v0.24.0...v0.25.0) (2026-10-21)
+
+
+### Features
+
+* sync in-flight feature branches with staging in ship-staged ([#79](https://github.com/apourman/qbs/issues/79)) ([4c46e98](https://github.com/apourman/qbs/commit/4c46e98036585b174566435ccf9bd3ce733dc8bd))
+
 ## [0.24.0](https://github.com/apourman/qbs/compare/v0.23.0...v0.24.0) (2026-10-21)
 
 
