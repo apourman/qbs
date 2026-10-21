@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 )
@@ -194,8 +195,9 @@ func (catalog Catalog) Sync() ([]string, error) {
 	return names, catalog.SyncNames(names)
 }
 
-// InstallBuiltins refreshes the catalog entries shipped with this QBS release.
-// Other catalog entries are left untouched.
+// InstallBuiltins refreshes the catalog entries shipped with this QBS release
+// and removes built-in entries a newer release no longer ships. Other catalog
+// entries are left untouched.
 func (catalog Catalog) InstallBuiltins(source fs.FS) ([]string, error) {
 	entries, err := fs.ReadDir(source, ".")
 	if err != nil {
@@ -232,6 +234,20 @@ func (catalog Catalog) InstallBuiltins(source fs.FS) ([]string, error) {
 		}
 		if err := replaceEmbeddedDirectory(source, name, destination); err != nil {
 			return names, fmt.Errorf("install embedded skill %q: %w", name, err)
+		}
+	}
+	installed, err := os.ReadDir(catalog.Root)
+	if err != nil {
+		return names, fmt.Errorf("read skill catalog: %w", err)
+	}
+	for _, entry := range installed {
+		name := entry.Name()
+		_, shipped := slices.BinarySearch(names, name)
+		if shipped || !isBuiltin(filepath.Join(catalog.Root, name)) {
+			continue
+		}
+		if err := catalog.Remove(name); err != nil {
+			return names, fmt.Errorf("retire builtin skill %q: %w", name, err)
 		}
 	}
 	return names, nil

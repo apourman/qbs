@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.19.0](https://github.com/apourman/qbs/compare/v0.18.0...v0.19.0) (2026-10-20)
+
+
+### Features
+
+* clean up shipped worktrees in ship-staged ([#67](https://github.com/apourman/qbs/issues/67)) ([f78895f](https://github.com/apourman/qbs/commit/f78895fa87705cc1f44852161ac3e1584e0be70b))
+
+## [0.18.0](https://github.com/apourman/qbs/compare/v0.17.0...v0.18.0) (2026-10-20)
+
+
+### Features
+
+* replace ship-current-changes with ship-staged ([#65](https://github.com/apourman/qbs/issues/65)) ([68d433c](https://github.com/apourman/qbs/commit/68d433c1bc9e91121653bc5978ecaf01022ea678))
+
+## [0.17.0](https://github.com/apourman/qbs/compare/v0.16.0...v0.17.0) (2026-10-20)
+
+
+### Features
+
+* write goal plans to spec files and paste a short pointer prompt ([#63](https://github.com/apourman/qbs/issues/63)) ([c8caf69](https://github.com/apourman/qbs/commit/c8caf69bfab12b44b89cff48f6efc338cac29181))
+
 ## [0.16.0](https://github.com/apourman/qbs/compare/v0.15.0...v0.16.0) (2026-10-10)
 
 
