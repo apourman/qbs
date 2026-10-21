@@ -12,10 +12,16 @@ The generated prompt must explicitly identify the orchestrator and name the suba
 
 Use the active environment's subagent mechanism without naming or assuming a particular harness. Keep this language separate from harness-specific invocation details, which belong to the active runtime.
 
+## Scope testing to touched code
+
+A goal tests only the code it touches. Never run the entire test suite during a goal, whether for the baseline, ticket validation, review fixes, or post-merge checks. Database, integration, and end-to-end tests are especially expensive and slow.
+
+During discovery, find how the repository runs tests for one package, file, or test name, and put that targeted command pattern in the plan as the test command instead of a full-suite command. Name the expensive suites and how to recognize them. Run an expensive test only when the change directly affects code it exercises, and then only the affected tests. Take each ticket's baseline by running its targeted tests at the ticket branch's starting revision before changing code. Leave the full suite to CI and list it as a remaining gate in the final handoff.
+
 ## Write the plan, paste a pointer
 
 Write the full run instructions to a goal plan file in the primary checkout, at the path the skill names: `S/goal-plan.md` beside `spec.md` for a whole spec, or `S/tickets/goal-plan-NN.md` for one ticket. Goal plan files are not tickets; skip them when discovering tickets. Then generate a short goal prompt that points to it. The plan file is shared, Git-ignored `.specs/` context: never commit it. Start the plan with a `# <Feature> goal plan` heading and the line `Full run instructions for the /goal. The pasted goal prompt points here; follow this file exactly.` If a plan file already exists, read it first; replace it only with a newly approved plan and say what changed.
 
-Keep the pasted prompt at 4,000 bytes or fewer, excluding the `/goal` command. It must state the objective, the plan's absolute path with an instruction to read it in full before acting and follow it exactly, the done condition, the orchestrator and its no-authoring rule, the `BLOCKED` outcome, the turn limit, and the hard safety rules (never weaken tests; no push, pull request, or base-branch change; keep `.specs/`, `.research/`, and `.artifacts/` uncommitted). It must also say to stop without dispatch if the plan file is missing or its approved assignments cannot be honored. Everything else, including the role and ticket dispatch tables, checks, and steps, lives only in the plan.
+Keep the pasted prompt at 4,000 bytes or fewer, excluding the `/goal` command. It must state the objective, the plan's absolute path with an instruction to read it in full before acting and follow it exactly, the done condition, the orchestrator and its no-authoring rule, the `BLOCKED` outcome, the turn limit, and the hard safety rules (never weaken tests; test only touched code, never the full suite; no push, pull request, or base-branch change; keep `.specs/`, `.research/`, and `.artifacts/` uncommitted). It must also say to stop without dispatch if the plan file is missing or its approved assignments cannot be honored. Everything else, including the role and ticket dispatch tables, checks, and steps, lives only in the plan.
 
 Measure both files with a byte count. Print only the prompt in one fenced `text` block, without a leading `/goal`, and report the plan path and both byte counts below it.
