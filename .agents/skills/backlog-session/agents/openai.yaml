@@ -1,0 +1,3 @@
+interface:
+  display_name: "Backlog Session"
+  short_description: "Pick an easy backlog item and ship it through staging"
