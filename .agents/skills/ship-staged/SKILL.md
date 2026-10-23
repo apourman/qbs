@@ -59,7 +59,9 @@ resync staging (below) before continuing.
       launching the app). Check each one is up, for example by hitting its
       URL or reading its log. Ask first for anything you cannot or should
       not do alone: secrets, paid or external services, a device, or a
-      step that touches shared data.
+      step that touches shared data. Keep a list of everything you
+      start or create: process IDs, containers, ports, temporary
+      databases, seeded data, and generated files.
    2. Give the user a checklist: the branch and worktree path; what is
       already running, with its URLs, ports, and log locations; any login
       or test data; anything left for them to do, with exact commands; what
@@ -68,8 +70,14 @@ resync staging (below) before continuing.
    3. Stop and wait. Passing tests and reviews do not replace this gate;
       only the user's explicit approval opens it. When they report a
       problem, fix it, commit, rerun the tests, restart what the fix
-      affects, and hand off again. After approval, stop the processes you
-      started.
+      affects, and hand off again.
+   4. Tear down everything on your list once the hand-off ends, whether
+      the user approves it, abandons it, or the session stops early: stop
+      processes and containers, drop temporary databases and seeded data,
+      and delete generated files that are not part of the change. Check
+      that the ports are free and `git status` shows only the change, then
+      tell the user what you removed and anything you left running at
+      their request.
 5. Push and open the pull request:
 
    ```bash
@@ -107,7 +115,8 @@ resync staging (below) before continuing.
    List the qualifying worktrees and branches, ask once, then run
    `git worktree remove <path>` and `git branch -D <branch>` for each. The
    worktree this session runs in stays: tell the user to archive the session
-   so its host removes it.
+   so its host removes it. If anything from the live test is still
+   running, stop it now.
 10. Sync the other in-flight feature branches (below), so they build on the
    feature that just landed.
 
@@ -228,5 +237,6 @@ by merge only. Stop and report on conflicts.
   approves the live test.
 - Ask before every merge into staging or the default branch, any force-push,
   and deleting branches or worktrees.
-- Stop on conflicts or failed checks and report the state.
+- Stop on conflicts or failed checks and report the state, after tearing
+  down anything the live test started.
 - Preserve unrelated user changes.
