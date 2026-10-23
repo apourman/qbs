@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.29.0](https://github.com/apourman/qbs/compare/v0.28.0...v0.29.0) (2026-10-23)
+
+
+### Features
+
+* add backlog-session skill to start a session on one backlog item ([#89](https://github.com/apourman/qbs/issues/89)) ([2509f08](https://github.com/apourman/qbs/commit/2509f0883329a16a6370a78f19b9fc99ce46e4b1))
+
 ## [0.28.0](https://github.com/apourman/qbs/compare/v0.27.0...v0.28.0) (2026-10-21)
 
 
