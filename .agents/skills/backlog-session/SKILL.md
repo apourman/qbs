@@ -12,8 +12,10 @@ flips it).
 
 ## 1. Load ship-staged
 
-Before anything else, invoke `ship-staged` (with the Skill tool) and run its
-**Preflight**. Every step below follows its branch model: work starts on a
+Before anything else, invoke `ship-staged` (with the Skill tool), run
+`git fetch origin`, and confirm `origin/<staging>` exists, offering to create
+it as ship-staged describes. Its branch-state checks wait until Ship. Every
+step below follows its branch model: work starts on a
 feature branch cut from `origin/<staging>` (`next` by default) and reaches
 staging through its **Ship** action.
 
@@ -25,21 +27,20 @@ Rank them by **ease**: a clear repro or ask, one `area`, no spec or design
 decision needed, a small touched surface you can confirm by a quick look at
 the code. Skip items already `doing`; another session may own them.
 
-Ask once with the question tool: up to four candidates, easiest first and
-marked recommended, each with its number, title, and a one-line reason it is
-easy. If no item is open, say so and stop.
+Take the easiest and say which you picked, its title, and the one-line reason
+it is easy, then move on; the user redirects if they want another. If no item
+is open, say so and stop.
 
 ## 3. Branch
 
 Before the first code edit:
 
 1. Cut the feature branch from `origin/<staging>`, named after the item, e.g.
-   `fix/012-chat-coordinates`. When this session already runs in a worktree,
-   cut the branch there.
-2. Set the item to `status: doing`.
+   `fix/012-chat-coordinates`.
+2. Set the item to `status: doing` in the primary checkout's `.backlog/`.
 3. Rename the session to `Backlog <NNN>: <title>` with the harness's
    session-title tool, so the session list shows which item each session
-   owns. When no such tool exists, skip this.
+   owns.
 
 ## 4. Build
 
