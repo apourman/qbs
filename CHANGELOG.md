@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.30.0](https://github.com/apourman/qbs/compare/v0.29.0...v0.30.0) (2026-10-24)
+
+
+### Features
+
+* add live-testing approval gate before ship-staged opens a PR ([#91](https://github.com/apourman/qbs/issues/91)) ([2897086](https://github.com/apourman/qbs/commit/28970861ef29d10d1ae98abe99b5734bf4b3e463))
+
 ## [0.29.0](https://github.com/apourman/qbs/compare/v0.28.0...v0.29.0) (2026-10-23)
 
 
