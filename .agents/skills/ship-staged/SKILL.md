@@ -51,7 +51,34 @@ resync staging (below) before continuing.
    conflicts. A merge keeps the push fast-forward, and the squash discards the
    history anyway. Run the repository's tests.
 3. Run the final review (below) and commit the fixes it calls for.
-4. Push and open the pull request:
+4. Hand the branch to the user for live testing. Nothing is pushed and no
+   pull request exists yet.
+   1. Set up the environment yourself, so the user only has to test:
+      install dependencies, build, run migrations or seed data, and start
+      any servers or watchers in the background (the `run` skill covers
+      launching the app). Check each one is up, for example by hitting its
+      URL or reading its log. Ask first for anything you cannot or should
+      not do alone: secrets, paid or external services, a device, or a
+      step that touches shared data. Keep a list of everything you
+      start or create: process IDs, containers, ports, temporary
+      databases, seeded data, and generated files.
+   2. Give the user a checklist: the branch and worktree path; what is
+      already running, with its URLs, ports, and log locations; any login
+      or test data; anything left for them to do, with exact commands; what
+      to try, covering the behavior the feature adds and anything nearby it
+      could break; and how to stop what you started.
+   3. Stop and wait. Passing tests and reviews do not replace this gate;
+      only the user's explicit approval opens it. When they report a
+      problem, fix it, commit, rerun the tests, restart what the fix
+      affects, and hand off again.
+   4. Tear down everything on your list once the hand-off ends, whether
+      the user approves it, abandons it, or the session stops early: stop
+      processes and containers, drop temporary databases and seeded data,
+      and delete generated files that are not part of the change. Check
+      that the ports are free and `git status` shows only the change, then
+      tell the user what you removed and anything you left running at
+      their request.
+5. Push and open the pull request:
 
    ```bash
    git push -u origin HEAD
@@ -60,22 +87,22 @@ resync staging (below) before continuing.
 
    Body: a `## Summary` (why the feature exists, what it delivers) and a
    `## Changes` list.
-5. Show the pull request URL and title, and ask before merging. Then:
+6. Show the pull request URL and title, and ask before merging. Then:
 
    ```bash
    gh pr checks <number> --watch
    gh pr merge <number> --squash --delete-branch --subject "<title> (#<number>)"
    ```
 
-6. Report the features now waiting on staging:
+7. Report the features now waiting on staging:
    `git log --oneline --no-merges origin/<default>..origin/<staging>`.
-7. Record the merge in shared context: invoke `update-docs` again, limited
+8. Record the merge in shared context: invoke `update-docs` again, limited
    to `.specs/`, `.backlog/`, `.research/`, and `.artifacts/`, so pages that
    list what waits on staging pick up this pull request. Mark the feature's
    tickets and backlog items `done` with the pull request link. Repository
    docs already shipped in step 1. In the final report, say that both
    `update-docs` runs happened, or which one was skipped and why.
-8. Clean up. Candidates are the feature branch's worktree and the ticket
+9. Clean up. Candidates are the feature branch's worktree and the ticket
    worktrees whose branches are merged into the feature branch
    (`git branch --merged <feature>`). A squash merge hides the feature branch
    from `git branch -d`, so a candidate qualifies only when all hold:
@@ -88,8 +115,9 @@ resync staging (below) before continuing.
    List the qualifying worktrees and branches, ask once, then run
    `git worktree remove <path>` and `git branch -D <branch>` for each. The
    worktree this session runs in stays: tell the user to archive the session
-   so its host removes it.
-9. Sync the other in-flight feature branches (below), so they build on the
+   so its host removes it. If anything from the live test is still
+   running, stop it now.
+10. Sync the other in-flight feature branches (below), so they build on the
    feature that just landed.
 
 ## Final review
@@ -105,7 +133,7 @@ say that both reviews ran and what was fixed or deferred.
 ## Promote
 
 1. Resync staging (below) so it contains every commit on the default branch.
-2. List the waiting features with the `git log` from Ship step 6. Stop if
+2. List the waiting features with the `git log` from Ship step 7. Stop if
    there are none.
 3. Write the patch notes (below).
 4. Open the pull request with a fixed, non-conventional title:
@@ -205,7 +233,10 @@ by merge only. Stop and report on conflicts.
 
 ## Safety rules
 
+- Never push or open a pull request for a Ship or Hotfix before the user
+  approves the live test.
 - Ask before every merge into staging or the default branch, any force-push,
   and deleting branches or worktrees.
-- Stop on conflicts or failed checks and report the state.
+- Stop on conflicts or failed checks and report the state, after tearing
+  down anything the live test started.
 - Preserve unrelated user changes.
