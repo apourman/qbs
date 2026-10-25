@@ -50,8 +50,7 @@ resync staging (below) before continuing.
 2. Merge `origin/<staging>` into the feature branch; stop and report on
    conflicts. A merge keeps the push fast-forward, and the squash discards the
    history anyway. Run the repository's tests.
-3. Run the final review (below) and commit the fixes it calls for.
-4. Hand the branch to the user for live testing. Nothing is pushed and no
+3. Hand the branch to the user for live testing. Nothing is pushed and no
    pull request exists yet.
    1. Set up the environment yourself, so the user only has to test:
       install dependencies, build, run migrations or seed data, and start
@@ -67,7 +66,7 @@ resync staging (below) before continuing.
       or test data; anything left for them to do, with exact commands; what
       to try, covering the behavior the feature adds and anything nearby it
       could break; and how to stop what you started.
-   3. Stop and wait. Passing tests and reviews do not replace this gate;
+   3. Stop and wait. Passing tests do not replace this gate;
       only the user's explicit approval opens it. When they report a
       problem, fix it, commit, rerun the tests, restart what the fix
       affects, and hand off again.
@@ -78,6 +77,8 @@ resync staging (below) before continuing.
       that the ports are free and `git status` shows only the change, then
       tell the user what you removed and anything you left running at
       their request.
+4. Run the final review (below) on the approved branch. If its fixes
+   change behavior the user tested, ask whether to hand off again.
 5. Push and open the pull request:
 
    ```bash
@@ -87,7 +88,9 @@ resync staging (below) before continuing.
 
    Body: a `## Summary` (why the feature exists, what it delivers) and a
    `## Changes` list.
-6. Show the pull request URL and title, and ask before merging. Then:
+6. Show the pull request URL and title, and ask before merging. If
+   anything was committed after the final review (a CI fix, pull request
+   feedback), rerun the review, then push its fixes. Then:
 
    ```bash
    gh pr checks <number> --watch
@@ -122,9 +125,10 @@ resync staging (below) before continuing.
 
 ## Final review
 
-Before a branch merges into staging or the default branch, review everything
-it adds over its base. Invoke `code-review` and `ponytail-review` (with the
-Skill tool) on the changes since `origin/<base>`; they are independent, so
+It must cover the head that merges. Review everything the branch adds over
+its base. Invoke `code-review` and `ponytail-review` (with the Skill tool) on
+the changes since `origin/<staging>` (the default branch for a Hotfix); they
+are independent, so
 run them in parallel. Show both reports side by side, then ask which findings
 to fix. Commit the fixes to the branch and rerun the repository's tests. If a
 skill is unavailable, say so and continue with the other. In the final report,
@@ -235,6 +239,7 @@ by merge only. Stop and report on conflicts.
 
 - Never push or open a pull request for a Ship or Hotfix before the user
   approves the live test.
+- Never merge a Ship or Hotfix whose head the final review has not covered.
 - Ask before every merge into staging or the default branch, any force-push,
   and deleting branches or worktrees.
 - Stop on conflicts or failed checks and report the state, after tearing
