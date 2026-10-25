@@ -90,7 +90,7 @@ resync staging (below) before continuing.
    `## Changes` list.
 6. Show the pull request URL and title, and ask before merging. If
    anything was committed after the final review (a CI fix, pull request
-   feedback), rerun the review first. Then:
+   feedback), rerun the review, then push its fixes. Then:
 
    ```bash
    gh pr checks <number> --watch
@@ -125,12 +125,10 @@ resync staging (below) before continuing.
 
 ## Final review
 
-Run it last, once the code has settled: after every round of live testing
-and fixing, right before the merge, never after the first implementation.
-It must cover the exact commit that merges, so any commit after it other
-than its own fixes means running it again. Review everything the branch adds
-over its base. Invoke `code-review` and `ponytail-review` (with the
-Skill tool) on the changes since `origin/<base>`; they are independent, so
+It must cover the head that merges. Review everything the branch adds over
+its base. Invoke `code-review` and `ponytail-review` (with the Skill tool) on
+the changes since `origin/<staging>` (the default branch for a Hotfix); they
+are independent, so
 run them in parallel. Show both reports side by side, then ask which findings
 to fix. Commit the fixes to the branch and rerun the repository's tests. If a
 skill is unavailable, say so and continue with the other. In the final report,
