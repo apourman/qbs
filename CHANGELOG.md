@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.31.0](https://github.com/apourman/qbs/compare/v0.30.0...v0.31.0) (2026-10-25)
+
+
+### Features
+
+* run ship-staged's final review right before merging ([#93](https://github.com/apourman/qbs/issues/93)) ([f576db6](https://github.com/apourman/qbs/commit/f576db666fc2f64d7f5b59f7dee14e474d3daea8))
+
 ## [0.30.0](https://github.com/apourman/qbs/compare/v0.29.0...v0.30.0) (2026-10-24)
 
 
