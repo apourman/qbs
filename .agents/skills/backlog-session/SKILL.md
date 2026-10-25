@@ -53,7 +53,7 @@ continue.
 ## 5. Ship
 
 Run ship-staged's **Ship** action on the feature branch. It owns docs, the
-final review, the live-test hand-off, the pull request, merging, and marking
+live-test hand-off, the final review, the pull request, merging, and marking
 the item `done`; follow its asks. The hand-off is a hard stop: set up and
 start what the item needs for testing, tell the user what to try for it, and
 wait for their approval before pushing.
