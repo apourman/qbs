@@ -27,6 +27,9 @@ What was seen or asked for, with links and screenshots.
 - `kind` and `area` are free text. Reuse values that other items already use.
   When the item belongs to a domain or feature, set `area` to the directory
   name used in `.specs/` and `.research/`.
+- Store images in `.backlog/items/assets/` as `<NNN>-<n>.<ext>` and embed them
+  with a relative path, such as `![Arrow stays put](assets/012-1.png)`, so they
+  render in `qbs backlog` and any Markdown preview.
 - Never renumber or rename item files. Other records refer to items by number,
   for example "Backlog 012".
 

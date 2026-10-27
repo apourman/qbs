@@ -109,6 +109,7 @@
   .md p { margin:0 0 10px; }
   .md ul, .md ol { margin:0 0 10px; padding-left:22px; }
   .md li { margin:3px 0; }
+  .md img { max-width:100%; border:1px solid var(--line); border-radius:6px; }
   .md li > ul, .md li > ol { margin:2px 0; }
   .md li.task { list-style:none; margin-left:-20px; }
   .md li.task input { accent-color:var(--accent); margin:0 6px 0 0; }
@@ -196,7 +197,7 @@ const num = i => i.id.split('-')[0];
 const pill = (cls, text) => text ? `<span class="pill ${esc(cls)}">${esc(text)}</span>` : '';
 
 // Markdown: escape everything first, then add a small, known set of tags.
-// ponytail: covers headings, lists (nested), tasks, quotes, fences, code, bold/italic, links; swap for a library if tickets need tables.
+// ponytail: covers headings, lists (nested), tasks, quotes, fences, code, bold/italic, links, images; swap for a library if tickets need tables.
 // TASK matches the same task lines md() renders as checkboxes: whitespace must follow the box.
 const TASK = /^((?:\s*>)*\s*(?:[-*+]|\d+[.)])\s+)\[([ xX])\](?=\s)/;
 function md(src) {
@@ -205,11 +206,12 @@ function md(src) {
   const emphasis = s => esc(s)
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/(^|[^*\w])\*(?!\s)(.+?)\*(?!\w)/g, '$1<em>$2</em>');
-  // Code spans and links are split out first, so emphasis never reaches inside them.
-  const inline = s => s.split(/(`[^`]+`|\[[^\]]+\]\([^)\s]+\))/).map((part, i) => {
+  // Code spans, links, and images are split out first, so emphasis never reaches inside them.
+  const inline = s => s.split(/(`[^`]+`|!?\[[^\]]*\]\([^)\s]+\))/).map((part, i) => {
     if (i % 2 === 0) return emphasis(part);
     if (part[0] === '`') return `<code>${esc(part.slice(1, -1))}</code>`;
-    const [, text, href] = part.match(/^\[([^\]]+)\]\(([^)\s]+)\)$/);
+    const [, img, text, href] = part.match(/^(!?)\[([^\]]*)\]\(([^)\s]+)\)$/);
+    if (img) return `<img src="${esc(safeHref(href))}" alt="${esc(text)}">`;
     return `<a href="${esc(safeHref(href))}" target="_blank" rel="noopener">${emphasis(text)}</a>`;
   }).join('');
   const isList = l => /^\s*([-*+]|\d+[.)])\s+/.test(l);

@@ -1,0 +1,3 @@
+interface:
+  display_name: "Backlog Add"
+  short_description: "Log bugs, ideas, and screenshots as structured backlog items"
