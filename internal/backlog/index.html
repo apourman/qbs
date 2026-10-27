@@ -64,10 +64,10 @@
 
   .pill { display:inline-flex; align-items:center; font-size:12px; font-weight:500; border-radius:999px; padding:1px 8px; white-space:nowrap;
           background:var(--sunk); color:var(--muted); border:1px solid var(--line); }
-  .card .pill { background:var(--bg); }
-  .pill.bug, .card .pill.bug { background:var(--bug-soft); color:var(--bug); border-color:transparent; }
-  .pill.feature, .card .pill.feature { background:var(--feature-soft); color:var(--feature); border-color:transparent; }
-  .pill.polish, .card .pill.polish { background:var(--polish-soft); color:var(--polish); border-color:transparent; }
+  .pill.bug { background:var(--bug-soft); color:var(--bug); border-color:transparent; }
+  .pill.feature { background:var(--feature-soft); color:var(--feature); border-color:transparent; }
+  .pill.polish { background:var(--polish-soft); color:var(--polish); border-color:transparent; }
+  #preview input { pointer-events:none; }
   .st::before { content:""; width:9px; height:9px; border-radius:50%; border:2px solid var(--muted); flex:none; }
   .st.doing::before { border-color:var(--doing); background:conic-gradient(var(--doing) 0 50%, transparent 0); }
   .st.done::before { border-color:var(--done); background:var(--done); }
@@ -197,14 +197,21 @@ const pill = (cls, text) => text ? `<span class="pill ${esc(cls)}">${esc(text)}<
 
 // Markdown: escape everything first, then add a small, known set of tags.
 // ponytail: covers headings, lists (nested), tasks, quotes, fences, code, bold/italic, links; swap for a library if tickets need tables.
-const TASK = /^((?:\s*>)*\s*(?:[-*+]|\d+[.)])\s+)\[([ xX])\]/;
+// TASK matches the same task lines md() renders as checkboxes: whitespace must follow the box.
+const TASK = /^((?:\s*>)*\s*(?:[-*+]|\d+[.)])\s+)\[([ xX])\](?=\s)/;
 function md(src) {
   let task = 0;
   const safeHref = h => /^(https?:|mailto:|#|\/|\.)/i.test(h) || !h.includes(':') ? h : '#';
-  const inline = s => s.split(/(`[^`]+`)/).map((part, i) => i % 2 ? `<code>${esc(part.slice(1, -1))}</code>` : esc(part)
-    .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_, text, href) => `<a href="${safeHref(href)}" target="_blank" rel="noopener">${text}</a>`)
+  const emphasis = s => esc(s)
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/(^|[^*\w])\*(?!\s)(.+?)\*(?!\w)/g, '$1<em>$2</em>')).join('');
+    .replace(/(^|[^*\w])\*(?!\s)(.+?)\*(?!\w)/g, '$1<em>$2</em>');
+  // Code spans and links are split out first, so emphasis never reaches inside them.
+  const inline = s => s.split(/(`[^`]+`|\[[^\]]+\]\([^)\s]+\))/).map((part, i) => {
+    if (i % 2 === 0) return emphasis(part);
+    if (part[0] === '`') return `<code>${esc(part.slice(1, -1))}</code>`;
+    const [, text, href] = part.match(/^\[([^\]]+)\]\(([^)\s]+)\)$/);
+    return `<a href="${esc(safeHref(href))}" target="_blank" rel="noopener">${emphasis(text)}</a>`;
+  }).join('');
   const isList = l => /^\s*([-*+]|\d+[.)])\s+/.test(l);
   const isBlock = l => /^(#{1,6}\s|```|>|\s*([-*_])(\s*\2){2,}\s*$)/.test(l) || isList(l);
   const indent = l => l.match(/^\s*/)[0].length;
@@ -260,9 +267,9 @@ function toggleTask(body, n) {
   }).join('\n');
 }
 
-const tasks = body => { const all = [...md(body).matchAll(/data-task="\d+"( checked)?/g)]; return [all.filter(m => m[1]).length, all.length]; };
-// excerpt is the first paragraph of notes as plain text, for card previews.
-const excerpt = body => (md(body).match(/<p>(.*?)<\/p>/)?.[1] ?? '').replace(/<[^>]+>/g, '');
+// tasks and excerpt read card details from md() output: [checked, total] and the first paragraph as plain text.
+const tasks = html => { const all = [...html.matchAll(/data-task="\d+"( checked)?/g)]; return [all.filter(m => m[1]).length, all.length]; };
+const excerpt = html => (html.match(/<p>(.*?)<\/p>/)?.[1] ?? '').replace(/<[^>]+>/g, '');
 
 function fillOptions(selectId, listId, key) {
   const sel = $(selectId), keep = sel.value;
@@ -285,7 +292,7 @@ function renderBoard() {
 }
 
 function card(i) {
-  const [d, n] = tasks(i.body), ex = excerpt(i.body);
+  const html = md(i.body), [d, n] = tasks(html), ex = excerpt(html);
   return `<div class="card ${esc(i.status)} ${current?.id === i.id && open ? 'sel' : ''}" draggable="true" data-id="${esc(i.id)}">
     <div class="t">${esc(i.title)}</div>${ex ? `<div class="ex">${ex}</div>` : ''}
     ${n ? `<div class="bar"><i style="width:${Math.round(100 * d / n)}%"></i></div>` : ''}
@@ -350,7 +357,11 @@ async function save(id, data, banner) {
 
 async function load() {
   items = await (await fetch('api/items')).json();
-  if (current) current = items.find(i => i.id === current.id) ?? null;
+  // While editing, keep the version the edit started from, so a stale save is still refused.
+  if (current && !editing) {
+    current = items.find(i => i.id === current.id) ?? null;
+    if (!current) open = false;
+  }
   fillOptions('fArea', 'areas', 'area');
   fillOptions('fKind', 'kinds', 'kind');
   renderBoard();
