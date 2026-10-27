@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.33.0](https://github.com/apourman/qbs/compare/v0.32.0...v0.33.0) (2026-10-27)
+
+
+### Features
+
+* add backlog-add skill with images on the backlog board ([#98](https://github.com/apourman/qbs/issues/98)) ([de14868](https://github.com/apourman/qbs/commit/de14868d82258d8e8da3e158ef4eb61b8cfda6ca))
+
 ## [0.32.0](https://github.com/apourman/qbs/compare/v0.31.0...v0.32.0) (2026-10-27)
 
 
