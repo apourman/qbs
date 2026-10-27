@@ -45,8 +45,9 @@ Before the first code edit:
 ## 4. Build
 
 Work the item as `docs/agents/backlog.md` describes, using the `ponytail`
-skill and the repository's tests. When the item turns out larger than it
-looked (it needs a spec, or a decision only the user can make), stop and
+skill and the repository's tests. Keep the feature branch current as
+ship-staged's **Stay current** describes. When the item turns out larger
+than it looked (it needs a spec, or a decision only the user can make), stop and
 report: offer to record findings on the item and return it to `open`, or to
 continue.
 
