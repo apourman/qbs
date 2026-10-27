@@ -1,6 +1,6 @@
 ---
 name: ship-staged
-description: Ship work through a long-lived staging branch (`next` by default). Squash-merge a feature branch into staging, promote staging to the default branch with a merge commit and published patch notes, or hotfix the default branch, each through a GitHub pull request, keeping the branch being worked on merged up with its base throughout. Use when the user wants to ship, promote, release, or hotfix a branch.
+description: Ship work through a long-lived staging branch (`next` by default). Squash-merge a feature branch into staging, promote staging to the default branch with a merge commit and published patch notes, or hotfix the default branch, each through a GitHub pull request. Use when the user wants to ship, promote, release, or hotfix a branch.
 ---
 
 # ship-staged
@@ -42,25 +42,27 @@ resync staging (below) before continuing.
 
 ## Stay current
 
-The branch this session works on stays merged up with its base,
-`origin/<staging>` (`origin/<default>` for a Hotfix), the whole time, not only
-at ship time. Staging already contains the default branch, so this also keeps
-the branch current with it. Sync when work starts, before each live-test
-hand-off, before the final review, before pushing, and before merging:
+The branch this session works on stays merged up with its base and the
+default branch the whole time, not only at ship time. Sync when work starts,
+before each live-test hand-off, before the final review, before pushing, and
+before merging:
 
 ```bash
 git fetch origin
-git merge origin/<base>
+git merge origin/<staging>   # skip for a Hotfix
+git merge origin/<default>
 ```
 
-Merge, never rebase: rebasing would force-push the branch and break ticket
-worktrees, and the squash at ship time discards the merge commits. Stop and
-report on conflicts. After a merge that brought anything in, rerun the
+Staging can lag the default branch until it is resynced, so merge both. Merge,
+never rebase: rebasing would force-push the branch and break ticket
+worktrees, and the squash at ship time discards the merge commits. On
+conflicts, stop and report; once they are resolved, rerun the final review if
+it already ran. After a merge that brought anything in, rerun the
 repository's tests. Do this without asking; it touches only this branch.
 
-Only ever sync the session's own branch. Never merge staging into other
-feature branches or offer to: each one keeps itself current when its own
-session works on it.
+Sync only the session's own branch. Other feature branches keep themselves
+current when their own sessions work on them, so never merge into them or
+offer to.
 
 ## Ship
 
@@ -97,8 +99,9 @@ session works on it.
       that the ports are free and `git status` shows only the change, then
       tell the user what you removed and anything you left running at
       their request.
-4. Stay current, then run the final review (below) on the approved branch. If its fixes
-   change behavior the user tested, ask whether to hand off again.
+4. Stay current, then run the final review (below) on the approved
+   branch. If its fixes change behavior the user tested, ask whether to
+   hand off again.
 5. Stay current, then push and open the pull request:
 
    ```bash
@@ -110,9 +113,8 @@ session works on it.
    `## Changes` list.
 6. Show the pull request URL and title, and ask before merging. If
    anything was committed after the final review (a CI fix, pull request
-   feedback), rerun the review, then push its fixes. If `origin/<staging>`
-   moved since the push, stay current and push again; a merge that needed
-   conflict resolution needs the review rerun. Then:
+   feedback), rerun the review, then push its fixes. If the base moved
+   since the push, stay current and push again. Then:
 
    ```bash
    gh pr checks <number> --watch
@@ -141,12 +143,13 @@ session works on it.
    `git worktree remove <path>` and `git branch -D <branch>` for each. The
    worktree this session runs in stays: tell the user to archive the session
    so its host removes it. If anything from the live test is still
-   running, stop it now. Do not sync or offer to sync other branches.
+   running, stop it now.
 
 ## Final review
 
 It must cover the head that merges. Review everything the branch adds over
-its base. Invoke `code-review` and `ponytail-review` (with the Skill tool) on
+its base. A clean Stay current merge leaves that unchanged, so it needs no
+rerun; a merge with resolved conflicts does. Invoke `code-review` and `ponytail-review` (with the Skill tool) on
 the changes since `origin/<staging>` (the default branch for a Hotfix); they
 are independent, so
 run them in parallel. Show both reports side by side, then ask which findings
