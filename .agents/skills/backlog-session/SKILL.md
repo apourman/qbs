@@ -23,7 +23,8 @@ staging through its **Ship** action.
 ## 2. Pick
 
 For a **new idea**, invoke `backlog-add` (with the Skill tool) to log it with
-any images the user gave, then take that item and move on to Branch.
+any images the user gave, then take the item the user meant to build (ask
+when it logged or touched several) and move on to Branch.
 
 Otherwise, read every item in the primary checkout's `.backlog/items/` (see
 `docs/agents/backlog.md` for the format). Candidates have `status: open`.

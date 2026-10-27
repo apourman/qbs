@@ -206,15 +206,12 @@ function md(src) {
   const emphasis = s => esc(s)
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/(^|[^*\w])\*(?!\s)(.+?)\*(?!\w)/g, '$1<em>$2</em>');
-  // Code spans and links are split out first, so emphasis never reaches inside them.
-  const inline = s => s.split(/(`[^`]+`|!\[[^\]]*\]\([^)\s]+\)|\[[^\]]+\]\([^)\s]+\))/).map((part, i) => {
+  // Code spans, links, and images are split out first, so emphasis never reaches inside them.
+  const inline = s => s.split(/(`[^`]+`|!?\[[^\]]*\]\([^)\s]+\))/).map((part, i) => {
     if (i % 2 === 0) return emphasis(part);
     if (part[0] === '`') return `<code>${esc(part.slice(1, -1))}</code>`;
-    if (part[0] === '!') {
-      const [, alt, src] = part.match(/^!\[([^\]]*)\]\(([^)\s]+)\)$/);
-      return `<img src="${esc(safeHref(src))}" alt="${esc(alt)}">`;
-    }
-    const [, text, href] = part.match(/^\[([^\]]+)\]\(([^)\s]+)\)$/);
+    const [, img, text, href] = part.match(/^(!?)\[([^\]]*)\]\(([^)\s]+)\)$/);
+    if (img) return `<img src="${esc(safeHref(href))}" alt="${esc(text)}">`;
     return `<a href="${esc(safeHref(href))}" target="_blank" rel="noopener">${emphasis(text)}</a>`;
   }).join('');
   const isList = l => /^\s*([-*+]|\d+[.)])\s+/.test(l);
