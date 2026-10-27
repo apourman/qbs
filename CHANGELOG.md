@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.32.0](https://github.com/apourman/qbs/compare/v0.31.0...v0.32.0) (2026-10-27)
+
+
+### Features
+
+* keep the working branch current with origin in ship-staged ([#95](https://github.com/apourman/qbs/issues/95)) ([1dee602](https://github.com/apourman/qbs/commit/1dee602e3ca84821eae5ef4ca778c0d4159f6db0))
+* redesign the backlog UI as a kanban board with Markdown notes ([#96](https://github.com/apourman/qbs/issues/96)) ([bc7c4f2](https://github.com/apourman/qbs/commit/bc7c4f292953349410e3c2a5dcbd9920b5062730))
+
 ## [0.31.0](https://github.com/apourman/qbs/compare/v0.30.0...v0.31.0) (2026-10-25)
 
 
