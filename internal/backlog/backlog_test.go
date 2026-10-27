@@ -69,3 +69,24 @@ func TestCreateAndUpdateKeepItemFilesCompatible(t *testing.T) {
 		t.Fatalf("GET = %s (%v)", rec.Body, err)
 	}
 }
+
+func TestServesEmbeddedImages(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(dir, "assets"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "assets", "012-1.png"), []byte("png"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	h := Handler(dir)
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, httptest.NewRequest("GET", "/assets/012-1.png", nil))
+	if rec.Code != http.StatusOK || rec.Body.String() != "png" {
+		t.Fatalf("GET asset = %d %q", rec.Code, rec.Body.String())
+	}
+	rec = httptest.NewRecorder()
+	h.ServeHTTP(rec, httptest.NewRequest("GET", "/assets/../012-old.md", nil))
+	if rec.Code == http.StatusOK {
+		t.Fatal("asset route escaped the assets directory")
+	}
+}

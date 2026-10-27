@@ -81,6 +81,8 @@ func Handler(dir string) http.Handler {
 		w.Header().Set("content-type", "text/html; charset=utf-8")
 		_, _ = w.Write(page)
 	})
+	// Items embed images as assets/<file>, which resolves here from the page.
+	mux.Handle("GET /assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir(filepath.Join(dir, "assets")))))
 	mux.HandleFunc("GET /api/items", func(w http.ResponseWriter, r *http.Request) {
 		items, err := list(dir)
 		if err != nil {

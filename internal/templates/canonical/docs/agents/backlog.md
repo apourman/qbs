@@ -29,7 +29,7 @@ What was seen or asked for, with links and screenshots.
   name used in `.specs/` and `.research/`.
 - Store images in `.backlog/items/assets/` as `<NNN>-<n>.<ext>` and embed them
   with a relative path, such as `![Arrow stays put](assets/012-1.png)`, so they
-  render in any Markdown preview.
+  render in `qbs backlog` and any Markdown preview.
 - Never renumber or rename item files. Other records refer to items by number,
   for example "Backlog 012".
 
