@@ -1,6 +1,6 @@
 ---
 name: backlog-session
-description: Start a session that works one `.backlog/` item end to end and ships it with `ship-staged`. Picks the easiest open item unless told otherwise. Use when the user wants to work on a backlog item or ticket, or asks for something easy to pick up.
+description: Start a session that works one `.backlog/` item end to end and ships it with `ship-staged`. Picks the easiest open item unless told otherwise, or logs a new idea with `backlog-add` and works that. Use when the user wants to work on a backlog item or ticket, asks for something easy to pick up, or brings a new idea to build straight away.
 ---
 
 # backlog-session
@@ -8,7 +8,8 @@ description: Start a session that works one `.backlog/` item end to end and ship
 One session, one backlog item, built on staging from the first edit and
 shipped through it. The user's words after the skill name narrow the pick: an
 item number, a `kind` or `area`, or a size ("easy" is the default; "meaty"
-flips it).
+flips it). Words that describe a new bug or idea instead of narrowing the
+pick make it a **new idea** session.
 
 ## 1. Load ship-staged
 
@@ -21,7 +22,10 @@ staging through its **Ship** action.
 
 ## 2. Pick
 
-Read every item in the primary checkout's `.backlog/items/` (see
+For a **new idea**, invoke `backlog-add` (with the Skill tool) to log it with
+any images the user gave, then take that item and move on to Branch.
+
+Otherwise, read every item in the primary checkout's `.backlog/items/` (see
 `docs/agents/backlog.md` for the format). Candidates have `status: open`.
 Rank them by **ease**: a clear repro or ask, one `area`, no spec or design
 decision needed, a small touched surface you can confirm by a quick look at
