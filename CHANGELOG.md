@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.34.0](https://github.com/apourman/qbs/compare/v0.33.0...v0.34.0) (2026-10-30)
+
+
+### Features
+
+* track a spec's tickets as backlog items in its area ([#100](https://github.com/apourman/qbs/issues/100)) ([936d7ba](https://github.com/apourman/qbs/commit/936d7ba3f5b6a21e109e27c27ee4ccb5b4b9cd7e))
+
 ## [0.33.0](https://github.com/apourman/qbs/compare/v0.32.0...v0.33.0) (2026-10-27)
 
 
