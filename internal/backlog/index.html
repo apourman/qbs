@@ -67,6 +67,8 @@
   .pill.bug { background:var(--bug-soft); color:var(--bug); border-color:transparent; }
   .pill.feature { background:var(--feature-soft); color:var(--feature); border-color:transparent; }
   .pill.polish { background:var(--polish-soft); color:var(--polish); border-color:transparent; }
+  .pill.blocked { background:var(--bug-soft); color:var(--bug); border-color:transparent; }
+  #specLink { font-size:12px; color:var(--accent); }
   #preview input { pointer-events:none; }
   .st::before { content:""; width:9px; height:9px; border-radius:50%; border:2px solid var(--muted); flex:none; }
   .st.doing::before { border-color:var(--doing); background:conic-gradient(var(--doing) 0 50%, transparent 0); }
@@ -137,6 +139,7 @@
   <div class="chips" id="fStatus"></div>
   <select id="fKind"><option value="">all kinds</option></select>
   <select id="fArea"><option value="">all areas</option></select>
+  <a id="specLink" target="_blank" rel="noopener" hidden>spec</a>
   <div class="spacer"></div>
   <button id="new" class="btn primary">+ New item</button>
 </header>
@@ -168,6 +171,7 @@
           <label>kind <input name="kind" list="kinds"></label>
           <label>area <input name="area" list="areas"></label>
           <label>source <input name="source"></label>
+          <label>blocked by <input name="blocked-by" placeholder="012, 014"></label>
         </div>
       </div>
       <div class="banner" id="fBanner" hidden></div>
@@ -183,17 +187,20 @@
 <datalist id="kinds"></datalist><datalist id="areas"></datalist>
 <script>
 const STATUSES = ['open', 'doing', 'done', 'dropped'];
-const FIELDS = ['title', 'kind', 'area', 'status', 'source', 'body'];
+const FIELDS = ['title', 'kind', 'area', 'status', 'source', 'blocked-by', 'body'];
 const $ = id => document.getElementById(id);
 const form = $('form');
 const columns = new Set(['open', 'doing', 'done']);
-let items = [], current = null, editing = false, open = false, snapshot = '';
+let items = [], specs = [], current = null, editing = false, open = false, snapshot = '';
 let full = false;
 try { full = localStorage.getItem('backlog.full') === '1'; } catch {}
 
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]);
 const uniq = key => [...new Set(items.map(i => i[key]).filter(Boolean))].sort();
 const num = i => i.id.split('-')[0];
+// blockers lists the numbers in an item's blocked-by that are not done yet.
+const blockers = i => (i['blocked-by'] ?? '').match(/\d+/g)?.filter(n => items.find(b => +num(b) === +n)?.status !== 'done') ?? [];
+const blockedPill = i => { const b = blockers(i); return b.length && i.status !== 'done' ? `<span class="pill blocked">blocked by ${esc(b.join(', '))}</span>` : ''; };
 const pill = (cls, text) => text ? `<span class="pill ${esc(cls)}">${esc(text)}</span>` : '';
 
 // Markdown: escape everything first, then add a small, known set of tags.
@@ -283,6 +290,9 @@ function fillOptions(selectId, listId, key) {
 
 function renderBoard() {
   const kind = $('fKind').value, area = $('fArea').value, q = $('fText').value.toLowerCase();
+  $('specLink').hidden = !specs.includes(area);
+  $('specLink').href = `specs/${encodeURIComponent(area)}/spec.md`;
+  $('specLink').textContent = `${area} spec ↗`;
   const match = i => (!kind || i.kind === kind) && (!area || i.area === area) && (!q || `${i.id} ${i.title} ${i.body}`.toLowerCase().includes(q));
   const other = [...new Set(items.map(i => i.status).filter(s => s && !STATUSES.includes(s)))];
   $('fStatus').innerHTML = [...STATUSES, ...other].map(s => `<span class="chip st ${esc(s)} ${columns.has(s) ? 'on' : ''}" data-status="${esc(s)}">${esc(s)}</span>`).join('');
@@ -298,7 +308,7 @@ function card(i) {
   return `<div class="card ${esc(i.status)} ${current?.id === i.id && open ? 'sel' : ''}" draggable="true" data-id="${esc(i.id)}">
     <div class="t">${esc(i.title)}</div>${ex ? `<div class="ex">${ex}</div>` : ''}
     ${n ? `<div class="bar"><i style="width:${Math.round(100 * d / n)}%"></i></div>` : ''}
-    <div class="m"><span class="num">#${esc(num(i))}</span>${pill(i.kind, i.kind)}${pill('', i.area)}${n ? `<span class="num prog">${d}/${n}</span>` : ''}</div></div>`;
+    <div class="m"><span class="num">#${esc(num(i))}</span>${pill(i.kind, i.kind)}${pill('', i.area)}${blockedPill(i)}${n ? `<span class="num prog">${d}/${n}</span>` : ''}</div></div>`;
 }
 
 function renderDrawer() {
@@ -312,7 +322,9 @@ function renderDrawer() {
   const i = current;
   $('rFile').textContent = `${i.id}.md`;
   $('rTitle').textContent = i.title;
-  $('rProps').innerHTML = `<span class="status st ${esc(i.status)}">${esc(i.status)}</span>${pill(i.kind, i.kind)}${pill('', i.area)}
+  $('rProps').innerHTML = `<span class="status st ${esc(i.status)}">${esc(i.status)}</span>${pill(i.kind, i.kind)}${pill('', i.area)}${blockedPill(i)}
+    ${specs.includes(i.area) ? `<a href="specs/${encodeURIComponent(i.area)}/spec.md" target="_blank" rel="noopener">${esc(i.area)} spec ↗</a>` : ''}
+    ${i['blocked-by'] ? `<span><span class="k">blocked by</span>${esc(i['blocked-by'])}</span>` : ''}
     ${i.source ? `<span><span class="k">source</span>${esc(i.source)}</span>` : ''}
     ${i.created ? `<span><span class="k">created</span>${esc(i.created)}</span>` : ''}`;
   $('rBody').innerHTML = i.body ? md(i.body) : '<p class="blank">No notes yet.</p>';
@@ -358,7 +370,7 @@ async function save(id, data, banner) {
 }
 
 async function load() {
-  items = await (await fetch('api/items')).json();
+  [items, specs] = await Promise.all(['api/items', 'api/specs'].map(async u => (await fetch(u)).json()));
   // While editing, keep the version the edit started from, so a stale save is still refused.
   if (current && !editing) {
     current = items.find(i => i.id === current.id) ?? null;

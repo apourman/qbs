@@ -32,6 +32,7 @@ Usage:
   qbs init
   qbs sync
   qbs backlog [port]
+  qbs backlog new <title>
   qbs skills import <path> [--force]
   qbs skills list
   qbs skills sync
@@ -75,6 +76,14 @@ func RunWithInput(args []string, input io.Reader, stdout, stderr io.Writer) erro
 			return initializeRepository(dir, stdout, stderr)
 		})
 	case "backlog":
+		if len(args) > 1 && args[1] == "new" {
+			if len(args) != 3 {
+				return errors.New("backlog new needs one quoted title")
+			}
+			return fromCurrentDirectory(func(dir string) error {
+				return newBacklogItem(dir, args[2], stdout)
+			})
+		}
 		if len(args) > 2 {
 			return errors.New("backlog accepts an optional port")
 		}

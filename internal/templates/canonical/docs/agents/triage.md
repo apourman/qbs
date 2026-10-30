@@ -1,8 +1,9 @@
 # Local triage
 
-Triage the authoritative Markdown ticket record under
-`.specs/<domain-or-feature>/tickets/`. Store the ticket's current state in its
-`Status` field using one of these values:
+Triage the authoritative Markdown record: a backlog item in
+`.backlog/items/` (see `docs/agents/backlog.md`). Store its triage state in a
+`triage:` frontmatter field, separate from `status`, using one of these
+values:
 
 - `needs-triage`: the issue has not been assessed.
 - `needs-info`: more information is required before the issue can proceed.
@@ -13,7 +14,7 @@ Triage the authoritative Markdown ticket record under
 ## Local record workflow
 
 - Read the issue and its related local specification before changing status.
-- Update the issue's `Status` field when triage changes its state.
+- Update the item's `triage` field when triage changes its state.
 - Append questions, answers, investigation notes, and decisions to a
   `## Triage notes` section in the issue record.
 - Store an implementation-ready brief in an `## Agent brief` section of the

@@ -2,6 +2,15 @@
 
 Use this contract in every QBS skill that prepares a `/goal` prompt.
 
+## Tickets are backlog items
+
+A spec's tickets are the backlog items whose `area` is the spec's `.specs/`
+directory name (`docs/agents/backlog.md`). `NN` names a ticket by its item
+number, the item file `.backlog/items/NN-*.md` is the ticket, its `blocked-by`
+gives the blocking edges, and its `status` (`open`, `doing`, `done`) is the
+ticket status. Older `S/tickets/` folders are legacy context: read them only
+when a spec has no area items.
+
 ## Separate orchestration from work
 
 Treat the active goal session as the orchestrator. Record its model and reasoning effort when visible, but do not ask the user to assign that model as though it were a worker. The orchestrator reads, plans, delegates, monitors, and reviews agent results; it does not author implementation code or project documents.
@@ -20,9 +29,9 @@ During discovery, find how the repository runs tests for one package, file, or t
 
 ## Write the plan, save the prompt, paste a pointer
 
-Write the full run instructions to a goal plan file in the primary checkout, at the path the skill names: `S/goal-plan.md` beside `spec.md` for a whole spec, or `S/tickets/goal-plan-NN.md` for one ticket. Goal plan files are not tickets; skip them when discovering tickets. Then generate a short goal prompt that points to it. The plan file is shared, Git-ignored `.specs/` context: never commit it. Start the plan with a `# <Feature> goal plan` heading and the line `Full run instructions for the /goal. The pasted goal prompt points here; follow this file exactly.` If a plan file already exists, read it first; replace it only with a newly approved plan and say what changed.
+Write the full run instructions to a goal plan file in the primary checkout, at the path the skill names: `S/goal-plan.md` beside `spec.md` for a whole spec, or `S/goal-plan-NN.md` for one ticket. Then generate a short goal prompt that points to it. The plan file is shared, Git-ignored `.specs/` context: never commit it. Start the plan with a `# <Feature> goal plan` heading and the line `Full run instructions for the /goal. The pasted goal prompt points here; follow this file exactly.` If a plan file already exists, read it first; replace it only with a newly approved plan and say what changed.
 
-Save the exact generated prompt beside the plan, at the path the skill names: `S/goal-prompt.md` for a whole spec, or `S/tickets/goal-prompt-NN.md` for one ticket. The file holds only the prompt text, identical to the printed block, so a goal that stops before finishing can be resumed by starting `/goal` in a new session and pasting it again; the run state and handoffs record where the work is. Goal prompt files follow the plan-file rules: they are not tickets, are never committed, and are replaced only together with their plan.
+Save the exact generated prompt beside the plan, at the path the skill names: `S/goal-prompt.md` for a whole spec, or `S/goal-prompt-NN.md` for one ticket. The file holds only the prompt text, identical to the printed block, so a goal that stops before finishing can be resumed by starting `/goal` in a new session and pasting it again; the run state and handoffs record where the work is. Goal prompt files follow the plan-file rules: they are never committed, and are replaced only together with their plan.
 
 Keep the pasted prompt at 4,000 bytes or fewer, excluding the `/goal` command. It must state the objective, the plan's absolute path with an instruction to read it in full before acting and follow it exactly, the done condition, the orchestrator and its no-authoring rule, the `BLOCKED` outcome, the turn limit, an instruction to resume from the run state when it already records progress, and the hard safety rules (never weaken tests; test only touched code, never the full suite; no push, pull request, or base-branch change; keep `.specs/`, `.research/`, and `.artifacts/` uncommitted). It must also say to stop without dispatch if the plan file is missing or its approved assignments cannot be honored. Everything else, including the role and ticket dispatch tables, checks, and steps, lives only in the plan.
 

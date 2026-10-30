@@ -27,8 +27,9 @@ any images the user gave, then take the item the user meant to build (ask
 when it logged or touched several) and move on to Branch.
 
 Otherwise, read every item in the primary checkout's `.backlog/items/` (see
-`docs/agents/backlog.md` for the format). Candidates have `status: open`.
-Rank them by **ease**: a clear repro or ask, one `area`, no spec or design
+`docs/agents/backlog.md` for the format). Candidates have `status: open` and
+every item in their `blocked-by` `done`.
+Rank them by **ease**: a clear repro or ask, one `area`, no new spec or design
 decision needed, a small touched surface you can confirm by a quick look at
 the code. Skip items already `doing`; another session may own them.
 

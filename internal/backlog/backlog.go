@@ -8,6 +8,7 @@ import (
 	_ "embed"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -60,7 +61,7 @@ func version(data []byte) string {
 func serialize(item Item) []byte {
 	var extra []string
 	for k := range item {
-		if k != "id" && k != "body" && k != "version" && !slices.Contains(fields, k) {
+		if k != "id" && k != "body" && k != "version" && item[k] != "" && !slices.Contains(fields, k) {
 			extra = append(extra, k)
 		}
 	}
@@ -83,6 +84,19 @@ func Handler(dir string) http.Handler {
 	})
 	// Items embed images as assets/<file>, which resolves here from the page.
 	mux.Handle("GET /assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir(filepath.Join(dir, "assets")))))
+	// Specs live in the same checkout: <root>/.specs beside <root>/.backlog/items.
+	specs := filepath.Join(dir, "..", "..", ".specs")
+	mux.HandleFunc("GET /specs/{area}/spec.md", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, filepath.Join(specs, filepath.Base(r.PathValue("area")), "spec.md"))
+	})
+	mux.HandleFunc("GET /api/specs", func(w http.ResponseWriter, r *http.Request) {
+		files, _ := filepath.Glob(filepath.Join(specs, "*", "spec.md"))
+		areas := []string{}
+		for _, f := range files {
+			areas = append(areas, filepath.Base(filepath.Dir(f)))
+		}
+		send(w, http.StatusOK, areas)
+	})
 	mux.HandleFunc("GET /api/items", func(w http.ResponseWriter, r *http.Request) {
 		items, err := list(dir)
 		if err != nil {
@@ -97,28 +111,15 @@ func Handler(dir string) http.Handler {
 			fail(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		if strings.TrimSpace(item["title"]) == "" {
-			fail(w, http.StatusBadRequest, "title required")
+		item, err := Create(dir, item)
+		if errors.Is(err, errNoTitle) {
+			fail(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		id, err := newID(dir, item["title"])
 		if err != nil {
 			fail(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-		item["id"] = id
-		if item["status"] == "" {
-			item["status"] = "open"
-		}
-		if item["created"] == "" {
-			item["created"] = time.Now().Format("2006-01-02")
-		}
-		data := serialize(item)
-		if err := os.WriteFile(filepath.Join(dir, id+".md"), data, 0o644); err != nil {
-			fail(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-		item["version"] = version(data)
 		send(w, http.StatusCreated, item)
 	})
 	mux.HandleFunc("PUT /api/items/{id}", func(w http.ResponseWriter, r *http.Request) {
@@ -182,10 +183,58 @@ func list(dir string) ([]Item, error) {
 	return items, nil
 }
 
-func newID(dir, title string) (string, error) {
+var errNoTitle = errors.New("title required")
+
+// Create writes item as the next numbered file in dir and returns it with
+// its id and version. Several processes may create at once: each claims its
+// number with an exclusive .NNN.claim file, then checks no item already has
+// that number, so two items never share one.
+func Create(dir string, item Item) (Item, error) {
+	if strings.TrimSpace(item["title"]) == "" {
+		return nil, errNoTitle
+	}
+	if item["status"] == "" {
+		item["status"] = "open"
+	}
+	if item["created"] == "" {
+		item["created"] = time.Now().Format("2006-01-02")
+	}
+	n, err := highest(dir)
+	if err != nil {
+		return nil, err
+	}
+	for {
+		n++
+		num := fmt.Sprintf("%03d", n)
+		claim := filepath.Join(dir, "."+num+".claim")
+		f, err := os.OpenFile(claim, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o644)
+		if os.IsExist(err) {
+			continue
+		}
+		if err != nil {
+			return nil, err
+		}
+		f.Close()
+		if taken, _ := filepath.Glob(filepath.Join(dir, num+"-*.md")); len(taken) > 0 {
+			os.Remove(claim)
+			continue
+		}
+		item["id"] = num + "-" + slug(item["title"])
+		data := serialize(item)
+		item["version"] = version(data)
+		err = os.WriteFile(filepath.Join(dir, item["id"]+".md"), data, 0o644)
+		os.Remove(claim)
+		if err != nil {
+			return nil, err
+		}
+		return item, nil
+	}
+}
+
+func highest(dir string) (int, error) {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
-		return "", err
+		return 0, err
 	}
 	n := 0
 	for _, e := range entries {
@@ -194,15 +243,18 @@ func newID(dir, title string) (string, error) {
 			n = v
 		}
 	}
-	slug := nonSlug.ReplaceAllString(strings.ToLower(title), "-")
-	if len(slug) > 50 {
-		slug = slug[:50]
+	return n, nil
+}
+
+func slug(title string) string {
+	s := nonSlug.ReplaceAllString(strings.ToLower(title), "-")
+	if len(s) > 50 {
+		s = s[:50]
 	}
-	slug = strings.Trim(slug, "-")
-	if slug == "" {
-		slug = "item"
+	if s = strings.Trim(s, "-"); s == "" {
+		return "item"
 	}
-	return fmt.Sprintf("%03d-%s", n+1, slug), nil
+	return s
 }
 
 func send(w http.ResponseWriter, status int, body any) {

@@ -22,7 +22,8 @@ List what changed and what was decided, from:
 Shared context lives in the primary checkout, even from a linked worktree:
 `dirname "$(git rev-parse --path-format=absolute --git-common-dir)"`.
 
-- `.specs/<domain>/spec.md` and its `tickets/` — the spec the work belongs to.
+- `.specs/<domain>/spec.md` — the spec the work belongs to; its tickets are
+  the backlog items with `area: <domain>`.
 - `.research/<domain>/` — notes whose findings the work confirmed, refuted,
   or extended.
 - `.backlog/items/` — items the work started, investigated, or resolved,
@@ -37,11 +38,11 @@ Grep these for the names of changed commands, flags, files, and concepts.
 
 ## 3. Update them
 
-- **Specs**: record decisions and scope changes; mark finished tickets done
-  with a pointer to the commit or PR; add follow-up tickets for deferred work.
+- **Specs**: record decisions and scope changes; add follow-up items in the
+  spec's area for deferred work.
 - **Backlog**: follow `docs/agents/backlog.md` — set worked items to `doing`
   or `done` with a pointer to the commit or PR, add a dated `## Findings`
-  section, and link any spec or ticket created from the item. Add new items
+  section, and link any spec created from the item. Add new items
   for unrecorded bugs or ideas.
 - **Research**: add verified findings with sources; mark superseded claims.
 - **Artifacts**: follow the canonical layout rules — read the live version,

@@ -9,7 +9,7 @@ Use the shared [orchestration-gate](../orchestration-gate/SKILL.md) for confiden
 
 ## Discover
 
-Find the repository root, primary worktree, default branch, and current branch. QBS keeps canonical `.specs/` and `.research/` in the primary worktree and exposes them to linked worktrees; use those shared paths as authoritative. Find every `spec.md` recursively below `.specs/`, including nested specs. For each candidate spec, inspect all implementation tickets, acceptance criteria, blockers, status, research references, implementation state, ticket handoffs, and research findings. Note whether `.specs/` is ignored.
+Find the repository root, primary worktree, default branch, and current branch. QBS keeps canonical `.specs/` and `.research/` in the primary worktree and exposes them to linked worktrees; use those shared paths as authoritative. Find every `spec.md` recursively below `.specs/`, including nested specs. For each candidate spec, inspect all its implementation tickets (backlog items in its area, as the shared goal prompt orchestration contract defines), acceptance criteria, blockers, status, research references, implementation state, ticket handoffs, and research findings. Note whether `.specs/` is ignored.
 
 Compute readiness from the graph. A ticket is ready when it is unfinished and every blocker is done and recorded as merged. With no run state, only tickets without blockers are ready. Compare the computed frontier with recorded state and report omissions. If there are no unfinished tickets, report that the spec is complete and generate no command. If unfinished tickets exist but none is ready, report the blockers and generate no command.
 

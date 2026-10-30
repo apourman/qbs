@@ -85,3 +85,94 @@ func TestServesEmbeddedImages(t *testing.T) {
 		t.Fatalf("GET asset = %d %q", rec.Code, rec.Body.String())
 	}
 }
+
+func TestConcurrentCreatesGetDistinctNumbers(t *testing.T) {
+	dir := t.TempDir()
+	const n = 20
+	ids := make(chan string, n)
+	errs := make(chan error, n)
+	for i := 0; i < n; i++ {
+		go func() {
+			item, err := Create(dir, Item{"title": "Same title"})
+			ids <- item["id"]
+			errs <- err
+		}()
+	}
+	seen := map[string]bool{}
+	for i := 0; i < n; i++ {
+		if err := <-errs; err != nil {
+			t.Fatal(err)
+		}
+		num, _, _ := strings.Cut(<-ids, "-")
+		if seen[num] {
+			t.Fatalf("number %s used twice", num)
+		}
+		seen[num] = true
+	}
+	if matches, _ := filepath.Glob(filepath.Join(dir, ".*")); len(matches) != 0 {
+		t.Errorf("claims left behind: %v", matches)
+	}
+}
+
+func TestListsAndServesAreaSpecs(t *testing.T) {
+	root := t.TempDir()
+	dir := filepath.Join(root, ".backlog", "items")
+	for _, p := range []string{dir, filepath.Join(root, ".specs", "chat"), filepath.Join(root, ".specs", "notes")} {
+		if err := os.MkdirAll(p, 0o755); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := os.WriteFile(filepath.Join(root, ".specs", "chat", "spec.md"), []byte("# Chat"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	h := Handler(dir)
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, httptest.NewRequest("GET", "/api/specs", nil))
+	if got := strings.TrimSpace(rec.Body.String()); got != `["chat"]` {
+		t.Errorf("GET /api/specs = %s", got)
+	}
+	rec = httptest.NewRecorder()
+	h.ServeHTTP(rec, httptest.NewRequest("GET", "/specs/chat/spec.md", nil))
+	if rec.Code != http.StatusOK || rec.Body.String() != "# Chat" {
+		t.Errorf("GET spec = %d %q", rec.Code, rec.Body.String())
+	}
+}
+
+func TestEmptyOptionalFieldsAreNotWritten(t *testing.T) {
+	dir := t.TempDir()
+	item, err := Create(dir, Item{"title": "A", "blocked-by": ""})
+	if err != nil {
+		t.Fatal(err)
+	}
+	h := Handler(dir)
+	if code, _ := do(t, h, "PUT", "/api/items/"+item["id"], `{"blocked-by":"001, 002"}`); code != http.StatusOK {
+		t.Fatalf("PUT = %d", code)
+	}
+	data, _ := os.ReadFile(filepath.Join(dir, item["id"]+".md"))
+	if !strings.Contains(string(data), "\nblocked-by: 001, 002\n") {
+		t.Errorf("file =\n%s", data)
+	}
+	do(t, h, "PUT", "/api/items/"+item["id"], `{"blocked-by":""}`)
+	if data, _ := os.ReadFile(filepath.Join(dir, item["id"]+".md")); strings.Contains(string(data), "blocked-by") {
+		t.Errorf("empty blocked-by written:\n%s", data)
+	}
+}
+
+func TestServesOnlySpecFiles(t *testing.T) {
+	root := t.TempDir()
+	dir := filepath.Join(root, ".backlog", "items")
+	if err := os.MkdirAll(filepath.Join(root, ".specs", "chat"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, ".specs", "chat", "notes.md"), []byte("private"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	h := Handler(dir)
+	for _, path := range []string{"/specs/chat/notes.md", "/specs/", "/specs/chat/"} {
+		rec := httptest.NewRecorder()
+		h.ServeHTTP(rec, httptest.NewRequest("GET", path, nil))
+		if rec.Code == http.StatusOK {
+			t.Errorf("GET %s = 200 %q, want refused", path, rec.Body.String())
+		}
+	}
+}

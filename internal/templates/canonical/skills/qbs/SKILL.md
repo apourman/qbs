@@ -6,7 +6,8 @@ description: Use QBS to initialize local AI workspace state or manage the user's
 # QBS
 
 Use `qbs init` for the current repository. Run `qbs backlog` to browse and
-edit the repository's `.backlog/items/` in a browser.
+edit the repository's `.backlog/items/` in a browser, and
+`qbs backlog new "<title>"` to create an item with the next free number.
 
 Manage reusable skills globally with `qbs skills import`, `list`, `sync`, and
 `remove`. `qbs sync` also installs the shared QBS instructions globally for
@@ -14,5 +15,5 @@ Claude, Codex, and OpenCode. Keep repository-specific context in `AGENTS.md`, `C
 `.specs/<domain-or-feature>/`, `.research/<domain-or-feature>/`,
 `.artifacts/<domain-or-feature>/`, and
 project-local files created by the project owner. `qbs init` does not create or
-modify project-local agents or skills. Put spec tickets in the spec directory's
-`tickets/` subdirectory.
+modify project-local agents or skills. Track a spec's tickets as backlog items
+whose `area` is the spec's directory name.
