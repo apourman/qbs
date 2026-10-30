@@ -44,7 +44,7 @@ Check with the user that these seams match their expectations.
    Write exactly one spec at `.specs/<domain-or-feature>/spec.md`, then publish
    that spec record to the project issue tracker. Never create a second
    top-level specification file in an existing spec directory. Other files
-   such as `tickets/`, `validation/`, research notes, handoffs, and explicitly
+   such as `validation/`, research notes, handoffs, and explicitly
    named backlog artifacts may remain alongside `spec.md`, but they are not
    additional specifications. Apply the `ready-for-agent` triage label - no
    need for additional triage. The completion output is the spec itself; do

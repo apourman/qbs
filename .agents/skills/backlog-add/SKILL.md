@@ -25,9 +25,12 @@ a duplicate, and say so.
 
 ## 3. Write
 
-Write each new item with every frontmatter field filled: a plain-language
-`title`, `status: open`, and a `source` naming who or what reported it and
-when (`user idea, <date>` for something the user just thought of). Structure the body under these headings, leaving out any
+Create each new item with `qbs backlog new "<title>"`, which claims the next
+number and prints the file's path, then fill that file in. Fill every
+frontmatter field: a plain-language `title`, `status: open`, and a `source`
+naming who or what reported it and when (`user idea, <date>` for something the
+user just thought of). Add `blocked-by` only when the user names items that
+must finish first. When `.specs/<area>/spec.md` exists, link it under Notes. Structure the body under these headings, leaving out any
 with nothing to say:
 
 ```markdown

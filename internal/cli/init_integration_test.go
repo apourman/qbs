@@ -211,15 +211,15 @@ func TestInitUsesLocalIssueTrackerRegardlessOfRemoteAndPreservesLocalRecords(t *
 			if err != nil {
 				t.Fatal(err)
 			}
-			if !strings.Contains(string(data), "authoritative source") {
+			if !strings.Contains(string(data), "authoritative tickets") {
 				t.Fatalf("tracker template = %q", data)
 			}
 			triageData, err := os.ReadFile(filepath.Join(repo, "docs", "agents", "triage.md"))
 			if err != nil {
 				t.Fatal(err)
 			}
-			if !strings.Contains(string(triageData), "authoritative Markdown ticket record") ||
-				!strings.Contains(string(triageData), "`Status` field") {
+			if !strings.Contains(string(triageData), "authoritative Markdown record") ||
+				!strings.Contains(string(triageData), "`triage:` frontmatter field") {
 				t.Fatalf("triage template = %q", triageData)
 			}
 			for _, forbidden := range []string{"gh issue ", "This repository uses GitHub Issues"} {
@@ -429,8 +429,8 @@ func TestInitProvisionsLocalTriageStatusesWhenLocalTriageSkillExists(t *testing.
 		}
 	}
 	for _, want := range []string{
-		"authoritative Markdown ticket record",
-		"`Status` field",
+		"authoritative Markdown record",
+		"`triage:` frontmatter field",
 		"`## Triage notes`",
 		"`## Agent brief`",
 		"Do not create or manage hosted labels, comments, or tickets",
@@ -572,11 +572,10 @@ func TestInitLocalIssueTrackerTemplateDescribesFilesystemWorkflow(t *testing.T) 
 		t.Fatal(err)
 	}
 	for _, want := range []string{
-		"Local Markdown ticket records",
-		"authoritative source",
-		"List tickets",
-		"Create a ticket",
-		"Update the ticket file",
+		"Backlog items in `.backlog/items/` are the authoritative tickets",
+		"filtering items on its `area`",
+		"qbs backlog new",
+		"Update the item",
 		"separate, explicit request",
 	} {
 		if !strings.Contains(string(data), want) {

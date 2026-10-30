@@ -1,29 +1,33 @@
 # Issue tracker
 
-Local Markdown ticket records under `.specs/<domain-or-feature>/tickets/` are the
-authoritative source for project work, regardless of which repository remotes
-are configured.
+Backlog items in `.backlog/items/` are the authoritative tickets for project
+work, regardless of which repository remotes are configured. A spec's tickets
+are the items whose `area` is the spec's `.specs/` directory name.
+`docs/agents/backlog.md` owns the item format, `blocked-by` ordering, and
+numbering.
 
 ## Standard operations
 
-- List tickets by browsing the domain's `tickets/` directory.
-- Read a ticket file before changing or implementing it.
-- Create a ticket as the next available `<NN>-<ticket-slug>.md` file after
-  confirming the requested scope and linking the relevant research or spec.
-- Update the ticket file when its scope, acceptance conditions, ownership, or
-  status changes.
-- Record progress, decisions, and requested follow-up in the ticket file rather
-  than assuming a hosted comment stream exists.
-- Mark completed or declined work in the ticket's status and preserve the
-  closing rationale in the file.
+- List a spec's tickets by filtering items on its `area`, or with
+  `qbs backlog`.
+- Read an item before changing or implementing it, and read its area's spec
+  when one exists.
+- Create a ticket with `qbs backlog new "<title>"` after confirming the
+  requested scope, then link the relevant research or spec from it.
+- Update the item when its scope, acceptance conditions, ownership, or status
+  changes.
+- Record progress, decisions, and requested follow-up in the item rather than
+  assuming a hosted comment stream exists.
+- Mark completed or declined work `done` or `dropped` and preserve the closing
+  rationale in the item.
 
 ## Repository workflow
 
-Keep research in `.research/<domain-or-feature>/` and specs and their tickets
-in the matching `.specs/<domain-or-feature>/` directory. Use the same stable
-domain-or-feature name across those artifacts. This local workflow performs no
-remote publishing and provides no remote comments, labels, assignees, or
-notifications.
+Keep research in `.research/<domain-or-feature>/`, specs in the matching
+`.specs/<domain-or-feature>/` directory, and their tickets as items with that
+`area`. Use the same stable domain-or-feature name across those artifacts.
+This local workflow performs no remote publishing and provides no remote
+comments, labels, assignees, or notifications.
 
 ## Spec future-work backlogs
 
@@ -34,12 +38,9 @@ Keep backlog entries as ordinary unchecked Markdown tasks. They record deferred
 or possible future work and are not implementation tickets or automatic
 `ready-for-agent` work.
 
-When a backlog item becomes actionable, create a separate numbered ticket
-under the spec's `tickets/` directory and link that ticket from the item. If
-the idea came from another ticket, preserve that originating-ticket link too.
-This keeps the local specification and ticket hierarchy authoritative without
-hosted synchronization. Intake that no spec owns yet goes in the project
-backlog described in `docs/agents/backlog.md`.
+When an entry becomes actionable, create a backlog item in the spec's area
+and link the item from the entry. If the idea came from another item,
+preserve that originating-item link too.
 
 Treat GitHub, Jira, Linear, GitLab, and other hosted trackers only as optional
 projection targets. Publishing or synchronizing a local record requires a

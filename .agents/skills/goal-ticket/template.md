@@ -4,7 +4,7 @@ Replace every placeholder. Omit prior-research wording when no prior notes exist
 
 ## Plan
 
-Write to `S/tickets/goal-plan-NN.md` (PLAN).
+Write to `S/goal-plan-NN.md` (PLAN).
 
 ```markdown
 # Ticket NN goal plan
@@ -15,7 +15,7 @@ Complete ticket NN from spec S, review it, merge it into `B`, and hand it off. D
 
 Orchestrator: ORCHESTRATOR_MODEL. It reads, plans, delegates, monitors and reviews; it writes no repository files. Approved subagents and assignments (profile/resolved model/reasoning/budget/isolation/concurrency): implementer=IMPLEMENTER; review-standards=REVIEW_STANDARDS; review-spec=REVIEW_SPEC; merger (integration and serial recorder)=MERGER. User approved these assignments. Pass each through the active subagent mechanism; if unavailable, stop without substitution or dispatch.
 
-Primary worktree MAIN; spec S/spec.md; ticket S/tickets/NN-*.md; prior research RESEARCH; blocker handoffs HANDOFFS; state S/implementation-state.md; handoff S/handoffs/NN.md; findings MAIN/.research/FEATURE/ticket-NN-implementation-findings.md. `.specs`/`.research` are shared, ignored, local context; do not commit. BUILD: BUILD. Targeted tests: TEST. Expensive suites: EXPENSIVE_SUITES. Project rules: PROJECT_RULES.
+Primary worktree MAIN; spec S/spec.md; ticket MAIN/.backlog/items/NN-*.md (status and blocked-by in its frontmatter); prior research RESEARCH; blocker handoffs HANDOFFS; state S/implementation-state.md; handoff S/handoffs/NN.md; findings MAIN/.research/FEATURE/ticket-NN-implementation-findings.md. `.specs`/`.research` are shared, ignored, local context; do not commit. BUILD: BUILD. Targeted tests: TEST. Expensive suites: EXPENSIVE_SUITES. Project rules: PROJECT_RULES.
 
 Testing scope: run only the tests covering code this ticket touches, using the targeted commands above. Never run the full suite, including for the baseline, review fixes, or merge checks. Run tests from an expensive suite only when the change directly affects code they exercise, and then only those tests. The full suite is left to CI as a remaining gate.
 
@@ -32,7 +32,7 @@ Never weaken, skip, or delete tests; baseline failures are not regressions. Test
 
 ## Prompt
 
-Write to `S/tickets/goal-prompt-NN.md` and paste into `/goal`; paste it again in a new session to resume. Keep it at 4,000 bytes or fewer.
+Write to `S/goal-prompt-NN.md` and paste into `/goal`; paste it again in a new session to resume. Keep it at 4,000 bytes or fewer.
 
 ```text
 Complete ticket NN from spec S, review it, merge it into `B`, and hand it off, following the goal plan at PLAN. Read that plan in full before doing anything else and follow it exactly: it holds the approved subagent assignments, branches, checks, and steps. If it is missing, or any approved assignment cannot be honored, stop and report without dispatch or substitution. If S/implementation-state.md already records progress on this ticket, resume from it rather than starting over.

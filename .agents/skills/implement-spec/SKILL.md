@@ -3,7 +3,7 @@ name: implement-spec
 description: "Implement a specification in code."
 ---
 
-You have been provided a spec. This spec should have tickets associated with it, describing how to implement the spec.
+You have been provided a spec. Its tickets are the backlog items whose `area` is the spec's `.specs/` directory name (`docs/agents/backlog.md`), describing how to implement the spec; each item's `blocked-by` gives its blockers, and you mark an item `done` with its merge when its ticket is integrated.
 
 The goal is a coherent change which implements the entire spec. You own the
 spec branch, worktrees, merges, review, and final handoff for the change.

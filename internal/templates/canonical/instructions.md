@@ -34,9 +34,10 @@ name:
 
 - Research notes go in `.research/<domain-or-feature>/<research-slug>.md`.
 - Specs go in `.specs/<domain-or-feature>/spec.md`, with exactly one spec per directory.
-- Tickets created for a spec go in `.specs/<domain-or-feature>/tickets/<NN>-<ticket-slug>.md`.
-- Backlog items (bugs, reports, and ideas not yet in a spec) go in
-  `.backlog/items/<NNN>-<slug>.md`; see `docs/agents/backlog.md`.
+- A spec's tickets are backlog items whose `area` is the spec's directory name.
+- Backlog items (bugs, reports, ideas, and spec tickets) go in
+  `.backlog/items/<NNN>-<slug>.md`; create them with `qbs backlog new "<title>"`
+  and see `docs/agents/backlog.md`.
 - Visual pages (HTML artifacts) go in `.artifacts/<domain-or-feature>/<slug>.html`,
   listed in `.artifacts/index.md` with one line per page: title, path, what it
   is the source of truth for, and, when published, its URL, owning account and
@@ -55,8 +56,8 @@ name:
   update the local file and its index version, and tell the user it needs
   republishing from the owning account.
 
-Use the same domain-or-feature directory across related research, the spec, its
-tickets, and its artifacts. When creating any of these artifacts, create the directory if it
+Use the same domain-or-feature name across related research, the spec, its
+items' `area`, and its artifacts. When creating any of these artifacts, create the directory if it
 does not exist and report the path. Existing files outside this layout are
 legacy context; do not move them unless asked.
 
@@ -65,6 +66,6 @@ legacy context; do not move them unless asked.
 When the repository has a `docs/agents/` directory:
 
 - Issue tracker: see `docs/agents/issue-tracker.md` for the repository's tracker workflow.
-- Backlog: see `docs/agents/backlog.md` for the item format and how items become specs or tickets.
+- Backlog: see `docs/agents/backlog.md` for the item format, `blocked-by` ordering, and how specs use areas.
 - Domain documentation: see `docs/agents/domain.md` for `context.md` and `docs/adr/`.
 - Local triage: when triage is installed, see `docs/agents/triage.md` for the status workflow.

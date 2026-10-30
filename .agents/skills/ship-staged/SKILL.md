@@ -126,7 +126,7 @@ offer to.
 8. Record the merge in shared context: invoke `update-docs` again, limited
    to `.specs/`, `.backlog/`, `.research/`, and `.artifacts/`, so pages that
    list what waits on staging pick up this pull request. Mark the feature's
-   tickets and backlog items `done` with the pull request link. Repository
+   backlog items `done` with the pull request link. Repository
    docs already shipped in step 1. In the final report, say that both
    `update-docs` runs happened, or which one was skipped and why.
 9. Clean up. Candidates are the feature branch's worktree and the ticket
