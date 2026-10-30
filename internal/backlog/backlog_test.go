@@ -157,3 +157,22 @@ func TestEmptyOptionalFieldsAreNotWritten(t *testing.T) {
 		t.Errorf("empty blocked-by written:\n%s", data)
 	}
 }
+
+func TestServesOnlySpecFiles(t *testing.T) {
+	root := t.TempDir()
+	dir := filepath.Join(root, ".backlog", "items")
+	if err := os.MkdirAll(filepath.Join(root, ".specs", "chat"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, ".specs", "chat", "notes.md"), []byte("private"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	h := Handler(dir)
+	for _, path := range []string{"/specs/chat/notes.md", "/specs/", "/specs/chat/"} {
+		rec := httptest.NewRecorder()
+		h.ServeHTTP(rec, httptest.NewRequest("GET", path, nil))
+		if rec.Code == http.StatusOK {
+			t.Errorf("GET %s = 200 %q, want refused", path, rec.Body.String())
+		}
+	}
+}

@@ -18,10 +18,10 @@ file:
 title: Clicking coordinates in chat no longer sets the arrow
 kind: bug
 area: chat
-blocked-by: 009, 011
 status: open
 source: play-test, 21 Oct 2026
 created: 2026-10-21
+blocked-by: 009, 011
 ---
 
 What was seen or asked for, with links and screenshots.

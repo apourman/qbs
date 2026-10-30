@@ -86,7 +86,9 @@ func Handler(dir string) http.Handler {
 	mux.Handle("GET /assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir(filepath.Join(dir, "assets")))))
 	// Specs live in the same checkout: <root>/.specs beside <root>/.backlog/items.
 	specs := filepath.Join(dir, "..", "..", ".specs")
-	mux.Handle("GET /specs/", http.StripPrefix("/specs/", http.FileServer(http.Dir(specs))))
+	mux.HandleFunc("GET /specs/{area}/spec.md", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, filepath.Join(specs, filepath.Base(r.PathValue("area")), "spec.md"))
+	})
 	mux.HandleFunc("GET /api/specs", func(w http.ResponseWriter, r *http.Request) {
 		files, _ := filepath.Glob(filepath.Join(specs, "*", "spec.md"))
 		areas := []string{}
@@ -109,11 +111,11 @@ func Handler(dir string) http.Handler {
 			fail(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		if strings.TrimSpace(item["title"]) == "" {
-			fail(w, http.StatusBadRequest, "title required")
+		item, err := Create(dir, item)
+		if errors.Is(err, errNoTitle) {
+			fail(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		item, err := Create(dir, item)
 		if err != nil {
 			fail(w, http.StatusInternalServerError, err.Error())
 			return
@@ -181,13 +183,15 @@ func list(dir string) ([]Item, error) {
 	return items, nil
 }
 
+var errNoTitle = errors.New("title required")
+
 // Create writes item as the next numbered file in dir and returns it with
 // its id and version. Several processes may create at once: each claims its
 // number with an exclusive .NNN.claim file, then checks no item already has
 // that number, so two items never share one.
 func Create(dir string, item Item) (Item, error) {
 	if strings.TrimSpace(item["title"]) == "" {
-		return nil, errors.New("title required")
+		return nil, errNoTitle
 	}
 	if item["status"] == "" {
 		item["status"] = "open"
@@ -211,20 +215,19 @@ func Create(dir string, item Item) (Item, error) {
 			return nil, err
 		}
 		f.Close()
-		taken, err := filepath.Glob(filepath.Join(dir, num+"-*.md"))
-		if err == nil && len(taken) == 0 {
-			item["id"] = num + "-" + slug(item["title"])
-			data := serialize(item)
-			err = os.WriteFile(filepath.Join(dir, item["id"]+".md"), data, 0o644)
-			item["version"] = version(data)
+		if taken, _ := filepath.Glob(filepath.Join(dir, num+"-*.md")); len(taken) > 0 {
+			os.Remove(claim)
+			continue
 		}
+		item["id"] = num + "-" + slug(item["title"])
+		data := serialize(item)
+		item["version"] = version(data)
+		err = os.WriteFile(filepath.Join(dir, item["id"]+".md"), data, 0o644)
 		os.Remove(claim)
 		if err != nil {
 			return nil, err
 		}
-		if len(taken) == 0 {
-			return item, nil
-		}
+		return item, nil
 	}
 }
 
