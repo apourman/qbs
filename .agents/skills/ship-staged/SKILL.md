@@ -64,6 +64,18 @@ Sync only the session's own branch. Other feature branches keep themselves
 current when their own sessions work on them, so never merge into them or
 offer to.
 
+## Explain the work
+
+For the whole session, including every `backlog-session` step: each time you
+tell the user what was done, why, or what a finding means, invoke `explain`
+(with the Skill tool) and write for the least technical person in the room,
+someone who has never seen this code and knows none of its terms. That covers
+progress and blocked reports, the live-test hand-off, review findings, and the
+final report.
+
+Commands, URLs, and paths stay exact beside the explanation. Commit messages,
+pull request bodies, and patch notes keep their own formats.
+
 ## Ship
 
 1. Invoke the `update-docs` skill (with the Skill tool) for the feature's
