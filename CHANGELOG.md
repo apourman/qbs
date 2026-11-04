@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.36.0](https://github.com/apourman/qbs/compare/v0.35.0...v0.36.0) (2026-11-04)
+
+
+### Features
+
+* have ship-staged explain work in plain language ([#104](https://github.com/apourman/qbs/issues/104)) ([c93bbb2](https://github.com/apourman/qbs/commit/c93bbb2bcc94dc74e7e9c380ff1fd62b3f96eb1c))
+
 ## [0.35.0](https://github.com/apourman/qbs/compare/v0.34.0...v0.35.0) (2026-11-04)
 
 
