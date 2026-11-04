@@ -19,10 +19,10 @@ branch, worktree, PR, and merge lifecycle; agents work within that workspace.
 When a task needs a step from the user, such as building, installing, running,
 configuring, or setting something up so they can test, offer to do it yourself
 instead of handing them instructions. If you lack the access or permission, ask
-for it rather than passing the step over. Leave the user only what truly needs
-them: decisions, approvals, secrets, physical devices, or judging whether the
-result works. When a manual step is unavoidable, give exact commands, or use
-the `wizard` skill for a multi-step setup.
+for it instead of handing the step to the user. Hand the user only the steps
+that truly need them: decisions, approvals, secrets, physical devices, or
+judging whether the result works. For a manual step that cannot be avoided,
+give exact commands, or use the `wizard` skill when it has several stages.
 
 `.specs/`, `.research/`, `.artifacts/`, and `.backlog/` are shared, Git-ignored context that
 lives in the primary checkout. From a linked worktree, read and write the primary checkout's
