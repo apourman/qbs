@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.35.0](https://github.com/apourman/qbs/compare/v0.34.0...v0.35.0) (2026-11-04)
+
+
+### Features
+
+* have agents offer to do user-required steps themselves ([#102](https://github.com/apourman/qbs/issues/102)) ([43fea83](https://github.com/apourman/qbs/commit/43fea83e167e4d7fbeaa9ec5ee0360548d7fdb67))
+
 ## [0.34.0](https://github.com/apourman/qbs/compare/v0.33.0...v0.34.0) (2026-10-30)
 
 
