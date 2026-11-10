@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.37.0](https://github.com/apourman/qbs/compare/v0.36.0...v0.37.0) (2026-11-10)
+
+
+### Features
+
+* add security review to ship-staged and a standalone security audit ([#106](https://github.com/apourman/qbs/issues/106)) ([b67176d](https://github.com/apourman/qbs/commit/b67176dd608d0f1523b5f5820e70a5d3f840a16a))
+
 ## [0.36.0](https://github.com/apourman/qbs/compare/v0.35.0...v0.36.0) (2026-11-04)
 
 
