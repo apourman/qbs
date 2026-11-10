@@ -1,0 +1,5 @@
+interface:
+  display_name: "Review Security"
+  short_description: "Review a diff for exploitable vulnerabilities"
+policy:
+  allow_implicit_invocation: true

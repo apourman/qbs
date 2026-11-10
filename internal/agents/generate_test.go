@@ -31,7 +31,7 @@ func TestGenerateIsDeterministicAndSorted(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			if len(first) != 13 || len(second) != 13 {
+			if len(first) != 14 || len(second) != 14 {
 				t.Fatalf("generated counts = %d, %d", len(first), len(second))
 			}
 			for i := range first {

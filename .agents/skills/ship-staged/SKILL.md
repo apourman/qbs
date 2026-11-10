@@ -161,13 +161,14 @@ pull request bodies, and patch notes keep their own formats.
 
 It must cover the head that merges. Review everything the branch adds over
 its base. A clean Stay current merge leaves that unchanged, so it needs no
-rerun; a merge with resolved conflicts does. Invoke `code-review` and `ponytail-review` (with the Skill tool) on
-the changes since `origin/<staging>` (the default branch for a Hotfix); they
-are independent, so
-run them in parallel. Show both reports side by side, then ask which findings
-to fix. Commit the fixes to the branch and rerun the repository's tests. If a
-skill is unavailable, say so and continue with the other. In the final report,
-say that both reviews ran and what was fixed or deferred.
+rerun; a merge with resolved conflicts does. Invoke `code-review`,
+`ponytail-review`, and `review-security` (with the Skill tool) on the changes
+since `origin/<staging>` (the default branch for a Hotfix); they are
+independent, so run them in parallel. Show the three reports side by side, then
+ask which findings to fix. Commit the fixes to the branch and rerun the
+repository's tests. If a skill is unavailable, say so and continue with the
+others. In the final report, say which reviews ran and what was fixed or
+deferred.
 
 ## Promote
 

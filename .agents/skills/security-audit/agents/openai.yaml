@@ -1,0 +1,5 @@
+interface:
+  display_name: "Security Audit"
+  short_description: "Audit a whole codebase for vulnerabilities"
+policy:
+  allow_implicit_invocation: true
