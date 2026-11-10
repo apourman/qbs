@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.38.0](https://github.com/apourman/qbs/compare/v0.37.0...v0.38.0) (2026-11-10)
+
+
+### Features
+
+* add URL routes to the backlog portal ([#108](https://github.com/apourman/qbs/issues/108)) ([2840f47](https://github.com/apourman/qbs/commit/2840f47899ab7f0c370c7f0dbdd54b330d9da03b))
+
 ## [0.37.0](https://github.com/apourman/qbs/compare/v0.36.0...v0.37.0) (2026-11-10)
 
 
