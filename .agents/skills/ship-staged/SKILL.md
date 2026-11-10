@@ -175,8 +175,14 @@ deferred.
 1. Resync staging (below) so it contains every commit on the default branch.
 2. List the waiting features with the `git log` from Ship step 7. Stop if
    there are none.
-3. Write the patch notes (below).
-4. Open the pull request with a fixed, non-conventional title:
+3. Audit the tip of staging: in the worktree where staging is checked out, or
+   a temporary one, invoke `security-audit` (with the Skill tool). Show its
+   findings and ask which to fix. Fixes reach staging through **Ship**, then
+   Promote restarts, so the audit covers the commit being promoted. Findings
+   the user accepts stay in the final report as deferred. If the skill is
+   unavailable, say so and ask whether to continue.
+4. Write the patch notes (below).
+5. Open the pull request with a fixed, non-conventional title:
 
    ```bash
    gh pr create --base <default> --head <staging> --title "Promote <staging> to <default>" --body-file <body>
@@ -186,7 +192,7 @@ deferred.
    release-please turn a `feat:` or `fix:` title into an extra changelog
    entry. Body: the waiting features, one per line, and the patch notes
    link.
-5. Ask before merging. Then merge with a merge commit, which keeps each
+6. Ask before merging. Then merge with a merge commit, which keeps each
    feature commit visible to the release tooling:
 
    ```bash
@@ -195,8 +201,8 @@ deferred.
    ```
 
    If the repository disallows merge commits, stop and tell the user.
-6. Resync staging.
-7. If release-please (or similar) opens a release pull request, tell the user
+7. Resync staging.
+8. If release-please (or similar) opens a release pull request, tell the user
    to check that each feature appears once in its changelog before merging
    it, and to resync staging after it merges.
 
@@ -257,6 +263,7 @@ by merge only. Stop and report on conflicts.
 - Never push or open a pull request for a Ship or Hotfix before the user
   approves the live test.
 - Never merge a Ship or Hotfix whose head the final review has not covered.
+- Never merge a Promote whose staging tip the security audit has not covered.
 - Ask before every merge into staging or the default branch, any force-push,
   and deleting branches or worktrees.
 - Stop on conflicts or failed checks and report the state, after tearing
