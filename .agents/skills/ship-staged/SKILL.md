@@ -161,21 +161,30 @@ pull request bodies, and patch notes keep their own formats.
 
 It must cover the head that merges. Review everything the branch adds over
 its base. A clean Stay current merge leaves that unchanged, so it needs no
-rerun; a merge with resolved conflicts does. Invoke `code-review` and `ponytail-review` (with the Skill tool) on
-the changes since `origin/<staging>` (the default branch for a Hotfix); they
-are independent, so
-run them in parallel. Show both reports side by side, then ask which findings
-to fix. Commit the fixes to the branch and rerun the repository's tests. If a
-skill is unavailable, say so and continue with the other. In the final report,
-say that both reviews ran and what was fixed or deferred.
+rerun; a merge with resolved conflicts does. Invoke `code-review`,
+`ponytail-review`, and `review-security` (with the Skill tool) on the changes
+since `origin/<staging>` (the default branch for a Hotfix); they are
+independent, so run them in parallel. Show the three reports side by side, then
+ask which findings to fix. Commit the fixes to the branch and rerun the
+repository's tests. If a skill is unavailable, say so and continue with the
+others. In the final report, say which reviews ran and what was fixed or
+deferred.
 
 ## Promote
 
 1. Resync staging (below) so it contains every commit on the default branch.
 2. List the waiting features with the `git log` from Ship step 7. Stop if
    there are none.
-3. Write the patch notes (below).
-4. Open the pull request with a fixed, non-conventional title:
+3. Audit staging: in the worktree from **Resync staging**, with `HEAD` at
+   `origin/<staging>` and no local changes, invoke `security-audit` (with the
+   Skill tool). Show its findings and ask which to fix. Accepted findings stay
+   in the audit report and out of the pull request and patch notes. If the
+   skill is unavailable, stop and say so.
+
+   Fixes reach staging through **Ship**, then Promote restarts, so the audit
+   covers the commit being promoted.
+4. Write the patch notes (below).
+5. Open the pull request with a fixed, non-conventional title:
 
    ```bash
    gh pr create --base <default> --head <staging> --title "Promote <staging> to <default>" --body-file <body>
@@ -185,7 +194,8 @@ say that both reviews ran and what was fixed or deferred.
    release-please turn a `feat:` or `fix:` title into an extra changelog
    entry. Body: the waiting features, one per line, and the patch notes
    link.
-5. Ask before merging. Then merge with a merge commit, which keeps each
+6. Ask before merging. If `origin/<staging>` has moved since the audit, rerun
+   it first. Then merge with a merge commit, which keeps each
    feature commit visible to the release tooling:
 
    ```bash
@@ -194,8 +204,8 @@ say that both reviews ran and what was fixed or deferred.
    ```
 
    If the repository disallows merge commits, stop and tell the user.
-6. Resync staging.
-7. If release-please (or similar) opens a release pull request, tell the user
+7. Resync staging.
+8. If release-please (or similar) opens a release pull request, tell the user
    to check that each feature appears once in its changelog before merging
    it, and to resync staging after it merges.
 
@@ -256,6 +266,7 @@ by merge only. Stop and report on conflicts.
 - Never push or open a pull request for a Ship or Hotfix before the user
   approves the live test.
 - Never merge a Ship or Hotfix whose head the final review has not covered.
+- Never merge a Promote whose staging tip the security audit has not covered.
 - Ask before every merge into staging or the default branch, any force-push,
   and deleting branches or worktrees.
 - Stop on conflicts or failed checks and report the state, after tearing

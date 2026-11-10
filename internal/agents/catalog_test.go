@@ -12,8 +12,8 @@ func TestCanonicalCatalogParsesAndPreservesAllRoles(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got := len(catalog.Agents); got != 13 {
-		t.Fatalf("agent count = %d, want 13", got)
+	if got := len(catalog.Agents); got != 14 {
+		t.Fatalf("agent count = %d, want 14", got)
 	}
 	wants := map[string]string{
 		"architecture-explorer": "Walk the codebase organically",
