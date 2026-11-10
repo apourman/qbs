@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Backlog</title>
+<base href="/">
 <style>
   :root { --bg:#f6f4ef; --panel:#fffdf9; --sunk:#efebe2; --ink:#1f1d1a; --muted:#6b665d; --faint:#9a9384;
           --line:#e3ddd0; --line-strong:#cfc7b6; --accent:#8a5a14; --accent-soft:#f3e6cf; --on-accent:#fffdf9; --code:#f1ece1;
@@ -48,7 +49,7 @@
   .col h3 { margin:2px 4px 4px; font-size:13px; display:flex; gap:8px; align-items:center; text-transform:capitalize; }
   .col h3 .c { color:var(--faint); font-weight:400; }
   .cards { display:flex; flex-direction:column; gap:8px; overflow:auto; min-height:40px; flex:1; }
-  .card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:10px 12px; box-shadow:var(--shadow); display:grid; gap:6px; cursor:pointer; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:10px 12px; box-shadow:var(--shadow); display:grid; gap:6px; cursor:pointer; color:inherit; text-decoration:none; }
   .card:hover { border-color:var(--line-strong); }
   .card.sel { box-shadow:0 0 0 2px var(--accent); }
   .card.dragging { opacity:.4; }
@@ -190,9 +191,12 @@ const STATUSES = ['open', 'doing', 'done', 'dropped'];
 const FIELDS = ['title', 'kind', 'area', 'status', 'source', 'blocked-by', 'body'];
 const $ = id => document.getElementById(id);
 const form = $('form');
-const columns = new Set(['open', 'doing', 'done']);
+const DEFAULT_COLUMNS = ['open', 'doing', 'done'];
+const FILTERS = { q: 'fText', kind: 'fKind', area: 'fArea' };
+let columns = new Set(DEFAULT_COLUMNS);
 let items = [], specs = [], current = null, editing = false, open = false, snapshot = '';
 let full = false;
+let at = history.state?.at ?? 0, undoingPop = false; // this tab's history position
 try { full = localStorage.getItem('backlog.full') === '1'; } catch {}
 
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]);
@@ -305,10 +309,10 @@ function renderBoard() {
 
 function card(i) {
   const html = md(i.body), [d, n] = tasks(html), ex = excerpt(html);
-  return `<div class="card ${esc(i.status)} ${current?.id === i.id && open ? 'sel' : ''}" draggable="true" data-id="${esc(i.id)}">
+  return `<a class="card ${esc(i.status)} ${current?.id === i.id && open ? 'sel' : ''}" href="items/${encodeURIComponent(i.id)}" draggable="true" data-id="${esc(i.id)}">
     <div class="t">${esc(i.title)}</div>${ex ? `<div class="ex">${ex}</div>` : ''}
     ${n ? `<div class="bar"><i style="width:${Math.round(100 * d / n)}%"></i></div>` : ''}
-    <div class="m"><span class="num">#${esc(num(i))}</span>${pill(i.kind, i.kind)}${pill('', i.area)}${blockedPill(i)}${n ? `<span class="num prog">${d}/${n}</span>` : ''}</div></div>`;
+    <div class="m"><span class="num">#${esc(num(i))}</span>${pill(i.kind, i.kind)}${pill('', i.area)}${blockedPill(i)}${n ? `<span class="num prog">${d}/${n}</span>` : ''}</div></a>`;
 }
 
 function renderDrawer() {
@@ -334,14 +338,56 @@ const formState = () => JSON.stringify(FIELDS.map(f => form[f].value));
 const dirty = () => editing && formState() !== snapshot;
 const leave = () => !dirty() || confirm('Discard unsaved changes?');
 
-function show(item) {
-  if (!leave()) return;
-  current = item; open = !!item; editing = false;
-  $('rBanner').hidden = true;
-  renderBoard(); renderDrawer();
+// The URL holds the view so links and refreshes restore it: /, /new,
+// /items/<id> or /items/<id>/edit, with the board's filters in the query.
+// Moving between views adds history; changing filters only rewrites it.
+function writeUrl(replace) {
+  const path = !open ? '/' : !current ? '/new' : `/items/${encodeURIComponent(current.id)}${editing ? '/edit' : ''}`;
+  const q = new URLSearchParams();
+  for (const [k, id] of Object.entries(FILTERS)) if ($(id).value) q.set(k, $(id).value);
+  if (columns.size !== DEFAULT_COLUMNS.length || !DEFAULT_COLUMNS.every(c => columns.has(c))) q.set('status', [...columns].join());
+  const search = String(q), url = search ? `${path}?${search}` : path;
+  if (url === location.pathname + location.search) return;
+  if (replace || path === location.pathname) history.replaceState({ at }, '', url);
+  else history.pushState({ at: ++at }, '', url);
 }
 
-function edit(item) {
+// applyUrl shows what the URL names; callers have already confirmed leaving any edit.
+function applyUrl() {
+  const q = new URLSearchParams(location.search);
+  for (const [k, id] of Object.entries(FILTERS)) $(id).value = q.get(k) ?? '';
+  columns = new Set(q.has('status') ? q.get('status').split(',').filter(Boolean) : DEFAULT_COLUMNS);
+  const [, id, isEdit] = location.pathname.match(/^\/items\/([^/]+)(\/edit)?\/?$/) ?? [];
+  const item = items.find(i => encodeURIComponent(i.id) === id);
+  editing = false;
+  if (/^\/new\/?$/.test(location.pathname)) edit(null, true);
+  else if (item && isEdit) edit(item, true);
+  else show(item ?? null, true);
+  if (id && !item) { $('bBanner').textContent = `No item ${id}`; $('bBanner').hidden = false; }
+}
+
+// Unsaved edits survive a refresh, keeping the version they started from so a stale save is still refused.
+const draftKey = () => `backlog.draft.${current?.id ?? 'new'}`;
+function saveDraft() {
+  try { sessionStorage.setItem(draftKey(), JSON.stringify({ form: formState(), version: current?.version })); } catch {}
+}
+function restoreDraft() {
+  let draft;
+  try { draft = JSON.parse(sessionStorage.getItem(draftKey())); sessionStorage.removeItem(draftKey()); } catch {}
+  if (!draft) return;
+  JSON.parse(draft.form).forEach((value, n) => { form[FIELDS[n]].value = value; });
+  if (current) current = { ...current, version: draft.version };
+}
+
+function show(item, replace) {
+  if (!leave()) return;
+  current = item; open = !!item; editing = false;
+  $('rBanner').hidden = $('bBanner').hidden = true;
+  renderBoard(); renderDrawer();
+  writeUrl(replace);
+}
+
+function edit(item, replace) {
   if (editing && !leave()) return;
   current = item; open = true; editing = true;
   for (const f of FIELDS) form[f].value = item?.[f] ?? '';
@@ -350,8 +396,10 @@ function edit(item) {
   $('seg').hidden = !item;
   $('fBanner').hidden = true;
   snapshot = formState();
+  restoreDraft();
   preview();
   renderBoard(); renderDrawer();
+  writeUrl(replace);
   (item ? form.body : form.title).focus();
 }
 
@@ -405,11 +453,17 @@ $('fStatus').onclick = e => {
   const s = e.target.closest('[data-status]')?.dataset.status;
   if (!s) return;
   columns.has(s) ? columns.delete(s) : columns.add(s);
-  renderBoard();
+  renderBoard(); writeUrl();
 };
-for (const id of ['fKind', 'fArea', 'fText']) $(id).oninput = renderBoard;
+for (const id of Object.values(FILTERS)) $(id).oninput = () => { renderBoard(); writeUrl(); };
 
-$('board').onclick = e => { const c = e.target.closest('.card'); if (c) show(items.find(i => i.id === c.dataset.id)); };
+// Modified clicks fall through to the link, so an item can open in a new tab.
+$('board').onclick = e => {
+  const c = e.target.closest('.card');
+  if (!c || e.ctrlKey || e.metaKey || e.shiftKey) return;
+  e.preventDefault();
+  show(items.find(i => i.id === c.dataset.id));
+};
 $('board').ondragstart = e => { e.dataTransfer.setData('text/plain', e.target.dataset.id); e.target.classList.add('dragging'); };
 $('board').ondragend = e => e.target.classList?.remove('dragging');
 $('board').ondragover = e => {
@@ -452,8 +506,20 @@ document.onkeydown = e => {
   else if (e.key === 'f' && open) { e.preventDefault(); toggleFull(); }
 };
 window.onbeforeunload = e => { if (dirty()) e.preventDefault(); };
+window.onpagehide = () => { if (dirty()) saveDraft(); };
+// Coming back from the browser's page cache, the edit is still live, so its draft is stale.
+window.onpageshow = e => { if (e.persisted) try { sessionStorage.removeItem(draftKey()); } catch {} };
+window.onpopstate = e => {
+  if (undoingPop) { undoingPop = false; return; }
+  // Entries without state are hand-typed #fragments, which don't change the view.
+  if (!e.state || e.state.at === at) return;
+  if (leave()) { at = e.state.at; applyUrl(); }
+  // The user kept their edit: step back to the entry the browser just left.
+  else { undoingPop = true; history.go(at - e.state.at); }
+};
 
-load();
+history.replaceState({ at }, '');
+load().then(applyUrl);
 </script>
 </body>
 </html>

@@ -78,10 +78,13 @@ func serialize(item Item) []byte {
 // Handler serves the backlog UI and its JSON API for the items in dir.
 func Handler(dir string) http.Handler {
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("content-type", "text/html; charset=utf-8")
-		_, _ = w.Write(page)
-	})
+	// The page reads these paths itself, so links and refreshes restore a view.
+	for _, route := range []string{"GET /{$}", "GET /new", "GET /new/", "GET /items/"} {
+		mux.HandleFunc(route, func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("content-type", "text/html; charset=utf-8")
+			_, _ = w.Write(page)
+		})
+	}
 	// Items embed images as assets/<file>, which resolves here from the page.
 	mux.Handle("GET /assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir(filepath.Join(dir, "assets")))))
 	// Specs live in the same checkout: <root>/.specs beside <root>/.backlog/items.
