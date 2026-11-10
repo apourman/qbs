@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Backlog</title>
+<base href="/">
 <style>
   :root { --bg:#f6f4ef; --panel:#fffdf9; --sunk:#efebe2; --ink:#1f1d1a; --muted:#6b665d; --faint:#9a9384;
           --line:#e3ddd0; --line-strong:#cfc7b6; --accent:#8a5a14; --accent-soft:#f3e6cf; --on-accent:#fffdf9; --code:#f1ece1;
@@ -190,7 +191,9 @@ const STATUSES = ['open', 'doing', 'done', 'dropped'];
 const FIELDS = ['title', 'kind', 'area', 'status', 'source', 'blocked-by', 'body'];
 const $ = id => document.getElementById(id);
 const form = $('form');
-const columns = new Set(['open', 'doing', 'done']);
+const COLUMNS = 'doing,done,open'; // default, sorted as sync() compares it
+const FILTERS = { q: 'fText', kind: 'fKind', area: 'fArea' };
+let columns = new Set(COLUMNS.split(','));
 let items = [], specs = [], current = null, editing = false, open = false, snapshot = '';
 let full = false;
 try { full = localStorage.getItem('backlog.full') === '1'; } catch {}
@@ -334,14 +337,43 @@ const formState = () => JSON.stringify(FIELDS.map(f => form[f].value));
 const dirty = () => editing && formState() !== snapshot;
 const leave = () => !dirty() || confirm('Discard unsaved changes?');
 
-function show(item) {
-  if (!leave()) return;
-  current = item; open = !!item; editing = false;
-  $('rBanner').hidden = true;
-  renderBoard(); renderDrawer();
+// The URL holds the view so links and refreshes restore it: /, /new,
+// /items/<id> or /items/<id>/edit, with the board's filters in the query.
+// Moving between views adds history; changing filters only rewrites it.
+function sync(replace) {
+  const path = !open ? '/' : !current ? '/new' : `/items/${encodeURIComponent(current.id)}${editing ? '/edit' : ''}`;
+  const q = new URLSearchParams();
+  for (const [k, id] of Object.entries(FILTERS)) if ($(id).value) q.set(k, $(id).value);
+  const cols = [...columns].sort().join();
+  if (cols !== COLUMNS) q.set('status', cols);
+  const search = String(q), url = search ? `${path}?${search}` : path;
+  if (url === location.pathname + location.search) return;
+  history[replace || path === location.pathname ? 'replaceState' : 'pushState'](null, '', url);
 }
 
-function edit(item) {
+// route applies the URL to the page; callers have already confirmed leaving any edit.
+function route() {
+  const q = new URLSearchParams(location.search);
+  for (const [k, id] of Object.entries(FILTERS)) $(id).value = q.get(k) ?? '';
+  columns = new Set((q.get('status') ?? COLUMNS).split(','));
+  const [, id, edits] = location.pathname.match(/^\/items\/([^/]+)(\/edit)?$/) ?? [];
+  const item = items.find(i => encodeURIComponent(i.id) === id);
+  editing = false;
+  if (location.pathname === '/new') edit(null, true);
+  else if (item && edits) edit(item, true);
+  else show(item ?? null, true);
+  if (id && !item) { $('bBanner').textContent = `No item ${id}`; $('bBanner').hidden = false; }
+}
+
+function show(item, replace) {
+  if (!leave()) return;
+  current = item; open = !!item; editing = false;
+  $('rBanner').hidden = $('bBanner').hidden = true;
+  renderBoard(); renderDrawer();
+  sync(replace);
+}
+
+function edit(item, replace) {
   if (editing && !leave()) return;
   current = item; open = true; editing = true;
   for (const f of FIELDS) form[f].value = item?.[f] ?? '';
@@ -352,6 +384,7 @@ function edit(item) {
   snapshot = formState();
   preview();
   renderBoard(); renderDrawer();
+  sync(replace);
   (item ? form.body : form.title).focus();
 }
 
@@ -405,9 +438,9 @@ $('fStatus').onclick = e => {
   const s = e.target.closest('[data-status]')?.dataset.status;
   if (!s) return;
   columns.has(s) ? columns.delete(s) : columns.add(s);
-  renderBoard();
+  renderBoard(); sync();
 };
-for (const id of ['fKind', 'fArea', 'fText']) $(id).oninput = renderBoard;
+for (const id of Object.values(FILTERS)) $(id).oninput = () => { renderBoard(); sync(); };
 
 $('board').onclick = e => { const c = e.target.closest('.card'); if (c) show(items.find(i => i.id === c.dataset.id)); };
 $('board').ondragstart = e => { e.dataTransfer.setData('text/plain', e.target.dataset.id); e.target.classList.add('dragging'); };
@@ -452,8 +485,10 @@ document.onkeydown = e => {
   else if (e.key === 'f' && open) { e.preventDefault(); toggleFull(); }
 };
 window.onbeforeunload = e => { if (dirty()) e.preventDefault(); };
+// If the user keeps their edit, sync() puts back the URL the browser just left.
+window.onpopstate = () => { if (leave()) route(); else sync(); };
 
-load();
+load().then(route);
 </script>
 </body>
 </html>
