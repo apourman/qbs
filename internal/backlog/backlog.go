@@ -79,7 +79,7 @@ func serialize(item Item) []byte {
 func Handler(dir string) http.Handler {
 	mux := http.NewServeMux()
 	// The page reads these paths itself, so links and refreshes restore a view.
-	for _, route := range []string{"GET /{$}", "GET /new", "GET /items/{id}", "GET /items/{id}/edit"} {
+	for _, route := range []string{"GET /{$}", "GET /new", "GET /new/", "GET /items/"} {
 		mux.HandleFunc(route, func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("content-type", "text/html; charset=utf-8")
 			_, _ = w.Write(page)

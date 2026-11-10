@@ -72,11 +72,11 @@ func TestCreateAndUpdateKeepItemFilesCompatible(t *testing.T) {
 
 func TestServesPageAtViewRoutes(t *testing.T) {
 	h := Handler(t.TempDir())
-	for _, path := range []string{"/", "/new", "/items/012-old", "/items/012-old/edit", "/items/012-old?kind=bug"} {
+	for _, path := range []string{"/", "/new", "/new/", "/items/012-old", "/items/012-old/", "/items/012-old/edit", "/items/012-old/edit/", "/items/012-old?kind=bug"} {
 		rec := httptest.NewRecorder()
 		h.ServeHTTP(rec, httptest.NewRequest("GET", path, nil))
 		if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), `<base href="/">`) {
-			t.Errorf("GET %s: %d", path, rec.Code)
+			t.Errorf("GET %s: want 200 and the page's <base> tag, got status %d", path, rec.Code)
 		}
 	}
 }
