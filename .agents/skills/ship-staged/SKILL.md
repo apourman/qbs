@@ -175,12 +175,14 @@ deferred.
 1. Resync staging (below) so it contains every commit on the default branch.
 2. List the waiting features with the `git log` from Ship step 7. Stop if
    there are none.
-3. Audit the tip of staging: in the worktree where staging is checked out, or
-   a temporary one, invoke `security-audit` (with the Skill tool). Show its
-   findings and ask which to fix. Fixes reach staging through **Ship**, then
-   Promote restarts, so the audit covers the commit being promoted. Findings
-   the user accepts stay in the final report as deferred. If the skill is
-   unavailable, say so and ask whether to continue.
+3. Audit staging: in the worktree from **Resync staging**, with `HEAD` at
+   `origin/<staging>` and no local changes, invoke `security-audit` (with the
+   Skill tool). Show its findings and ask which to fix. Accepted findings stay
+   in the audit report and out of the pull request and patch notes. If the
+   skill is unavailable, stop and say so.
+
+   Fixes reach staging through **Ship**, then Promote restarts, so the audit
+   covers the commit being promoted.
 4. Write the patch notes (below).
 5. Open the pull request with a fixed, non-conventional title:
 
@@ -192,7 +194,8 @@ deferred.
    release-please turn a `feat:` or `fix:` title into an extra changelog
    entry. Body: the waiting features, one per line, and the patch notes
    link.
-6. Ask before merging. Then merge with a merge commit, which keeps each
+6. Ask before merging. If `origin/<staging>` has moved since the audit, rerun
+   it first. Then merge with a merge commit, which keeps each
    feature commit visible to the release tooling:
 
    ```bash
