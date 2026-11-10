@@ -507,14 +507,18 @@ document.onkeydown = e => {
 };
 window.onbeforeunload = e => { if (dirty()) e.preventDefault(); };
 window.onpagehide = () => { if (dirty()) saveDraft(); };
-// If the user keeps their edit, step back to the entry the browser just left.
+// Coming back from the browser's page cache, the edit is still live, so its draft is stale.
+window.onpageshow = e => { if (e.persisted) try { sessionStorage.removeItem(draftKey()); } catch {} };
 window.onpopstate = e => {
   if (undoingPop) { undoingPop = false; return; }
-  const to = e.state?.at ?? 0;
-  if (leave()) { at = to; applyUrl(); }
-  else { undoingPop = true; history.go(at - to); }
+  // Entries without state are hand-typed #fragments, which don't change the view.
+  if (!e.state || e.state.at === at) return;
+  if (leave()) { at = e.state.at; applyUrl(); }
+  // The user kept their edit: step back to the entry the browser just left.
+  else { undoingPop = true; history.go(at - e.state.at); }
 };
 
+history.replaceState({ at }, '');
 load().then(applyUrl);
 </script>
 </body>
