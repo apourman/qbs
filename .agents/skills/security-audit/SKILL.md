@@ -4,8 +4,8 @@ description: Audit an entire codebase for security vulnerabilities, including vu
 ---
 
 Audit all the code at one pinned commit, try to disprove every finding, and
-write a private report. The audit is read-only: the report is the only file it
-creates.
+write a private report. The audit leaves the code untouched: the report is the
+only file it adds to the project.
 
 ## 1. Pin and divide
 

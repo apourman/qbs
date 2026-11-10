@@ -1,6 +1,6 @@
 ---
 name: review-security
-description: Review the changes since a fixed point for exploitable security vulnerabilities, including unsafe instructions in agent skills and rules. Runs the read-only `review-security` agent to find issues, then again to disprove each one. Use when the user wants a security review of a branch, a PR, or work-in-progress changes.
+description: Review the changes since a fixed point for exploitable security vulnerabilities, including unsafe instructions in agent skills and rules. Use when the user wants a security review of a branch, a PR, or work-in-progress changes.
 ---
 
 Find vulnerabilities a change introduces, and report only the ones that survive
