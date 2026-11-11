@@ -255,8 +255,9 @@ Run after a promotion or a release commit lands on the default branch, and
 after a hotfix as Hotfix says. Never merge the default branch into staging:
 staging fast-forwards or is rebased onto it. Use the worktree where staging is
 checked out (`git worktree list`), or add a temporary one, with no local
-changes. Bring it level with the remote; if the merge fails, local staging
-holds unpushed work, so stop and report:
+changes. Bring it level with the remote, then check `git rev-parse <staging>`
+equals `git rev-parse origin/<staging>`. If the merge fails or they differ,
+local staging holds unpushed work: stop and report.
 
 ```bash
 git fetch origin
@@ -301,7 +302,7 @@ If it fails, **rebase**. Below, `<old>` is the SHA from
 5. Each branch from step 1 still holds the old copies of staging's commits, so
    a Stay current merge of the new staging can conflict. Move it instead,
    asking before each branch and leaving other sessions' branches to their
-   owners:
+   owners. Run it in the worktree where the branch is checked out, if any:
 
    ```bash
    git rebase --onto origin/<staging> <old> <branch>
