@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.38.1](https://github.com/apourman/qbs/compare/v0.38.0...v0.38.1) (2026-11-11)
+
+
+### Bug Fixes
+
+* resync staging by fast-forward or rebase, never merge ([#110](https://github.com/apourman/qbs/issues/110)) ([b34c3e5](https://github.com/apourman/qbs/commit/b34c3e5f531efd6dc8d80ccc441db51e7e5dd23e))
+
 ## [0.38.0](https://github.com/apourman/qbs/compare/v0.37.0...v0.38.0) (2026-11-10)
 
 
