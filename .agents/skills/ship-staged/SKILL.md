@@ -37,8 +37,10 @@ The branch being shipped is clean and fully committed. Show any uncommitted
 changes and ask before committing them. If `origin/<staging>` does not exist,
 offer to create it from `origin/<default>` and push it. If
 `git merge-base --is-ancestor origin/<default> origin/<staging>` fails,
-staging is missing work from the default branch, such as a release commit:
-resync staging (below) before continuing.
+staging is missing work from the default branch, such as a release commit or
+a hotfix. Resync staging (below) before continuing when it would fast-forward
+or the action is a Promote; otherwise ask, since a hotfix can wait for the
+next promotion.
 
 ## Stay current
 
@@ -55,7 +57,8 @@ git merge origin/<default>
 
 Staging can lag the default branch until it is resynced, so merge both. Merge,
 never rebase: rebasing would force-push the branch and break ticket
-worktrees, and the squash at ship time discards the merge commits. On
+worktrees, and the squash at ship time discards the merge commits. The one
+exception is after staging itself was rebased (Resync staging step 5). On
 conflicts, stop and report; once they are resolved, rerun the final review if
 it already ran. After a merge that brought anything in, rerun the
 repository's tests. Do this without asking; it touches only this branch.
@@ -242,24 +245,69 @@ Promote only: a Ship into staging or a Hotfix writes none.
 ## Hotfix
 
 Cut the branch from `origin/<default>`, then follow Ship with the default
-branch in place of staging throughout. Resync staging after it merges.
+branch in place of staging throughout. After it merges, ask whether staging
+needs the fix now (to test with it, or because it would conflict), and resync
+staging only if so; otherwise the next promotion brings it in.
 
 ## Resync staging
 
-Run after anything lands on the default branch: a promotion, a hotfix, or a
-release commit. Use the worktree where staging is checked out (`git worktree
-list`), or add a temporary one.
+Run after a promotion or a release commit lands on the default branch, and
+after a hotfix as Hotfix says. Never merge the default branch into staging:
+staging fast-forwards or is rebased onto it. Use the worktree where staging is
+checked out (`git worktree list`), or add a temporary one, with no local
+changes. Bring it level with the remote, then check `git rev-parse <staging>`
+equals `git rev-parse origin/<staging>`. If the merge fails or they differ,
+local staging holds unpushed work: stop and report.
 
 ```bash
 git fetch origin
 git merge --ff-only origin/<staging>
-git merge origin/<default>
+```
+
+If `git merge-base --is-ancestor origin/<staging> origin/<default>` succeeds,
+staging holds nothing of its own, as after a promotion. **Fast-forward** it:
+
+```bash
+git merge --ff-only origin/<default>
 git push origin <staging>
 ```
 
-The merge fast-forwards when staging holds nothing new. Staging keeps its
-commit SHAs, since the default branch already contains them, so it is updated
-by merge only. Stop and report on conflicts.
+If it fails, **rebase**. Below, `<old>` is the SHA from
+`git rev-parse origin/<staging>` and `<base>` the SHA from
+`git merge-base <old> origin/<default>`; write the SHAs into each command.
+
+1. List what is built on staging's own commits, apart from staging itself:
+   feature branches and ticket worktrees, from
+   `git branch -a --contains $(git rev-list origin/<default>..<old> | tail -1)`
+   and `git worktree list`.
+2. Rebase. Merge commits, and commits whose change the default branch
+   already has, are dropped; that is expected. On conflicts,
+   `git rebase --abort`, then stop and report.
+
+   ```bash
+   git rebase --onto origin/<default> <base> <staging>
+   ```
+
+3. Check the result: every file `git diff --name-only <old> <staging>` lists
+   must also be in `git diff --name-only <base> origin/<default>`. The first
+   list is empty when `<old>` already held the default branch's work. If any
+   other file shows, the rebase changed staging's own work: restore it with
+   `git reset --hard <old>`, then stop and report.
+4. Show the step 1 list and `git diff --stat <old> <staging>`, ask, then push:
+
+   ```bash
+   git push --force-with-lease=<staging>:<old> origin <staging>
+   ```
+
+5. Each branch from step 1 still holds the old copies of staging's commits, so
+   a Stay current merge of the new staging can conflict. Move it instead,
+   asking before each branch and leaving other sessions' branches to their
+   owners. Run it in the worktree where the branch is checked out, if any:
+
+   ```bash
+   git rebase --onto origin/<staging> <old> <branch>
+   git push --force-with-lease origin <branch>   # only if it was pushed
+   ```
 
 ## Safety rules
 
@@ -267,6 +315,7 @@ by merge only. Stop and report on conflicts.
   approves the live test.
 - Never merge a Ship or Hotfix whose head the final review has not covered.
 - Never merge a Promote whose staging tip the security audit has not covered.
+- Never merge the default branch into staging; Resync staging says how.
 - Ask before every merge into staging or the default branch, any force-push,
   and deleting branches or worktrees.
 - Stop on conflicts or failed checks and report the state, after tearing
