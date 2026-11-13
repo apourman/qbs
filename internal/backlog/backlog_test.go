@@ -87,7 +87,7 @@ func TestPageNamesTheProject(t *testing.T) {
 	h.ServeHTTP(rec, httptest.NewRequest("GET", "/", nil))
 	body := rec.Body.String()
 	if !strings.Contains(body, `<title>my&lt;app&gt; · Backlog</title>`) || !strings.Contains(body, `<span class="project">my&lt;app&gt;</span>`) {
-		t.Errorf("want the escaped project name in the title and header, got %q", body[:400])
+		t.Errorf("want the escaped project name in the title and header, got %q", body)
 	}
 }
 
