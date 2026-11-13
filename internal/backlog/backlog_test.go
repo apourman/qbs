@@ -81,6 +81,16 @@ func TestServesPageAtViewRoutes(t *testing.T) {
 	}
 }
 
+func TestPageNamesTheProject(t *testing.T) {
+	h := Handler(filepath.Join(t.TempDir(), "my<app>", ".backlog", "items"))
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, httptest.NewRequest("GET", "/", nil))
+	body := rec.Body.String()
+	if !strings.Contains(body, `<title>my&lt;app&gt; · Backlog</title>`) || !strings.Contains(body, `<span class="project">my&lt;app&gt;</span>`) {
+		t.Errorf("want the escaped project name in the title and header, got %q", body[:400])
+	}
+}
+
 func TestServesEmbeddedImages(t *testing.T) {
 	dir := t.TempDir()
 	if err := os.MkdirAll(filepath.Join(dir, "assets"), 0o755); err != nil {

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Backlog</title>
+<title>__PROJECT__ · Backlog</title>
 <base href="/">
 <style>
   :root { --bg:#f6f4ef; --panel:#fffdf9; --sunk:#efebe2; --ink:#1f1d1a; --muted:#6b665d; --faint:#9a9384;
@@ -33,6 +33,8 @@
 
   header { display:flex; align-items:center; gap:10px; padding:10px 16px; border-bottom:1px solid var(--line); background:var(--panel); flex-wrap:wrap; }
   .brand { display:flex; align-items:center; gap:8px; font-weight:700; font-size:15px; }
+  .project { font-weight:500; color:var(--muted); }
+  .project::before { content:"/"; margin-right:8px; color:var(--faint); }
   .logo { width:22px; height:22px; border-radius:6px; background:var(--accent); color:var(--on-accent); display:grid; place-items:center; font-size:12px; }
   .search { flex:1; min-width:160px; max-width:320px; display:flex; align-items:center; gap:8px; background:var(--sunk); border:1px solid var(--line); border-radius:8px; padding:0 10px; }
   .search input { flex:1; border:0; background:none; padding:6px 0; outline:none; }
@@ -135,7 +137,7 @@
 </head>
 <body>
 <header>
-  <div class="brand"><span class="logo">Q</span>Backlog</div>
+  <div class="brand"><span class="logo">Q</span>Backlog<span class="project">__PROJECT__</span></div>
   <label class="search"><input id="fText" type="search" placeholder="Search titles and notes…"><kbd>/</kbd></label>
   <div class="chips" id="fStatus"></div>
   <select id="fKind"><option value="">all kinds</option></select>

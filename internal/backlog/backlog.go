@@ -4,12 +4,14 @@
 package backlog
 
 import (
+	"bytes"
 	"crypto/sha256"
 	_ "embed"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"html"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -78,6 +80,9 @@ func serialize(item Item) []byte {
 // Handler serves the backlog UI and its JSON API for the items in dir.
 func Handler(dir string) http.Handler {
 	mux := http.NewServeMux()
+	// dir is <root>/.backlog/items; the header names the project after <root>.
+	project := html.EscapeString(filepath.Base(filepath.Dir(filepath.Dir(dir))))
+	page := bytes.ReplaceAll(page, []byte("__PROJECT__"), []byte(project))
 	// The page reads these paths itself, so links and refreshes restore a view.
 	for _, route := range []string{"GET /{$}", "GET /new", "GET /new/", "GET /items/"} {
 		mux.HandleFunc(route, func(w http.ResponseWriter, r *http.Request) {
