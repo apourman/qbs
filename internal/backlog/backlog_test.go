@@ -210,6 +210,7 @@ func TestRefusesRequestsOtherSitesCouldSend(t *testing.T) {
 		{"rebound host writes", "POST", "http://evil.example:4317/api/items", "application/json", http.StatusForbidden},
 		{"cross-site text/plain post", "POST", "http://127.0.0.1:4317/api/items", "text/plain", http.StatusUnsupportedMediaType},
 		{"ipv6 loopback reads", "GET", "http://[::1]:4317/api/items", "", http.StatusOK},
+		{"uppercase localhost reads", "GET", "http://LOCALHOST:4317/api/items", "", http.StatusOK},
 	} {
 		req := httptest.NewRequest(tc.method, tc.url, strings.NewReader(`{"title":"x"}`))
 		if tc.contentType != "" {
