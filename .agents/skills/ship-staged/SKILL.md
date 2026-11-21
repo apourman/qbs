@@ -129,7 +129,10 @@ pull request bodies, and patch notes keep their own formats.
    a commit subject: it names one step, not the feature.
 
    Body: a `## Summary` (why the feature exists, what it delivers) and a
-   `## Changes` list.
+   `## Changes` list. It becomes the squash commit's body, so no line
+   after a blank line may start with a conventional type (`feat: `,
+   `fix(scope): `): release-please splits the message there into an extra
+   changelog entry.
 6. Show the pull request URL and title, and ask before merging. If
    anything was committed after the final review (a CI fix, pull request
    feedback), rerun the review, then push its fixes. If the base moved
