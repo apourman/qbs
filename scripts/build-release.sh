@@ -3,7 +3,7 @@ set -eu
 
 version=${VERSION:-dev}
 dist_dir=${DIST_DIR:-dist}
-module='github.com/trues/qbs/internal/cli'
+module='github.com/apourman/qbs/internal/cli'
 ldflags="-s -w -X ${module}.Version=${version}"
 
 mkdir -p "$dist_dir"

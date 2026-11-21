@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/trues/qbs/internal/backlog"
-	"github.com/trues/qbs/internal/git"
+	"github.com/apourman/qbs/internal/backlog"
+	"github.com/apourman/qbs/internal/git"
 )
 
 const defaultBacklogPort = 4317

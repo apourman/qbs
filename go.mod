@@ -1,4 +1,4 @@
-module github.com/trues/qbs
+module github.com/apourman/qbs
 
 go 1.26
 

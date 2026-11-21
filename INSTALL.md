@@ -35,7 +35,7 @@ qbs --version
 With Go installed, the simplest global installation is:
 
 ```text
-go install github.com/trues/qbs/cmd/qbs@latest
+go install github.com/apourman/qbs/cmd/qbs@latest
 ```
 
 Go places the executable in your Go binary directory (`GOBIN`, or otherwise
