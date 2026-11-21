@@ -5,9 +5,9 @@ import (
 	"io"
 	"strings"
 
-	"github.com/trues/qbs"
-	"github.com/trues/qbs/internal/agents"
-	"github.com/trues/qbs/internal/skills"
+	"github.com/apourman/qbs"
+	"github.com/apourman/qbs/internal/agents"
+	"github.com/apourman/qbs/internal/skills"
 )
 
 func syncAll(input io.Reader, stdout io.Writer) error {

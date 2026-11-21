@@ -12,7 +12,10 @@ import (
 	"errors"
 	"fmt"
 	"html"
+	"mime"
+	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -168,7 +171,29 @@ func Handler(dir string) http.Handler {
 		item["version"] = version(data)
 		send(w, http.StatusOK, item)
 	})
-	return mux
+	return localOnly(mux)
+}
+
+// localOnly refuses what another website could make the user's browser send:
+// a request under a non-loopback Host (DNS rebinding), or a write that is not
+// JSON (browsers send text/plain cross-site without asking the server first).
+// It also caps write bodies at 1 MiB.
+func localOnly(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		host := (&url.URL{Host: r.Host}).Hostname()
+		if ip := net.ParseIP(host); !strings.EqualFold(host, "localhost") && (ip == nil || !ip.IsLoopback()) {
+			fail(w, http.StatusForbidden, "open the backlog at localhost")
+			return
+		}
+		if r.Method != http.MethodGet && r.Method != http.MethodHead {
+			if t, _, _ := mime.ParseMediaType(r.Header.Get("content-type")); t != "application/json" {
+				fail(w, http.StatusUnsupportedMediaType, "send JSON")
+				return
+			}
+			r.Body = http.MaxBytesReader(w, r.Body, 1<<20)
+		}
+		next.ServeHTTP(w, r)
+	})
 }
 
 func list(dir string) ([]Item, error) {

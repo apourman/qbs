@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/trues/qbs/internal/git"
+	"github.com/apourman/qbs/internal/git"
 )
 
 func TestDetectFindsRootAndCommonDirectory(t *testing.T) {

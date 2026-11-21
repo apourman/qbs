@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/trues/qbs/internal/agents"
+	"github.com/apourman/qbs/internal/agents"
 	"gopkg.in/yaml.v3"
 )
 
