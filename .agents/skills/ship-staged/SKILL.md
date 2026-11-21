@@ -125,8 +125,9 @@ pull request bodies, and patch notes keep their own formats.
    ```
 
    Title: one conventional commit that sums up everything the branch ships,
-   written from `git log origin/<staging>..HEAD` and the diff. Never reuse
-   a commit subject: it names one step, not the feature.
+   written from `git log origin/<staging>..HEAD` and the diff. Reuse a
+   commit subject only when the branch has a single commit; otherwise it
+   names one step, not the feature.
 
    Body: a `## Summary` (why the feature exists, what it delivers) and a
    `## Changes` list. It becomes the squash commit's body, so no line
@@ -142,8 +143,7 @@ pull request bodies, and patch notes keep their own formats.
 
    ```bash
    gh pr checks <number> --watch
-   gh pr view <number> --json body -q .body > <merge-body>
-   gh pr merge <number> --squash --delete-branch --subject "<title> (#<number>)" --body-file <merge-body>
+   gh pr view <number> --json body -q .body | gh pr merge <number> --squash --delete-branch --subject "$(gh pr view <number> --json title -q .title) (#<number>)" --body-file -
    ```
 
 7. Report the features now waiting on staging:
