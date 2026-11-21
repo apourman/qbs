@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.39.0](https://github.com/apourman/qbs/compare/v0.38.1...v0.39.0) (2026-11-21)
+
+
+### Features
+
+* show the project name in the backlog portal header ([#112](https://github.com/apourman/qbs/issues/112)) ([ab5b20f](https://github.com/apourman/qbs/commit/ab5b20f9d2fc6033e460eb9ec0d9515473c7e8e0))
+
+
+### Bug Fixes
+
+* close the 2026-11-21 security audit findings ([#114](https://github.com/apourman/qbs/issues/114)) ([242806c](https://github.com/apourman/qbs/commit/242806c2ff3524c4513b9d60fe5524867bca702f))
+* squash Ship pull requests with their own title and body ([#113](https://github.com/apourman/qbs/issues/113)) ([92979f4](https://github.com/apourman/qbs/commit/92979f4603064d90de22819c0f24d311f3c15b42))
+
 ## [0.38.1](https://github.com/apourman/qbs/compare/v0.38.0...v0.38.1) (2026-11-11)
 
 
