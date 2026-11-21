@@ -37,7 +37,7 @@ work to a hosted service.
 With Go installed:
 
 ```sh
-go install github.com/trues/qbs/cmd/qbs@latest
+go install github.com/apourman/qbs/cmd/qbs@latest
 ```
 
 Or download a release archive from [GitHub Releases](https://github.com/apourman/qbs/releases).

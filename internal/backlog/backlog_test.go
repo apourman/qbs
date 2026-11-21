@@ -13,7 +13,9 @@ import (
 func do(t *testing.T, h http.Handler, method, path, body string) (int, Item) {
 	t.Helper()
 	rec := httptest.NewRecorder()
-	h.ServeHTTP(rec, httptest.NewRequest(method, path, strings.NewReader(body)))
+	req := httptest.NewRequest(method, "http://localhost:4317"+path, strings.NewReader(body))
+	req.Header.Set("content-type", "application/json")
+	h.ServeHTTP(rec, req)
 	var item Item
 	_ = json.Unmarshal(rec.Body.Bytes(), &item)
 	return rec.Code, item
@@ -63,7 +65,7 @@ func TestCreateAndUpdateKeepItemFilesCompatible(t *testing.T) {
 	}
 
 	rec := httptest.NewRecorder()
-	h.ServeHTTP(rec, httptest.NewRequest("GET", "/api/items", nil))
+	h.ServeHTTP(rec, httptest.NewRequest("GET", "http://localhost/api/items", nil))
 	var items []Item
 	if err := json.Unmarshal(rec.Body.Bytes(), &items); err != nil || len(items) != 2 {
 		t.Fatalf("GET = %s (%v)", rec.Body, err)
@@ -74,10 +76,20 @@ func TestServesPageAtViewRoutes(t *testing.T) {
 	h := Handler(t.TempDir())
 	for _, path := range []string{"/", "/new", "/new/", "/items/012-old", "/items/012-old/", "/items/012-old/edit", "/items/012-old/edit/", "/items/012-old?kind=bug"} {
 		rec := httptest.NewRecorder()
-		h.ServeHTTP(rec, httptest.NewRequest("GET", path, nil))
+		h.ServeHTTP(rec, httptest.NewRequest("GET", "http://localhost"+path, nil))
 		if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), `<base href="/">`) {
 			t.Errorf("GET %s: want 200 and the page's <base> tag, got status %d", path, rec.Code)
 		}
+	}
+}
+
+func TestPageNamesTheProject(t *testing.T) {
+	h := Handler(filepath.Join(t.TempDir(), "my<app>", ".backlog", "items"))
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, httptest.NewRequest("GET", "http://localhost/", nil))
+	body := rec.Body.String()
+	if !strings.Contains(body, `<title>my&lt;app&gt; · Backlog</title>`) || !strings.Contains(body, `<span class="project">my&lt;app&gt;</span>`) {
+		t.Errorf("want the escaped project name in the title and header, got %q", body)
 	}
 }
 
@@ -91,7 +103,7 @@ func TestServesEmbeddedImages(t *testing.T) {
 	}
 	h := Handler(dir)
 	rec := httptest.NewRecorder()
-	h.ServeHTTP(rec, httptest.NewRequest("GET", "/assets/012-1.png", nil))
+	h.ServeHTTP(rec, httptest.NewRequest("GET", "http://localhost/assets/012-1.png", nil))
 	if rec.Code != http.StatusOK || rec.Body.String() != "png" {
 		t.Fatalf("GET asset = %d %q", rec.Code, rec.Body.String())
 	}
@@ -138,12 +150,12 @@ func TestListsAndServesAreaSpecs(t *testing.T) {
 	}
 	h := Handler(dir)
 	rec := httptest.NewRecorder()
-	h.ServeHTTP(rec, httptest.NewRequest("GET", "/api/specs", nil))
+	h.ServeHTTP(rec, httptest.NewRequest("GET", "http://localhost/api/specs", nil))
 	if got := strings.TrimSpace(rec.Body.String()); got != `["chat"]` {
 		t.Errorf("GET /api/specs = %s", got)
 	}
 	rec = httptest.NewRecorder()
-	h.ServeHTTP(rec, httptest.NewRequest("GET", "/specs/chat/spec.md", nil))
+	h.ServeHTTP(rec, httptest.NewRequest("GET", "http://localhost/specs/chat/spec.md", nil))
 	if rec.Code != http.StatusOK || rec.Body.String() != "# Chat" {
 		t.Errorf("GET spec = %d %q", rec.Code, rec.Body.String())
 	}
@@ -181,9 +193,33 @@ func TestServesOnlySpecFiles(t *testing.T) {
 	h := Handler(dir)
 	for _, path := range []string{"/specs/chat/notes.md", "/specs/", "/specs/chat/"} {
 		rec := httptest.NewRecorder()
-		h.ServeHTTP(rec, httptest.NewRequest("GET", path, nil))
+		h.ServeHTTP(rec, httptest.NewRequest("GET", "http://localhost"+path, nil))
 		if rec.Code == http.StatusOK {
 			t.Errorf("GET %s = 200 %q, want refused", path, rec.Body.String())
+		}
+	}
+}
+
+func TestRefusesRequestsOtherSitesCouldSend(t *testing.T) {
+	h := Handler(t.TempDir())
+	for _, tc := range []struct {
+		name, method, url, contentType string
+		want                           int
+	}{
+		{"rebound host reads", "GET", "http://evil.example:4317/api/items", "", http.StatusForbidden},
+		{"rebound host writes", "POST", "http://evil.example:4317/api/items", "application/json", http.StatusForbidden},
+		{"cross-site text/plain post", "POST", "http://127.0.0.1:4317/api/items", "text/plain", http.StatusUnsupportedMediaType},
+		{"ipv6 loopback reads", "GET", "http://[::1]:4317/api/items", "", http.StatusOK},
+		{"uppercase localhost reads", "GET", "http://LOCALHOST:4317/api/items", "", http.StatusOK},
+	} {
+		req := httptest.NewRequest(tc.method, tc.url, strings.NewReader(`{"title":"x"}`))
+		if tc.contentType != "" {
+			req.Header.Set("content-type", tc.contentType)
+		}
+		rec := httptest.NewRecorder()
+		h.ServeHTTP(rec, req)
+		if rec.Code != tc.want {
+			t.Errorf("%s: got %d, want %d", tc.name, rec.Code, tc.want)
 		}
 	}
 }

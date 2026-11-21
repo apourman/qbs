@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/trues/qbs/internal/agents"
+	"github.com/apourman/qbs/internal/agents"
 )
 
 func TestCanonicalCatalogParsesAndPreservesAllRoles(t *testing.T) {

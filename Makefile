@@ -10,7 +10,7 @@ test:
 	go test ./...
 
 build:
-	go build -ldflags "-X github.com/trues/qbs/internal/cli.Version=$(VERSION)" -o qbs ./cmd/qbs
+	go build -ldflags "-X github.com/apourman/qbs/internal/cli.Version=$(VERSION)" -o qbs ./cmd/qbs
 
 PREFIX ?= /usr/local
 

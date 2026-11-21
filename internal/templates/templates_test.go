@@ -3,7 +3,7 @@ package templates_test
 import (
 	"testing"
 
-	"github.com/trues/qbs/internal/templates"
+	"github.com/apourman/qbs/internal/templates"
 )
 
 func TestReadReturnsEmbeddedCanonicalTemplate(t *testing.T) {

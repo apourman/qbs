@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/trues/qbs/internal/cli"
+	"github.com/apourman/qbs/internal/cli"
 )
 
 func main() {

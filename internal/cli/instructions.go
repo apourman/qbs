@@ -9,8 +9,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/trues/qbs/internal/git"
-	"github.com/trues/qbs/internal/templates"
+	"github.com/apourman/qbs/internal/git"
+	"github.com/apourman/qbs/internal/templates"
 )
 
 const (

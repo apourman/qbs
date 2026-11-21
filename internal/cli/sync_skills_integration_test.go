@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/trues/qbs/internal/cli"
-	"github.com/trues/qbs/internal/templates"
+	"github.com/apourman/qbs/internal/cli"
+	"github.com/apourman/qbs/internal/templates"
 )
 
 func TestSyncInstallsSkillsShippedWithThisRelease(t *testing.T) {

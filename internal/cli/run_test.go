@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/trues/qbs/internal/cli"
+	"github.com/apourman/qbs/internal/cli"
 )
 
 func TestRunHelpAndVersion(t *testing.T) {

@@ -124,16 +124,26 @@ pull request bodies, and patch notes keep their own formats.
    gh pr create --base <staging> --title "<type>: <feature summary>" --body-file <body>
    ```
 
+   Title: one conventional commit that sums up everything the branch ships,
+   written from `git log origin/<staging>..HEAD` and the diff. Reuse a
+   commit subject only when the branch has a single commit; otherwise it
+   names one step, not the feature.
+
    Body: a `## Summary` (why the feature exists, what it delivers) and a
-   `## Changes` list.
+   `## Changes` list. It becomes the squash commit's body, so no line
+   after a blank line may start with a conventional type (`feat: `,
+   `fix(scope): `): release-please splits the message there into an extra
+   changelog entry.
 6. Show the pull request URL and title, and ask before merging. If
    anything was committed after the final review (a CI fix, pull request
    feedback), rerun the review, then push its fixes. If the base moved
-   since the push, stay current and push again. Then:
+   since the push, stay current and push again. Then merge with the pull
+   request's current title and body as the squash commit's message, so
+   GitHub does not fill the body with the branch's commit list:
 
    ```bash
    gh pr checks <number> --watch
-   gh pr merge <number> --squash --delete-branch --subject "<title> (#<number>)"
+   gh pr view <number> --json body -q .body | gh pr merge <number> --squash --delete-branch --subject "$(gh pr view <number> --json title -q .title) (#<number>)" --body-file -
    ```
 
 7. Report the features now waiting on staging:
