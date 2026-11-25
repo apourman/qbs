@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.39.1](https://github.com/apourman/qbs/compare/v0.39.0...v0.39.1) (2026-11-25)
+
+
+### Bug Fixes
+
+* read only what backlog-session's pick needs ([#117](https://github.com/apourman/qbs/issues/117)) ([4434f9d](https://github.com/apourman/qbs/commit/4434f9d503f8c4be8312597fe00d9b5384b5fad7))
+
 ## [0.39.0](https://github.com/apourman/qbs/compare/v0.38.1...v0.39.0) (2026-11-21)
 
 
