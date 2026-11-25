@@ -26,16 +26,28 @@ For a **new idea**, invoke `backlog-add` (with the Skill tool) to log it with
 any images the user gave, then take the item the user meant to build (ask
 when it logged or touched several) and move on to Branch.
 
-Otherwise, read every item in the primary checkout's `.backlog/items/` (see
-`docs/agents/backlog.md` for the format). Candidates have `status: open` and
-every item in their `blocked-by` `done`.
-Rank them by **ease**: a clear repro or ask, one `area`, no new spec or design
-decision needed, a small touched surface you can confirm by a quick look at
-the code. Skip items already `doing`; another session may own them.
+Items live in the primary checkout's `.backlog/items/` (see
+`docs/agents/backlog.md` for the format). The backlog can be large, so read
+only what the pick needs; never read every item in full.
 
-Take the easiest and say which you picked, its title, and the one-line reason
-it is easy, then move on; the user redirects if they want another. If no item
-is open, say so and stop.
+For a **named item** (`/backlog-session 381`), read that item in full and only
+the `status:` line of each item in its `blocked-by`. If the item is not
+`open`, or a blocker is not `done`, say so and ask before going on.
+
+Otherwise, list one line per `status: open` item, with its file name, size,
+`kind`, `area` and `blocked-by` taken from the frontmatter, using `grep`, `awk`
+and `wc` instead of opening each file. Candidates have every item in their
+`blocked-by` `done`; skip items already `doing`, since another session may own
+them. Shortlist the 3–5 that look easiest, read only those in full, and rank
+them by **ease**: a clear repro or ask, one `area`, no new spec or design
+decision needed, a small touched surface you can confirm by a quick look at
+the code. Take the easiest and say which you picked, its title, and the
+one-line reason it is easy, then move on; the user redirects if they want
+another. If no item is open, say so and stop.
+
+Once the item is chosen, read `.specs/<area>/spec.md` when it exists: the
+item is a slice of that spec. Read the spec folder's other files only when
+the spec or the item points to them.
 
 ## 3. Branch
 
