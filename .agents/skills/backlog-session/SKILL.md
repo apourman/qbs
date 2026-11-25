@@ -30,9 +30,10 @@ Items live in the primary checkout's `.backlog/items/` (see
 `docs/agents/backlog.md` for the format). The backlog can be large, so read
 only what the pick needs; never read every item in full.
 
-For a **named item** (`/backlog-session 381`), read that item in full and only
-the `status:` line of each item in its `blocked-by`. If the item is not
-`open`, or a blocker is not `done`, say so and ask before going on.
+For a **named item** (`/backlog-session 381`), first read only the `status:`
+line of that item and of each item in its `blocked-by`. If the item is not
+`open`, or a blocker is not `done`, say so and ask before going on; never
+read a `triage` item's body. Then read the item in full.
 
 Otherwise, list one line per `status: open` item, with its file name, size,
 `kind`, `area` and `blocked-by` taken from the frontmatter, using `grep`, `awk`
