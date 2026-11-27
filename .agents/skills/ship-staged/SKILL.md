@@ -79,13 +79,34 @@ final report.
 Commands, URLs, and paths stay exact beside the explanation. Commit messages,
 pull request bodies, and patch notes keep their own formats.
 
+## Delegate routine stretches
+
+By Ship the conversation is long, and every turn re-reads all of it. Hand
+these stretches to a fresh subagent on the cheapest model that does them
+reliably (Haiku in Claude Code; Sonnet for `review-security`):
+
+| Stretch | The subagent | Reports back |
+|---|---|---|
+| Ship step 1 | runs `update-docs` for the feature, edits left uncommitted | files changed; pages republished or still needing it |
+| Final review | runs `ponytail-review` or `review-security`, one subagent each | the findings |
+| Ship steps 6–8, once the user approves the merge | merges, then does steps 7 and 8 | merge commit, waiting features, shared-context changes, step 9 candidates |
+
+Brief it with the skill to run, the worktree path, the branch, the base, the
+pull request number and approved head SHA where they apply, and the report
+above. It works only inside that brief: anything else, such as a conflict, a
+failed check, a moved head, or a question for the user, it stops and reports.
+The asks stay in this session, and so do merges into the default branch,
+force-pushes, and deletions. Explain its report to the user as usual. Where
+subagents are unavailable, do the stretch inline.
+
 ## Ship
 
-1. Invoke the `update-docs` skill (with the Skill tool) for the feature's
-   work, so repository docs reach staging in the same pull request. Editing
-   docs by hand does not replace it: the skill also walks `.artifacts/index.md`
-   and republishes stale pages, which hand edits miss. Show the doc changes
-   it makes and ask before committing them to the feature branch.
+1. Run the `update-docs` skill for the feature's work in a subagent
+   (**Delegate routine stretches**), so repository docs reach staging in the
+   same pull request. Editing docs by hand does not replace it: the skill
+   also walks `.artifacts/index.md` and republishes stale pages, which hand
+   edits miss. Show `git diff --stat` of the doc changes and ask before
+   committing them to the feature branch.
 2. Stay current (above), then run the repository's tests.
 3. Hand the branch to the user for live testing. Nothing is pushed and no
    pull request exists yet.
@@ -139,10 +160,14 @@ pull request bodies, and patch notes keep their own formats.
    feedback), rerun the review, then push its fixes. If the base moved
    since the push, stay current and push again. Then merge with the pull
    request's current title and body as the squash commit's message, so
-   GitHub does not fill the body with the branch's commit list:
+   GitHub does not fill the body with the branch's commit list. From here
+   through step 8 runs in a subagent (**Delegate routine stretches**); a
+   Hotfix merges here and delegates steps 7–8. The merge happens only when
+   the checks pass and
+   `gh pr view <number> --json headRefOid` equals the approved head SHA:
 
    ```bash
-   gh pr checks <number> --watch
+   gh pr checks <number> --watch > /dev/null; echo "checks exit $?"
    gh pr view <number> --json body -q .body | gh pr merge <number> --squash --delete-branch --subject "$(gh pr view <number> --json title -q .title) (#<number>)" --body-file -
    ```
 
@@ -174,10 +199,12 @@ pull request bodies, and patch notes keep their own formats.
 
 It must cover the head that merges. Review everything the branch adds over
 its base. A clean Stay current merge leaves that unchanged, so it needs no
-rerun; a merge with resolved conflicts does. Invoke `code-review`,
-`ponytail-review`, and `review-security` (with the Skill tool) on the changes
-since `origin/<staging>` (the default branch for a Hotfix); they are
-independent, so run them in parallel. Show the three reports side by side, then
+rerun; a merge with resolved conflicts does. Run `code-review`,
+`ponytail-review`, and `review-security` on the changes since
+`origin/<staging>` (the default branch for a Hotfix), in parallel:
+`code-review` here with the Skill tool, since it starts its own review
+agents, and the other two in subagents (**Delegate routine stretches**).
+Show the three reports side by side, then
 ask which findings to fix. Commit the fixes to the branch and rerun the
 repository's tests. If a skill is unavailable, say so and continue with the
 others. In the final report, say which reviews ran and what was fixed or
