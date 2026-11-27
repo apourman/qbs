@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.41.0](https://github.com/apourman/qbs/compare/v0.40.0...v0.41.0) (2026-11-27)
+
+
+### Features
+
+* add update-readmes skill and keep docs lean ([#121](https://github.com/apourman/qbs/issues/121)) ([74e76ab](https://github.com/apourman/qbs/commit/74e76abfdcefe67164446ecf3ad0ad4399582d88))
+
 ## [0.40.0](https://github.com/apourman/qbs/compare/v0.39.1...v0.40.0) (2026-11-27)
 
 
