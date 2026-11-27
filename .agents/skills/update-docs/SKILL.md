@@ -52,6 +52,8 @@ Grep these for the names of changed commands, flags, files, and concepts.
   tell the user it needs republishing from the owning account.
 - **Repository docs**: fix stale usage, examples, and paths; record
   architectural decisions as ADRs when the repo keeps them.
+- **READMEs**: invoke `update-readmes` for the directories the work changed;
+  it owns the README standard.
 
 New work with no home gets one in the canonical layout
 (`.<kind>/<domain>/...`); report each created path.

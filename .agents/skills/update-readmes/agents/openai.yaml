@@ -1,0 +1,5 @@
+interface:
+  display_name: "Update READMEs"
+  short_description: "Keep module READMEs short, current, and linked parent to child"
+policy:
+  allow_implicit_invocation: true
