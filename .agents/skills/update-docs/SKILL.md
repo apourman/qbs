@@ -5,8 +5,9 @@ description: Bring every document touched by this session's work up to date — 
 
 # update-docs
 
-Make the documentation match what this session actually did. Change only
-what the work made stale or left unrecorded; do not rewrite docs for style.
+Make the documentation match what this session actually did. Change what
+the work made stale or left unrecorded, and trim what was already stale in
+the docs you touch; do not rewrite docs for style.
 
 ## 1. Inventory the session's work
 
@@ -51,7 +52,13 @@ Grep these for the names of changed commands, flags, files, and concepts.
   URL. If this account cannot publish it, update the local file and index and
   tell the user it needs republishing from the owning account.
 - **Repository docs**: fix stale usage, examples, and paths; record
-  architectural decisions as ADRs when the repo keeps them.
+  architectural decisions as ADRs when the repo keeps them. Keep each doc
+  you touch lean: it describes the project as it stands today, so cut lines
+  that are no longer true and move the rest out as the "What moves out"
+  table in `update-readmes` says. ADRs, specs, backlog items and research
+  notes are records, so they keep their dated history.
+- **READMEs**: invoke `update-readmes` for the directories the work changed;
+  it alone owns READMEs and the README standard.
 
 New work with no home gets one in the canonical layout
 (`.<kind>/<domain>/...`); report each created path.
