@@ -53,13 +53,12 @@ Grep these for the names of changed commands, flags, files, and concepts.
   tell the user it needs republishing from the owning account.
 - **Repository docs**: fix stale usage, examples, and paths; record
   architectural decisions as ADRs when the repo keeps them. Keep each doc
-  you touch lean: it describes the project as it stands today. Cut lines
-  that are no longer true, and leave history (how it got here, ticket
-  numbers, progress logs) to git and the changelog. Notes that only agents
-  or developers working locally need go in the `AGENTS.md` beside the doc,
-  linked from one line.
+  you touch lean: it describes the project as it stands today, so cut lines
+  that are no longer true and move the rest out as the "What moves out"
+  table in `update-readmes` says. ADRs, specs, backlog items and research
+  notes are records, so they keep their dated history.
 - **READMEs**: invoke `update-readmes` for the directories the work changed;
-  it owns the README standard.
+  it alone owns READMEs and the README standard.
 
 New work with no home gets one in the canonical layout
 (`.<kind>/<domain>/...`); report each created path.

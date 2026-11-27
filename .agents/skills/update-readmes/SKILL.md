@@ -1,14 +1,13 @@
 ---
 name: update-readmes
-description: Bring the READMEs touched by the current work up to the README standard — short, current, one README per module, each parent linking to its children's READMEs — walking from the changed directories up to the repository root. Use when the user says "update the readmes", asks for a README standard or a README cleanup, or a README has grown bloated with history or agent notes.
+description: Update READMEs to the README standard, from the directories the current work changed up to the repository root. Use when the user says "update the readmes" or asks for a README cleanup, or a README has grown bloated with history or agent notes.
 ---
 
 # update-readmes
 
 A README is the **front door** of one module: it tells a reader who just
 cloned the repository what the module is, how to use it, and where to go
-next. It describes the module as it stands today. Its history lives in git
-and the changelog; notes for agents working locally live beside it.
+next.
 
 ## The standard
 
@@ -24,7 +23,7 @@ lives in the child's README, so each fact has one home.
 **Sections follow the reader's path.** Open with one paragraph: what the
 module is, who it is for, and what it needs to run. Then only the sections
 the module has a reader for, in this order: Install or Use, Options, Modules
-(the table above), Build, Tests, Releases. Each section is the few lines a
+(the module table), Build, Tests, Releases. Each section is the few lines a
 reader acts on: a command, a setting, a table. A section that outgrows a
 screen moves to a child README or `docs/`, linked from one line.
 
@@ -40,8 +39,8 @@ sentence of status: what works now and what is still missing.
 | A file-by-file tour of the source | doc comments in the code |
 | Notes for agents or developers working locally: hooks, test seams, gotchas, environment variables for one-off checks | an `AGENTS.md` beside the README, linked from one line at the README's end |
 
-`.backlog/`, `.research/`, `.specs/` and `.artifacts/` are Git-ignored, so a
-README never links into them: a fresh clone has no such files.
+A README links only to files a fresh clone has. `.backlog/`, `.research/`,
+`.specs/` and `.artifacts/` are Git-ignored, so they are not among them.
 
 ## 1. Scope
 
