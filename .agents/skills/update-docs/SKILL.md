@@ -5,8 +5,9 @@ description: Bring every document touched by this session's work up to date — 
 
 # update-docs
 
-Make the documentation match what this session actually did. Change only
-what the work made stale or left unrecorded; do not rewrite docs for style.
+Make the documentation match what this session actually did. Change what
+the work made stale or left unrecorded, and trim what was already stale in
+the docs you touch; do not rewrite docs for style.
 
 ## 1. Inventory the session's work
 
@@ -51,7 +52,12 @@ Grep these for the names of changed commands, flags, files, and concepts.
   URL. If this account cannot publish it, update the local file and index and
   tell the user it needs republishing from the owning account.
 - **Repository docs**: fix stale usage, examples, and paths; record
-  architectural decisions as ADRs when the repo keeps them.
+  architectural decisions as ADRs when the repo keeps them. Keep each doc
+  you touch lean: it describes the project as it stands today. Cut lines
+  that are no longer true, and leave history (how it got here, ticket
+  numbers, progress logs) to git and the changelog. Notes that only agents
+  or developers working locally need go in the `AGENTS.md` beside the doc,
+  linked from one line.
 - **READMEs**: invoke `update-readmes` for the directories the work changed;
   it owns the README standard.
 
