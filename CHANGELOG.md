@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.40.0](https://github.com/apourman/qbs/compare/v0.39.1...v0.40.0) (2026-11-27)
+
+
+### Features
+
+* delegate ship-staged's routine stretches to cheap subagents ([#119](https://github.com/apourman/qbs/issues/119)) ([078184a](https://github.com/apourman/qbs/commit/078184abe18ed2a1686a7bbd34e2f0ebdb509aa4))
+
 ## [0.39.1](https://github.com/apourman/qbs/compare/v0.39.0...v0.39.1) (2026-11-25)
 
 
